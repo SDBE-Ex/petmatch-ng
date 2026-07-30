@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PetMatch NG — Find a cross for your pet</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root{
+    --ink:#14241C; --paper:#FBF6EA; --forest:#1F4732; --forest-dark:#132E20;
+    --marigold:#E8A33D; --clay:#A64B2A; --clay-dark:#8A3D22;
+    --line:#D8CBA8; --male:#3C6E9C; --female:#B5507A; --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--forest); color:var(--ink); font-family:'Work Sans', sans-serif; -webkit-font-smoothing:antialiased;}
+  ::selection{background:var(--marigold); color:var(--forest-dark);}
+
+  header.top{
+    background:var(--forest);
+    background-image:radial-gradient(circle at 8% 20%, rgba(255,255,255,0.04) 0, transparent 40%),
+                      radial-gradient(circle at 92% 80%, rgba(255,255,255,0.03) 0, transparent 45%);
+    color:var(--paper); padding:30px 20px 22px; text-align:center; border-bottom:3px solid var(--marigold);
+  }
+  header.top .eyebrow{font-family:'IBM Plex Mono',monospace; letter-spacing:.14em; text-transform:uppercase; font-size:11.5px; color:var(--marigold); margin-bottom:10px;}
+  header.top h1{font-family:'Fraunces',serif; font-weight:600; font-size:clamp(26px,5vw,40px); margin:0 0 8px; letter-spacing:-0.01em;}
+  header.top p{margin:0 auto 18px; max-width:480px; color:#DCE7DD; font-size:14.5px; line-height:1.5;}
+
+  .authbar{
+    display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap;
+    background:rgba(0,0,0,0.18); border-radius:999px; padding:8px 10px; max-width:460px; margin:0 auto;
+  }
+  .authbar input{flex:1; min-width:160px; border:none; border-radius:999px; padding:8px 14px; font-size:13.5px;}
+  .authbar .btn{border-radius:999px;}
+  .authbar .who{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--marigold);}
+  .authbar .who button{background:none; border:none; color:#DCE7DD; text-decoration:underline; cursor:pointer; font-family:'Work Sans',sans-serif; font-size:12px;}
+
+  .tabs{display:flex; justify-content:center; gap:6px; background:var(--forest-dark); padding:10px; position:sticky; top:0; z-index:10; border-bottom:1px solid rgba(255,255,255,0.08);}
+  .tab-btn{font-family:'IBM Plex Mono',monospace; font-size:12.5px; letter-spacing:.04em; text-transform:uppercase; background:transparent; border:1px solid rgba(255,255,255,0.25); color:#CFE0D2; padding:9px 18px; border-radius:999px; cursor:pointer; transition:.15s;}
+  .tab-btn:hover{border-color:var(--marigold); color:var(--marigold);}
+  .tab-btn.active{background:var(--marigold); color:var(--forest-dark); border-color:var(--marigold); font-weight:600;}
+
+  main{max-width:900px; margin:0 auto; padding:28px 16px 80px;}
+  .panel{display:none;} .panel.active{display:block; animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;}}
+
+  .finder{background:var(--paper); border-radius:var(--radius); padding:22px; box-shadow:0 10px 30px rgba(0,0,0,0.18); margin-bottom:26px;}
+  .finder h2{font-family:'Fraunces',serif; font-size:20px; margin:0 0 4px; color:var(--forest-dark);}
+  .finder .sub{font-size:13px; color:#5b5142; margin:0 0 16px;}
+  .row{display:flex; flex-wrap:wrap; gap:10px;}
+  select, input, textarea{font-family:'Work Sans',sans-serif; font-size:14.5px; padding:10px 12px; border:1.5px solid var(--line); border-radius:9px; background:#fff; color:var(--ink); outline:none;}
+  select:focus, input:focus, textarea:focus{border-color:var(--forest); box-shadow:0 0 0 3px rgba(31,71,50,0.12);}
+  .row select{flex:1; min-width:140px;}
+  .btn{font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; letter-spacing:.03em; text-transform:uppercase; border:none; border-radius:9px; padding:11px 20px; cursor:pointer; transition:.15s;}
+  .btn-clay{background:var(--clay); color:#fff;} .btn-clay:hover{background:var(--clay-dark);}
+  .btn-forest{background:var(--forest); color:#fff;} .btn-forest:hover{background:var(--forest-dark);}
+  .btn-ghost{background:transparent; border:1.5px solid var(--forest); color:var(--forest);}
+  .btn:disabled{opacity:.5; cursor:not-allowed;}
+  .btn:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible{outline:3px solid var(--marigold); outline-offset:2px;}
+
+  .filters{display:flex; flex-wrap:wrap; gap:10px; margin-bottom:18px;}
+  .filters input, .filters select{flex:1; min-width:130px;}
+  .count-line{font-family:'IBM Plex Mono',monospace; font-size:12px; color:#DCE7DD; margin:0 0 14px 2px; letter-spacing:.03em;}
+
+  .grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:16px;}
+  .card{position:relative; background:var(--paper); border-radius:var(--radius); padding:0 18px 16px 26px; box-shadow:0 8px 20px rgba(0,0,0,0.16); overflow:hidden;}
+  .card::before{content:''; position:absolute; left:8px; top:0; bottom:0; width:1px; background-image:linear-gradient(var(--line) 60%, transparent 0%); background-size:1px 8px; background-repeat:repeat-y;}
+  .card .photo{width:calc(100% + 18px); margin-left:-18px; height:150px; object-fit:cover; display:block; margin-bottom:12px;}
+  .card .photo-ph{width:calc(100% + 18px); margin-left:-18px; height:60px;}
+  .stamp{position:absolute; top:12px; right:12px; font-family:'IBM Plex Mono',monospace; font-size:10.5px; font-weight:600; color:var(--forest); background:var(--paper); border:1.5px solid var(--forest); border-radius:6px; padding:2px 7px; transform:rotate(4deg); opacity:.85;}
+  .card h3{font-family:'Fraunces',serif; font-size:19px; margin:0 6px 2px 0; color:var(--forest-dark); padding-right:60px; padding-top:16px;}
+  .card.has-photo h3{padding-top:0;}
+  .tagrow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0 10px;}
+  .tag{font-family:'IBM Plex Mono',monospace; font-size:11px; padding:3px 8px; border-radius:999px; background:rgba(31,71,50,0.09); color:var(--forest-dark);}
+  .tag.male{background:rgba(60,110,156,0.14); color:var(--male);} .tag.female{background:rgba(181,80,122,0.14); color:var(--female);}
+  .tag.breeder{background:rgba(232,163,61,0.22); color:#8a5f16;}
+  .card p.notes{font-size:13.5px; color:#4a4437; line-height:1.5; margin:0 0 14px; min-height:20px;}
+  .card .meta{font-size:12px; color:#7a7261; margin:0 0 12px;}
+  .contact-btn{display:inline-block; width:100%; text-align:center; text-decoration:none;}
+
+  .empty{background:rgba(251,246,234,0.9); border-radius:var(--radius); padding:40px 24px; text-align:center; color:var(--forest-dark);}
+  .empty h3{font-family:'Fraunces',serif; margin:0 0 6px; font-size:20px;} .empty p{margin:0; font-size:14px; color:#5b5142;}
+
+  .formcard{background:var(--paper); border-radius:var(--radius); padding:26px; box-shadow:0 10px 30px rgba(0,0,0,0.18);}
+  .formcard h2{font-family:'Fraunces',serif; font-size:22px; margin:0 0 4px; color:var(--forest-dark);}
+  .formcard .sub{font-size:13px; color:#5b5142; margin:0 0 20px;}
+  .field{margin-bottom:14px; display:flex; flex-direction:column; gap:6px;}
+  .field label{font-size:12.5px; font-weight:600; color:var(--forest-dark); letter-spacing:.02em;}
+  .field-row{display:flex; gap:12px; flex-wrap:wrap;} .field-row .field{flex:1; min-width:160px;}
+  .checkline{display:flex; align-items:center; gap:8px; margin:4px 0 18px;} .checkline input{width:auto;} .checkline label{font-size:13px; color:#4a4437;}
+  #formMsg{font-family:'IBM Plex Mono',monospace; font-size:12.5px; margin-top:12px; color:var(--forest-dark);}
+
+  .gate{background:var(--paper); border-radius:var(--radius); padding:34px 26px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.18);}
+  .gate h2{font-family:'Fraunces',serif; color:var(--forest-dark); margin:0 0 8px;}
+  .gate p{color:#5b5142; font-size:14px; margin:0 0 18px;}
+
+  .mine{margin-top:34px; padding-top:22px; border-top:2px dashed var(--line);}
+  .mine h3{font-family:'Fraunces',serif; color:var(--forest-dark); font-size:17px; margin:0 0 12px;}
+  .mine-row{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--line); font-size:13.5px;}
+  .mine-row button{background:none; border:1.5px solid var(--clay); color:var(--clay); border-radius:7px; padding:5px 10px; font-size:11.5px; cursor:pointer; font-family:'IBM Plex Mono',monospace;}
+  .mine-row button:hover{background:var(--clay); color:#fff;}
+
+  footer{text-align:center; color:#B9CBBD; font-size:12px; padding:24px 16px 40px; font-family:'IBM Plex Mono',monospace;}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="eyebrow">Dogs &amp; Cats · Nigeria</div>
+  <h1>PetMatch NG</h1>
+  <p>List your pet, find a match for crossing, and connect directly. Built for everyday owners and registered breeders alike.</p>
+
+  <div class="authbar" id="authbar">
+    <!-- filled by JS -->
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" data-tab="browse">Find a Match</button>
+  <button class="tab-btn" data-tab="add">List Your Pet</button>
+</div>
+
+<main>
+  <!-- BROWSE -->
+  <section id="panel-browse" class="panel active">
+    <div class="finder">
+      <h2>Quick match finder</h2>
+      <p class="sub">Tell us your pet — we'll show suitable partners of the opposite sex.</p>
+      <div class="row">
+        <select id="mySpecies"><option value="Dog">I have a Dog</option><option value="Cat">I have a Cat</option></select>
+        <select id="myGender"><option value="Male">Male</option><option value="Female">Female</option></select>
+        <button class="btn btn-clay" id="findBtn">Find Matches</button>
+      </div>
+    </div>
+
+    <div class="filters">
+      <select id="fSpecies"><option value="">All species</option><option value="Dog">Dogs</option><option value="Cat">Cats</option></select>
+      <select id="fGender"><option value="">Any sex</option><option value="Male">Male</option><option value="Female">Female</option></select>
+      <select id="fState"><option value="">All states</option></select>
+      <input id="fBreed" type="text" placeholder="Search breed…">
+      <button class="btn btn-ghost" id="clearBtn">Clear</button>
+    </div>
+
+    <p class="count-line" id="countLine">Loading listings…</p>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <!-- ADD -->
+  <section id="panel-add" class="panel">
+    <div id="gate" class="gate" style="display:none">
+      <h2>Sign in to list a pet</h2>
+      <p>We ask for an email just to keep listings spam-free — it won't be shown publicly. Your WhatsApp number (entered below) is what other owners will actually use to contact you.</p>
+    </div>
+
+    <div class="formcard" id="formcard" style="display:none">
+      <h2>List your pet</h2>
+      <p class="sub">Your listing is public to everyone using PetMatch NG so owners can reach you directly on WhatsApp. Only share details you're comfortable making public.</p>
+
+      <form id="petForm">
+        <div class="field-row">
+          <div class="field"><label for="ownerName">Your name</label><input id="ownerName" required placeholder="e.g. Chinedu Okafor"></div>
+          <div class="field"><label for="whatsapp">WhatsApp number</label><input id="whatsapp" required placeholder="e.g. 08012345678"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="petName">Pet's name</label><input id="petName" required placeholder="e.g. Simba"></div>
+          <div class="field"><label for="species">Species</label><select id="species" required><option value="Dog">Dog</option><option value="Cat">Cat</option></select></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="breed">Breed</label><input id="breed" list="breedList" required placeholder="e.g. Caucasian Shepherd, Local mix…"></div>
+          <div class="field"><label for="gender">Sex</label><select id="gender" required><option value="Male">Male</option><option value="Female">Female</option></select></div>
+        </div>
+        <datalist id="breedList"></datalist>
+        <div class="field-row">
+          <div class="field"><label for="age">Age (years)</label><input id="age" type="number" min="0" step="0.5" required placeholder="e.g. 2"></div>
+          <div class="field"><label for="state">State</label><select id="state" required></select></div>
+        </div>
+        <div class="field"><label for="notes">Notes (optional)</label><textarea id="notes" rows="3" placeholder="Health status, papers/vaccination, what you're looking for…"></textarea></div>
+        <div class="field"><label for="photo">Photo (optional)</label><input id="photo" type="file" accept="image/*"></div>
+        <div class="checkline"><input type="checkbox" id="breeder"><label for="breeder">I'm a registered/experienced breeder</label></div>
+
+        <button type="submit" class="btn btn-forest" id="submitBtn">Add Listing</button>
+        <div id="formMsg"></div>
+      </form>
+
+      <div class="mine" id="mineWrap" style="display:none">
+        <h3>Your listings</h3>
+        <div id="mineList"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>PETMATCH-NG · A simple directory, not a broker. Meet safely, verify health &amp; vaccination before any cross.</footer>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+// =====================================================================
+// CONFIG — paste your own Supabase project details here before deploying
+// (Project Settings > API in your Supabase dashboard)
+// =====================================================================
+const SUPABASE_URL = 'https://pnawdtpavemfjzdsevey.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_CHwFvmImO-SxEMDO52uWeA_WUuU1k2l';
+// =====================================================================
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const STATES = ["Abia","Adamawa","Akwa Ibom","Anambra","Bauchi","Bayelsa","Benue","Borno",
+"Cross River","Delta","Ebonyi","Edo","Ekiti","Enugu","FCT (Abuja)","Gombe","Imo","Jigawa",
+"Kaduna","Kano","Katsina","Kebbi","Kogi","Kwara","Lagos","Nasarawa","Niger","Ogun","Ondo",
+"Osun","Oyo","Plateau","Rivers","Sokoto","Taraba","Yobe","Zamfara"];
+
+const COMMON_BREEDS = ["Local / Mixed Breed","German Shepherd","Caucasian Shepherd","Boerboel",
+"Rottweiler","Lhasa Apso","Aseel","Bull Mastiff","American Pitbull Terrier","Neapolitan Mastiff",
+"Tibetan Mastiff","Labrador Retriever","Poodle","Persian","British Shorthair","Domestic Shorthair",
+"Siamese","Maine Coon"];
+
+let pets = [];
+let currentUser = null;
+
+// ---------- static dropdowns ----------
+function fillStatics(){
+  const stateSel = document.getElementById('state');
+  const fStateSel = document.getElementById('fState');
+  STATES.forEach(s=>{
+    stateSel.insertAdjacentHTML('beforeend', `<option value="${s}">${s}</option>`);
+    fStateSel.insertAdjacentHTML('beforeend', `<option value="${s}">${s}</option>`);
+  });
+  const breedList = document.getElementById('breedList');
+  COMMON_BREEDS.forEach(b=> breedList.insertAdjacentHTML('beforeend', `<option value="${b}">`));
+}
+fillStatics();
+
+// ---------- tabs ----------
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+    if(btn.dataset.tab === 'add') renderAddPanel();
+  });
+});
+
+// ---------- auth ----------
+function renderAuthbar(){
+  const bar = document.getElementById('authbar');
+  if(currentUser){
+    bar.innerHTML = `<span class="who">Signed in as ${escapeHtml(currentUser.email)}</span>
+      <button class="btn btn-ghost" id="signOutBtn" style="padding:6px 14px">Sign out</button>`;
+    document.getElementById('signOutBtn').addEventListener('click', async ()=>{
+      await supabase.auth.signOut();
+    });
+  } else {
+    bar.innerHTML = `
+      <input type="email" id="authEmail" placeholder="you@email.com">
+      <button class="btn btn-clay" id="sendLinkBtn" style="padding:9px 16px">Sign in to list a pet</button>`;
+    document.getElementById('sendLinkBtn').addEventListener('click', async ()=>{
+      const email = document.getElementById('authEmail').value.trim();
+      const btn = document.getElementById('sendLinkBtn');
+      if(!email) return;
+      btn.disabled = true; btn.textContent = 'Sending…';
+      const { error } = await supabase.auth.signInWithOtp({
+        email, options:{ emailRedirectTo: window.location.href }
+      });
+      btn.textContent = error ? 'Try again' : 'Check your email ✓';
+      btn.disabled = false;
+    });
+  }
+}
+
+supabase.auth.onAuthStateChange((_event, session)=>{
+  currentUser = session?.user ?? null;
+  renderAuthbar();
+  renderAddPanel();
+});
+
+function renderAddPanel(){
+  const gate = document.getElementById('gate');
+  const formcard = document.getElementById('formcard');
+  if(currentUser){
+    gate.style.display = 'none';
+    formcard.style.display = 'block';
+    renderMine();
+  } else {
+    gate.style.display = 'block';
+    formcard.style.display = 'none';
+  }
+}
+
+// ---------- data ----------
+async function loadPets(){
+  const { data, error } = await supabase
+    .from('pets').select('*').order('created_at', { ascending:false });
+  pets = error ? [] : data;
+  render();
+}
+
+function serial(id){ return 'NG-' + id.slice(0,3).toUpperCase(); }
+
+function waLink(number, petName){
+  const digits = number.replace(/[^0-9]/g,'');
+  const intl = digits.startsWith('0') ? '234' + digits.slice(1) : digits;
+  const msg = encodeURIComponent(`Hi! I found ${petName} on PetMatch NG and I'm interested in a possible match.`);
+  return `https://wa.me/${intl}?text=${msg}`;
+}
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function currentFilters(){
+  return {
+    species: document.getElementById('fSpecies').value,
+    gender: document.getElementById('fGender').value,
+    state: document.getElementById('fState').value,
+    breed: document.getElementById('fBreed').value.trim().toLowerCase()
+  };
+}
+
+function render(){
+  const f = currentFilters();
+  const grid = document.getElementById('grid');
+  const countLine = document.getElementById('countLine');
+
+  let list = pets.filter(p=>{
+    if(f.species && p.species !== f.species) return false;
+    if(f.gender && p.gender !== f.gender) return false;
+    if(f.state && p.state !== f.state) return false;
+    if(f.breed && !p.breed.toLowerCase().includes(f.breed)) return false;
+    return true;
+  });
+
+  countLine.textContent = `${list.length} listing${list.length===1?'':'s'} showing · ${pets.length} total on PetMatch NG`;
+
+  if(list.length === 0){
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><h3>No matches here yet</h3><p>Try widening your filters, or be the first to list a pet like this.</p></div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(p=>{
+    const genderClass = p.gender === 'Male' ? 'male' : 'female';
+    return `
+    <div class="card ${p.photo_url ? 'has-photo':''}">
+      ${p.photo_url ? `<img class="photo" src="${p.photo_url}" alt="${escapeHtml(p.pet_name)}">` : ''}
+      <span class="stamp">${serial(p.id)}</span>
+      <h3>${escapeHtml(p.pet_name)}</h3>
+      <div class="tagrow">
+        <span class="tag">${p.species}</span>
+        <span class="tag ${genderClass}">${p.gender}</span>
+        <span class="tag">${escapeHtml(p.breed)}</span>
+        ${p.breeder ? '<span class="tag breeder">Breeder</span>' : ''}
+      </div>
+      <p class="meta">${p.age} yr${p.age==1?'':'s'} old · ${p.state}</p>
+      ${p.notes ? `<p class="notes">${escapeHtml(p.notes)}</p>` : `<p class="notes"></p>`}
+      <a class="btn btn-clay contact-btn" target="_blank" rel="noopener"
+         href="${waLink(p.whatsapp, p.pet_name)}">Message ${escapeHtml(p.owner_name.split(' ')[0])} on WhatsApp</a>
+    </div>`;
+  }).join('');
+}
+
+function renderMine(){
+  const wrap = document.getElementById('mineWrap');
+  const list = document.getElementById('mineList');
+  if(!currentUser) { wrap.style.display='none'; return; }
+  const mine = pets.filter(p => p.owner_id === currentUser.id);
+  if(mine.length === 0){ wrap.style.display='none'; return; }
+  wrap.style.display = 'block';
+  list.innerHTML = mine.map(p=>`
+    <div class="mine-row">
+      <span>${escapeHtml(p.pet_name)} · ${p.species} · ${p.state}</span>
+      <button data-id="${p.id}">Remove</button>
+    </div>`).join('');
+  list.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      if(!confirm('Remove this listing?')) return;
+      await supabase.from('pets').delete().eq('id', btn.dataset.id);
+    });
+  });
+}
+
+// ---------- filters ----------
+['fSpecies','fGender','fState','fBreed'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', render);
+});
+document.getElementById('clearBtn').addEventListener('click', ()=>{
+  ['fSpecies','fGender','fState','fBreed'].forEach(id=> document.getElementById(id).value='');
+  render();
+});
+document.getElementById('findBtn').addEventListener('click', ()=>{
+  const species = document.getElementById('mySpecies').value;
+  const myGender = document.getElementById('myGender').value;
+  document.getElementById('fSpecies').value = species;
+  document.getElementById('fGender').value = myGender === 'Male' ? 'Female' : 'Male';
+  render();
+  document.getElementById('countLine').scrollIntoView({behavior:'smooth', block:'start'});
+});
+
+// ---------- add pet form ----------
+document.getElementById('petForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  if(!currentUser) return;
+  const msg = document.getElementById('formMsg');
+  const submitBtn = document.getElementById('submitBtn');
+  submitBtn.disabled = true;
+  msg.textContent = 'Saving…';
+
+  let photo_url = null;
+  const file = document.getElementById('photo').files[0];
+  if(file){
+    const path = `${currentUser.id}/${Date.now()}-${file.name}`;
+    const { error: upErr } = await supabase.storage.from('pet-photos').upload(path, file);
+    if(upErr){
+      msg.textContent = 'Photo upload failed — saving listing without photo.';
+    } else {
+      photo_url = supabase.storage.from('pet-photos').getPublicUrl(path).data.publicUrl;
+    }
+  }
+
+  const newPet = {
+    owner_id: currentUser.id,
+    owner_name: document.getElementById('ownerName').value.trim(),
+    whatsapp: document.getElementById('whatsapp').value.trim(),
+    pet_name: document.getElementById('petName').value.trim(),
+    species: document.getElementById('species').value,
+    breed: document.getElementById('breed').value.trim(),
+    gender: document.getElementById('gender').value,
+    age: parseFloat(document.getElementById('age').value),
+    state: document.getElementById('state').value,
+    notes: document.getElementById('notes').value.trim(),
+    breeder: document.getElementById('breeder').checked,
+    photo_url
+  };
+
+  const { error } = await supabase.from('pets').insert(newPet);
+  submitBtn.disabled = false;
+  if(error){
+    msg.textContent = 'Something went wrong: ' + error.message;
+    return;
+  }
+  msg.textContent = `✓ ${newPet.pet_name} is now listed. Switch to "Find a Match" to see it.`;
+  e.target.reset();
+  document.getElementById('state').selectedIndex = 0;
+});
+
+// ---------- realtime: refresh when anyone adds/removes a listing ----------
+supabase.channel('pets-changes')
+  .on('postgres_changes', { event:'*', schema:'public', table:'pets' }, ()=> loadPets())
+  .subscribe();
+
+// ---------- init ----------
+(async function init(){
+  document.getElementById('countLine').textContent = 'Loading listings…';
+  const { data:{ session } } = await supabase.auth.getSession();
+  currentUser = session?.user ?? null;
+  renderAuthbar();
+  renderAddPanel();
+  await loadPets();
+})();
+</script>
+</body>
+</html>
