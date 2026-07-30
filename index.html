@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PetMatch NG — Find a cross for your pet</title>
+<title>Petmatch — Find a mate for your pet, near you</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
 
@@ -107,8 +107,8 @@
 
 <header class="top">
   <div class="eyebrow">Dogs &amp; Cats · Nigeria</div>
-  <h1>PetMatch NG</h1>
-  <p>List your pet, find a match for crossing, and connect directly. Built for everyday owners and registered breeders alike.</p>
+  <h1>Petmatch</h1>
+  <p>Find a mate for your pet, near you. Connect with nearby dog and cat owners whose pets are available for mating.</p>
 
   <div class="authbar" id="authbar">
     <!-- filled by JS -->
@@ -136,7 +136,7 @@
     <div class="filters">
       <select id="fSpecies"><option value="">All species</option><option value="Dog">Dogs</option><option value="Cat">Cats</option></select>
       <select id="fGender"><option value="">Any sex</option><option value="Male">Male</option><option value="Female">Female</option></select>
-      <select id="fState"><option value="">All states</option></select>
+      <input id="fState" type="text" placeholder="Search location…">
       <input id="fBreed" type="text" placeholder="Search breed…">
       <button class="btn btn-ghost" id="clearBtn">Clear</button>
     </div>
@@ -154,12 +154,12 @@
 
     <div class="formcard" id="formcard" style="display:none">
       <h2>List your pet</h2>
-      <p class="sub">Your listing is public to everyone using PetMatch NG so owners can reach you directly on WhatsApp. Only share details you're comfortable making public.</p>
+      <p class="sub">Your listing is public to everyone using Petmatch so owners can reach you directly on WhatsApp. Only share details you're comfortable making public.</p>
 
       <form id="petForm">
         <div class="field-row">
-          <div class="field"><label for="ownerName">Your name</label><input id="ownerName" required placeholder="e.g. Chinedu Okafor"></div>
-          <div class="field"><label for="whatsapp">WhatsApp number</label><input id="whatsapp" required placeholder="e.g. 08012345678"></div>
+          <div class="field"><label for="ownerName">Your name</label><input id="ownerName" required placeholder="e.g. Jordan Lee"></div>
+          <div class="field"><label for="whatsapp">WhatsApp number</label><input id="whatsapp" required placeholder="e.g. +1 555 123 4567 (include country code)"></div>
         </div>
         <div class="field-row">
           <div class="field"><label for="petName">Pet's name</label><input id="petName" required placeholder="e.g. Simba"></div>
@@ -172,7 +172,7 @@
         <datalist id="breedList"></datalist>
         <div class="field-row">
           <div class="field"><label for="age">Age (years)</label><input id="age" type="number" min="0" step="0.5" required placeholder="e.g. 2"></div>
-          <div class="field"><label for="state">State</label><select id="state" required></select></div>
+          <div class="field"><label for="state">Location</label><input id="state" required placeholder="e.g. Austin, TX, USA"></div>
         </div>
         <div class="field"><label for="notes">Notes (optional)</label><textarea id="notes" rows="3" placeholder="Health status, papers/vaccination, what you're looking for…"></textarea></div>
         <div class="field"><label for="photo">Photo (optional)</label><input id="photo" type="file" accept="image/*"></div>
@@ -190,7 +190,7 @@
   </section>
 </main>
 
-<footer>PETMATCH-NG · A simple directory, not a broker. Meet safely, verify health &amp; vaccination before any cross.</footer>
+<footer>PETMATCH · A simple directory, not a broker. Meet safely, verify health &amp; vaccination before any cross.</footer>
 
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -205,11 +205,6 @@ const SUPABASE_ANON_KEY = 'sb_publishable_CHwFvmImO-SxEMDO52uWeA_WUuU1k2l';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const STATES = ["Abia","Adamawa","Akwa Ibom","Anambra","Bauchi","Bayelsa","Benue","Borno",
-"Cross River","Delta","Ebonyi","Edo","Ekiti","Enugu","FCT (Abuja)","Gombe","Imo","Jigawa",
-"Kaduna","Kano","Katsina","Kebbi","Kogi","Kwara","Lagos","Nasarawa","Niger","Ogun","Ondo",
-"Osun","Oyo","Plateau","Rivers","Sokoto","Taraba","Yobe","Zamfara"];
-
 const COMMON_BREEDS = ["Local / Mixed Breed","German Shepherd","Caucasian Shepherd","Boerboel",
 "Rottweiler","Lhasa Apso","Aseel","Bull Mastiff","American Pitbull Terrier","Neapolitan Mastiff",
 "Tibetan Mastiff","Labrador Retriever","Poodle","Persian","British Shorthair","Domestic Shorthair",
@@ -220,12 +215,6 @@ let currentUser = null;
 
 // ---------- static dropdowns ----------
 function fillStatics(){
-  const stateSel = document.getElementById('state');
-  const fStateSel = document.getElementById('fState');
-  STATES.forEach(s=>{
-    stateSel.insertAdjacentHTML('beforeend', `<option value="${s}">${s}</option>`);
-    fStateSel.insertAdjacentHTML('beforeend', `<option value="${s}">${s}</option>`);
-  });
   const breedList = document.getElementById('breedList');
   COMMON_BREEDS.forEach(b=> breedList.insertAdjacentHTML('beforeend', `<option value="${b}">`));
 }
@@ -296,12 +285,11 @@ async function loadPets(){
   render();
 }
 
-function serial(id){ return 'NG-' + id.slice(0,3).toUpperCase(); }
+function serial(id){ return 'PM-' + id.slice(0,3).toUpperCase(); }
 
 function waLink(number, petName){
-  const digits = number.replace(/[^0-9]/g,'');
-  const intl = digits.startsWith('0') ? '234' + digits.slice(1) : digits;
-  const msg = encodeURIComponent(`Hi! I found ${petName} on PetMatch NG and I'm interested in a possible match.`);
+  const intl = number.replace(/[^0-9]/g,'');
+  const msg = encodeURIComponent(`Hi! I found ${petName} on Petmatch and I'm interested in a possible match.`);
   return `https://wa.me/${intl}?text=${msg}`;
 }
 function escapeHtml(str){
@@ -312,7 +300,7 @@ function currentFilters(){
   return {
     species: document.getElementById('fSpecies').value,
     gender: document.getElementById('fGender').value,
-    state: document.getElementById('fState').value,
+    state: document.getElementById('fState').value.trim().toLowerCase(),
     breed: document.getElementById('fBreed').value.trim().toLowerCase()
   };
 }
@@ -325,12 +313,12 @@ function render(){
   let list = pets.filter(p=>{
     if(f.species && p.species !== f.species) return false;
     if(f.gender && p.gender !== f.gender) return false;
-    if(f.state && p.state !== f.state) return false;
+    if(f.state && !p.state.toLowerCase().includes(f.state)) return false;
     if(f.breed && !p.breed.toLowerCase().includes(f.breed)) return false;
     return true;
   });
 
-  countLine.textContent = `${list.length} listing${list.length===1?'':'s'} showing · ${pets.length} total on PetMatch NG`;
+  countLine.textContent = `${list.length} listing${list.length===1?'':'s'} showing · ${pets.length} total on Petmatch`;
 
   if(list.length === 0){
     grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><h3>No matches here yet</h3><p>Try widening your filters, or be the first to list a pet like this.</p></div>`;
