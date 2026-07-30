@@ -74,12 +74,38 @@
   .tag{font-family:'IBM Plex Mono',monospace; font-size:11px; padding:3px 8px; border-radius:999px; background:rgba(31,71,50,0.09); color:var(--forest-dark);}
   .tag.male{background:rgba(60,110,156,0.14); color:var(--male);} .tag.female{background:rgba(181,80,122,0.14); color:var(--female);}
   .tag.breeder{background:rgba(232,163,61,0.22); color:#8a5f16;}
+  .tag.available{background:rgba(31,71,50,0.14); color:var(--forest);}
+  .tag.unavailable{background:rgba(166,75,42,0.14); color:var(--clay-dark);}
+  .tag.distance{background:rgba(232,163,61,0.18); color:#8a5f16;}
   .card p.notes{font-size:13.5px; color:#4a4437; line-height:1.5; margin:0 0 14px; min-height:20px;}
   .card .meta{font-size:12px; color:#7a7261; margin:0 0 12px;}
   .contact-btn{display:inline-block; width:100%; text-align:center; text-decoration:none;}
+  .card-actions{display:flex; gap:8px;}
+  .card-actions .btn{flex:1; padding:11px 8px; font-size:11.5px;}
+
+  .near-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px;}
+  .near-row select{display:none; flex:none; min-width:auto;}
+  .near-row select.shown{display:block;}
+  .near-row .checkline{margin:0;}
+  .near-row .checkline label{color:#DCE7DD; font-size:12.5px;}
+  .near-row .btn-ghost{border-color:var(--marigold); color:var(--marigold);}
+  .near-row .btn-ghost:hover{background:var(--marigold); color:var(--forest-dark);}
+  .near-status{font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:#DCE7DD;}
 
   .empty{background:rgba(251,246,234,0.9); border-radius:var(--radius); padding:40px 24px; text-align:center; color:var(--forest-dark);}
   .empty h3{font-family:'Fraunces',serif; margin:0 0 6px; font-size:20px;} .empty p{margin:0; font-size:14px; color:#5b5142;}
+
+  .modal-backdrop{display:none; position:fixed; inset:0; background:rgba(19,46,32,0.7); z-index:100; align-items:center; justify-content:center; padding:20px;}
+  .modal-backdrop.open{display:flex;}
+  .modal{background:var(--paper); border-radius:var(--radius); max-width:480px; width:100%; max-height:88vh; overflow-y:auto; padding:0 0 22px; position:relative; box-shadow:0 20px 50px rgba(0,0,0,0.35);}
+  .modal .photo{width:100%; height:220px; object-fit:cover; display:block;}
+  .modal-body{padding:20px 22px 0;}
+  .modal h2{font-family:'Fraunces',serif; font-size:24px; margin:0 0 4px; color:var(--forest-dark); padding-right:34px;}
+  .modal-close{position:absolute; top:12px; right:12px; width:32px; height:32px; border-radius:999px; border:none; background:rgba(19,46,32,0.55); color:#fff; font-size:16px; cursor:pointer; z-index:2;}
+  .modal-close:hover{background:var(--forest-dark);}
+  .modal .connect-row{display:flex; gap:8px; flex-wrap:wrap; margin-top:18px;}
+  .modal .connect-row a, .modal .connect-row button{flex:1; min-width:110px; text-align:center; text-decoration:none;}
+  .modal .owner-line{font-size:13px; color:#5b5142; margin:10px 0 0;}
 
   .formcard{background:var(--paper); border-radius:var(--radius); padding:26px; box-shadow:0 10px 30px rgba(0,0,0,0.18);}
   .formcard h2{font-family:'Fraunces',serif; font-size:22px; margin:0 0 4px; color:var(--forest-dark);}
@@ -108,7 +134,7 @@
 <header class="top">
   <div class="eyebrow">Dogs &amp; Cats · Nigeria</div>
   <h1>Petmatch</h1>
-  <p>Find a mate for your pet, near you. Connect with nearby dog and cat owners whose pets are available for mating.</p>
+  <p>Find a Mate for Your Pet. Discover nearby dogs and cats available for mating and connect directly with their owners.</p>
 
   <div class="authbar" id="authbar">
     <!-- filled by JS -->
@@ -139,6 +165,13 @@
       <input id="fState" type="text" placeholder="Search location…">
       <input id="fBreed" type="text" placeholder="Search breed…">
       <button class="btn btn-ghost" id="clearBtn">Clear</button>
+    </div>
+
+    <div class="near-row">
+      <button class="btn btn-ghost" id="nearBtn" type="button" style="padding:9px 16px">Search near me</button>
+      <select id="fDistance"><option value="">Any distance</option><option value="10">Within 10 km</option><option value="25">Within 25 km</option><option value="50">Within 50 km</option><option value="100">Within 100 km</option></select>
+      <span class="near-status" id="nearStatus"></span>
+      <div class="checkline"><input type="checkbox" id="fAvailable"><label for="fAvailable">Available for mating now</label></div>
     </div>
 
     <p class="count-line" id="countLine">Loading listings…</p>
@@ -172,11 +205,23 @@
         <datalist id="breedList"></datalist>
         <div class="field-row">
           <div class="field"><label for="age">Age (years)</label><input id="age" type="number" min="0" step="0.5" required placeholder="e.g. 2"></div>
-          <div class="field"><label for="state">Location</label><input id="state" required placeholder="e.g. Austin, TX, USA"></div>
+          <div class="field">
+            <label for="state">Location</label>
+            <input id="state" required placeholder="e.g. Austin, TX, USA">
+            <button type="button" class="btn btn-ghost" id="useLocationBtn" style="padding:7px 10px; font-size:11px; align-self:flex-start">Use my current location</button>
+            <span id="locationStatus" style="font-size:11.5px; color:#5b5142"></span>
+          </div>
         </div>
         <div class="field"><label for="notes">Notes (optional)</label><textarea id="notes" rows="3" placeholder="Health status, papers/vaccination, what you're looking for…"></textarea></div>
         <div class="field"><label for="photo">Photo (optional)</label><input id="photo" type="file" accept="image/*"></div>
         <div class="checkline"><input type="checkbox" id="breeder"><label for="breeder">I'm a registered/experienced breeder</label></div>
+        <div class="checkline"><input type="checkbox" id="availableForMating" checked><label for="availableForMating">Available for mating right now</label></div>
+
+        <div class="field">
+          <label>How should other owners reach you?</label>
+          <div class="checkline"><input type="checkbox" id="acceptsWhatsapp" checked><label for="acceptsWhatsapp">WhatsApp messages</label></div>
+          <div class="checkline"><input type="checkbox" id="acceptsCalls"><label for="acceptsCalls">Phone calls</label></div>
+        </div>
 
         <button type="submit" class="btn btn-forest" id="submitBtn">Add Listing</button>
         <div id="formMsg"></div>
@@ -191,6 +236,10 @@
 </main>
 
 <footer>PETMATCH · A simple directory, not a broker. Meet safely, verify health &amp; vaccination before any cross.</footer>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" id="modalContent"></div>
+</div>
 
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -212,6 +261,17 @@ const COMMON_BREEDS = ["Local / Mixed Breed","German Shepherd","Caucasian Shephe
 
 let pets = [];
 let currentUser = null;
+let myCoords = null;      // { lat, lng } from "Search near me"
+let formCoords = null;    // { lat, lng } captured on the listing form
+let petDistances = {};    // pet id -> km from myCoords, recomputed each render
+
+function haversineKm(a, b){
+  const R = 6371;
+  const dLat = (b.lat - a.lat) * Math.PI/180;
+  const dLng = (b.lng - a.lng) * Math.PI/180;
+  const s = Math.sin(dLat/2)**2 + Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1-s));
+}
 
 // ---------- static dropdowns ----------
 function fillStatics(){
@@ -292,8 +352,26 @@ function waLink(number, petName){
   const msg = encodeURIComponent(`Hi! I found ${petName} on Petmatch and I'm interested in a possible match.`);
   return `https://wa.me/${intl}?text=${msg}`;
 }
+function callLink(number){
+  return `tel:+${number.replace(/[^0-9]/g,'')}`;
+}
 function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+// Builds the Connect buttons for a pet, honoring the owner's contact preferences.
+function connectButtonsHtml(p){
+  const buttons = [];
+  if(p.accepts_whatsapp){
+    buttons.push(`<a class="btn btn-clay contact-btn" target="_blank" rel="noopener" href="${waLink(p.whatsapp, p.pet_name)}">WhatsApp ${escapeHtml(p.owner_name.split(' ')[0])}</a>`);
+  }
+  if(p.accepts_calls){
+    buttons.push(`<a class="btn btn-forest contact-btn" href="${callLink(p.whatsapp)}">Call ${escapeHtml(p.owner_name.split(' ')[0])}</a>`);
+  }
+  if(buttons.length === 0){
+    buttons.push(`<span class="btn btn-ghost contact-btn" style="cursor:default">Contact details unavailable</span>`);
+  }
+  return buttons.join('');
 }
 
 function currentFilters(){
@@ -301,7 +379,9 @@ function currentFilters(){
     species: document.getElementById('fSpecies').value,
     gender: document.getElementById('fGender').value,
     state: document.getElementById('fState').value.trim().toLowerCase(),
-    breed: document.getElementById('fBreed').value.trim().toLowerCase()
+    breed: document.getElementById('fBreed').value.trim().toLowerCase(),
+    available: document.getElementById('fAvailable').checked,
+    maxDistance: document.getElementById('fDistance').value ? parseFloat(document.getElementById('fDistance').value) : null
   };
 }
 
@@ -310,13 +390,37 @@ function render(){
   const grid = document.getElementById('grid');
   const countLine = document.getElementById('countLine');
 
+  petDistances = {};
+  if(myCoords){
+    pets.forEach(p=>{
+      if(p.lat != null && p.lng != null){
+        petDistances[p.id] = haversineKm(myCoords, { lat: p.lat, lng: p.lng });
+      }
+    });
+  }
+
   let list = pets.filter(p=>{
     if(f.species && p.species !== f.species) return false;
     if(f.gender && p.gender !== f.gender) return false;
     if(f.state && !p.state.toLowerCase().includes(f.state)) return false;
     if(f.breed && !p.breed.toLowerCase().includes(f.breed)) return false;
+    if(f.available && !p.available_for_mating) return false;
+    if(f.maxDistance != null){
+      const d = petDistances[p.id];
+      if(d == null || d > f.maxDistance) return false;
+    }
     return true;
   });
+
+  if(myCoords){
+    list = list.slice().sort((a,b)=>{
+      const da = petDistances[a.id], db = petDistances[b.id];
+      if(da == null && db == null) return 0;
+      if(da == null) return 1;
+      if(db == null) return -1;
+      return da - db;
+    });
+  }
 
   countLine.textContent = `${list.length} listing${list.length===1?'':'s'} showing · ${pets.length} total on Petmatch`;
 
@@ -327,6 +431,7 @@ function render(){
 
   grid.innerHTML = list.map(p=>{
     const genderClass = p.gender === 'Male' ? 'male' : 'female';
+    const dist = petDistances[p.id];
     return `
     <div class="card ${p.photo_url ? 'has-photo':''}">
       ${p.photo_url ? `<img class="photo" src="${p.photo_url}" alt="${escapeHtml(p.pet_name)}">` : ''}
@@ -337,14 +442,58 @@ function render(){
         <span class="tag ${genderClass}">${p.gender}</span>
         <span class="tag">${escapeHtml(p.breed)}</span>
         ${p.breeder ? '<span class="tag breeder">Breeder</span>' : ''}
+        <span class="tag ${p.available_for_mating ? 'available' : 'unavailable'}">${p.available_for_mating ? 'Available now' : 'Not available now'}</span>
+        ${dist != null ? `<span class="tag distance">${dist < 1 ? '<1' : dist.toFixed(0)} km away</span>` : ''}
       </div>
-      <p class="meta">${p.age} yr${p.age==1?'':'s'} old · ${p.state}</p>
+      <p class="meta">${p.age} yr${p.age==1?'':'s'} old · ${escapeHtml(p.state)}</p>
       ${p.notes ? `<p class="notes">${escapeHtml(p.notes)}</p>` : `<p class="notes"></p>`}
-      <a class="btn btn-clay contact-btn" target="_blank" rel="noopener"
-         href="${waLink(p.whatsapp, p.pet_name)}">Message ${escapeHtml(p.owner_name.split(' ')[0])} on WhatsApp</a>
+      <div class="card-actions">
+        <button class="btn btn-ghost" type="button" data-view="${p.id}">View Profile</button>
+      </div>
     </div>`;
   }).join('');
+
+  grid.querySelectorAll('[data-view]').forEach(btn=>{
+    btn.addEventListener('click', ()=> openProfile(btn.dataset.view));
+  });
 }
+
+// ---------- profile modal ----------
+function openProfile(id){
+  const p = pets.find(x=>x.id === id);
+  if(!p) return;
+  const genderClass = p.gender === 'Male' ? 'male' : 'female';
+  const dist = petDistances[p.id];
+  document.getElementById('modalContent').innerHTML = `
+    <button class="modal-close" id="modalCloseBtn" type="button" aria-label="Close">✕</button>
+    ${p.photo_url ? `<img class="photo" src="${p.photo_url}" alt="${escapeHtml(p.pet_name)}">` : ''}
+    <div class="modal-body">
+      <h2>${escapeHtml(p.pet_name)}</h2>
+      <div class="tagrow">
+        <span class="tag">${p.species}</span>
+        <span class="tag ${genderClass}">${p.gender}</span>
+        <span class="tag">${escapeHtml(p.breed)}</span>
+        ${p.breeder ? '<span class="tag breeder">Breeder</span>' : ''}
+        <span class="tag ${p.available_for_mating ? 'available' : 'unavailable'}">${p.available_for_mating ? 'Available now' : 'Not available now'}</span>
+        ${dist != null ? `<span class="tag distance">${dist < 1 ? '<1' : dist.toFixed(0)} km away</span>` : ''}
+      </div>
+      <p class="meta">${p.age} yr${p.age==1?'':'s'} old · ${escapeHtml(p.state)} · ${serial(p.id)}</p>
+      ${p.notes ? `<p class="notes">${escapeHtml(p.notes)}</p>` : ''}
+      <p class="owner-line">Listed by ${escapeHtml(p.owner_name)}</p>
+      <div class="connect-row">${connectButtonsHtml(p)}</div>
+    </div>`;
+  document.getElementById('modalCloseBtn').addEventListener('click', closeProfile);
+  document.getElementById('modalBackdrop').classList.add('open');
+}
+function closeProfile(){
+  document.getElementById('modalBackdrop').classList.remove('open');
+}
+document.getElementById('modalBackdrop').addEventListener('click', (e)=>{
+  if(e.target.id === 'modalBackdrop') closeProfile();
+});
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape') closeProfile();
+});
 
 function renderMine(){
   const wrap = document.getElementById('mineWrap');
@@ -367,12 +516,38 @@ function renderMine(){
 }
 
 // ---------- filters ----------
-['fSpecies','fGender','fState','fBreed'].forEach(id=>{
+['fSpecies','fGender','fState','fBreed','fDistance'].forEach(id=>{
   document.getElementById(id).addEventListener('input', render);
 });
+document.getElementById('fAvailable').addEventListener('change', render);
 document.getElementById('clearBtn').addEventListener('click', ()=>{
-  ['fSpecies','fGender','fState','fBreed'].forEach(id=> document.getElementById(id).value='');
+  ['fSpecies','fGender','fState','fBreed','fDistance'].forEach(id=> document.getElementById(id).value='');
+  document.getElementById('fAvailable').checked = false;
   render();
+});
+
+// ---------- "search near me" ----------
+document.getElementById('nearBtn').addEventListener('click', ()=>{
+  const btn = document.getElementById('nearBtn');
+  const status = document.getElementById('nearStatus');
+  if(!navigator.geolocation){
+    status.textContent = "Your browser doesn't support location search.";
+    return;
+  }
+  btn.disabled = true; status.textContent = 'Locating…';
+  navigator.geolocation.getCurrentPosition(
+    (pos)=>{
+      myCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      status.textContent = '📍 Showing distances from your location';
+      document.getElementById('fDistance').classList.add('shown');
+      btn.disabled = false;
+      render();
+    },
+    ()=>{
+      status.textContent = "Couldn't get your location — check browser permissions.";
+      btn.disabled = false;
+    }
+  );
 });
 document.getElementById('findBtn').addEventListener('click', ()=>{
   const species = document.getElementById('mySpecies').value;
@@ -404,6 +579,14 @@ document.getElementById('petForm').addEventListener('submit', async (e)=>{
     }
   }
 
+  const acceptsWhatsapp = document.getElementById('acceptsWhatsapp').checked;
+  const acceptsCalls = document.getElementById('acceptsCalls').checked;
+  if(!acceptsWhatsapp && !acceptsCalls){
+    msg.textContent = 'Choose at least one way for owners to reach you (WhatsApp or calls).';
+    submitBtn.disabled = false;
+    return;
+  }
+
   const newPet = {
     owner_id: currentUser.id,
     owner_name: document.getElementById('ownerName').value.trim(),
@@ -416,6 +599,11 @@ document.getElementById('petForm').addEventListener('submit', async (e)=>{
     state: document.getElementById('state').value,
     notes: document.getElementById('notes').value.trim(),
     breeder: document.getElementById('breeder').checked,
+    available_for_mating: document.getElementById('availableForMating').checked,
+    accepts_whatsapp: acceptsWhatsapp,
+    accepts_calls: acceptsCalls,
+    lat: formCoords?.lat ?? null,
+    lng: formCoords?.lng ?? null,
     photo_url
   };
 
@@ -427,7 +615,25 @@ document.getElementById('petForm').addEventListener('submit', async (e)=>{
   }
   msg.textContent = `✓ ${newPet.pet_name} is now listed. Switch to "Find a Match" to see it.`;
   e.target.reset();
-  document.getElementById('state').selectedIndex = 0;
+  formCoords = null;
+  document.getElementById('locationStatus').textContent = '';
+});
+
+// ---------- capture geolocation on the listing form ----------
+document.getElementById('useLocationBtn').addEventListener('click', ()=>{
+  const status = document.getElementById('locationStatus');
+  if(!navigator.geolocation){
+    status.textContent = "Your browser doesn't support this.";
+    return;
+  }
+  status.textContent = 'Locating…';
+  navigator.geolocation.getCurrentPosition(
+    (pos)=>{
+      formCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      status.textContent = '📍 Location captured — helps nearby owners find you';
+    },
+    ()=>{ status.textContent = "Couldn't get your location — check browser permissions."; }
+  );
 });
 
 // ---------- realtime: refresh when anyone adds/removes a listing ----------
