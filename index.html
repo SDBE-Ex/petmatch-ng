@@ -132,7 +132,7 @@
 <body>
 
 <header class="top">
-  <div class="eyebrow">Dogs &amp; Cats · Nigeria</div>
+  <div class="eyebrow">Dogs &amp; Cats · Near You</div>
   <h1>Petmatch</h1>
   <p>Find a Mate for Your Pet. Discover nearby dogs and cats available for mating and connect directly with their owners.</p>
 
@@ -220,6 +220,7 @@
         <div class="field">
           <label>How should other owners reach you?</label>
           <div class="checkline"><input type="checkbox" id="acceptsWhatsapp" checked><label for="acceptsWhatsapp">WhatsApp messages</label></div>
+          <div class="checkline"><input type="checkbox" id="acceptsText"><label for="acceptsText">Text (SMS)</label></div>
           <div class="checkline"><input type="checkbox" id="acceptsCalls"><label for="acceptsCalls">Phone calls</label></div>
         </div>
 
@@ -235,7 +236,7 @@
   </section>
 </main>
 
-<footer>PETMATCH · A simple directory, not a broker. Meet safely, verify health &amp; vaccination before any cross.</footer>
+<footer>PETMATCH · A simple directory, not a broker. Meet safely, verify health &amp; vaccination before any cross.<br>Contact: <a href="mailto:hello@petmatch.fit" style="color:inherit">hello@petmatch.fit</a></footer>
 
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal" id="modalContent"></div>
@@ -302,8 +303,14 @@ function renderAuthbar(){
     });
   } else {
     bar.innerHTML = `
+      <button class="btn btn-forest" id="googleBtn" style="padding:9px 16px">Continue with Google</button>
       <input type="email" id="authEmail" placeholder="you@email.com">
       <button class="btn btn-clay" id="sendLinkBtn" style="padding:9px 16px">Sign in to list a pet</button>`;
+    document.getElementById('googleBtn').addEventListener('click', async ()=>{
+      await supabase.auth.signInWithOAuth({
+        provider: 'google', options:{ redirectTo: window.location.href }
+      });
+    });
     document.getElementById('sendLinkBtn').addEventListener('click', async ()=>{
       const email = document.getElementById('authEmail').value.trim();
       const btn = document.getElementById('sendLinkBtn');
@@ -355,6 +362,11 @@ function waLink(number, petName){
 function callLink(number){
   return `tel:+${number.replace(/[^0-9]/g,'')}`;
 }
+function smsLink(number, petName){
+  const intl = number.replace(/[^0-9]/g,'');
+  const msg = encodeURIComponent(`Hi! I found ${petName} on Petmatch and I'm interested in a possible match.`);
+  return `sms:+${intl}?body=${msg}`;
+}
 function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
@@ -364,6 +376,9 @@ function connectButtonsHtml(p){
   const buttons = [];
   if(p.accepts_whatsapp){
     buttons.push(`<a class="btn btn-clay contact-btn" target="_blank" rel="noopener" href="${waLink(p.whatsapp, p.pet_name)}">WhatsApp ${escapeHtml(p.owner_name.split(' ')[0])}</a>`);
+  }
+  if(p.accepts_text){
+    buttons.push(`<a class="btn btn-ghost contact-btn" href="${smsLink(p.whatsapp, p.pet_name)}">Text ${escapeHtml(p.owner_name.split(' ')[0])}</a>`);
   }
   if(p.accepts_calls){
     buttons.push(`<a class="btn btn-forest contact-btn" href="${callLink(p.whatsapp)}">Call ${escapeHtml(p.owner_name.split(' ')[0])}</a>`);
@@ -580,9 +595,10 @@ document.getElementById('petForm').addEventListener('submit', async (e)=>{
   }
 
   const acceptsWhatsapp = document.getElementById('acceptsWhatsapp').checked;
+  const acceptsText = document.getElementById('acceptsText').checked;
   const acceptsCalls = document.getElementById('acceptsCalls').checked;
-  if(!acceptsWhatsapp && !acceptsCalls){
-    msg.textContent = 'Choose at least one way for owners to reach you (WhatsApp or calls).';
+  if(!acceptsWhatsapp && !acceptsText && !acceptsCalls){
+    msg.textContent = 'Choose at least one way for owners to reach you (WhatsApp, text, or calls).';
     submitBtn.disabled = false;
     return;
   }
@@ -601,6 +617,7 @@ document.getElementById('petForm').addEventListener('submit', async (e)=>{
     breeder: document.getElementById('breeder').checked,
     available_for_mating: document.getElementById('availableForMating').checked,
     accepts_whatsapp: acceptsWhatsapp,
+    accepts_text: acceptsText,
     accepts_calls: acceptsCalls,
     lat: formCoords?.lat ?? null,
     lng: formCoords?.lng ?? null,
