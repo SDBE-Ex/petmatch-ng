@@ -20,7 +20,7 @@
     background:var(--forest);
     background-image:radial-gradient(circle at 8% 20%, rgba(255,255,255,0.04) 0, transparent 40%),
                       radial-gradient(circle at 92% 80%, rgba(255,255,255,0.03) 0, transparent 45%);
-    color:var(--paper); padding:30px 20px 22px; text-align:center; border-bottom:3px solid var(--marigold);
+    color:var(--paper); padding:30px 20px 22px; text-align:center;
   }
   header.top .eyebrow{font-family:'IBM Plex Mono',monospace; letter-spacing:.14em; text-transform:uppercase; font-size:11.5px; color:var(--marigold); margin-bottom:10px;}
   header.top h1{font-family:'Fraunces',serif; font-weight:600; font-size:clamp(26px,5vw,40px); margin:0 0 8px; letter-spacing:-0.01em;}
@@ -34,6 +34,10 @@
   .authbar .btn{border-radius:999px;}
   .authbar .who{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--marigold);}
   .authbar .who button{background:none; border:none; color:#DCE7DD; text-decoration:underline; cursor:pointer; font-family:'Work Sans',sans-serif; font-size:12px;}
+
+  .hero-image{width:100%; height:190px; overflow:hidden; border-bottom:3px solid var(--marigold);}
+  .hero-image svg{display:block; width:100%; height:100%;}
+  @media (max-width:600px){ .hero-image{height:150px;} }
 
   .tabs{display:flex; justify-content:center; gap:6px; background:var(--forest-dark); padding:10px; position:sticky; top:0; z-index:10; border-bottom:1px solid rgba(255,255,255,0.08);}
   .tab-btn{font-family:'IBM Plex Mono',monospace; font-size:12.5px; letter-spacing:.04em; text-transform:uppercase; background:transparent; border:1px solid rgba(255,255,255,0.25); color:#CFE0D2; padding:9px 18px; border-radius:999px; cursor:pointer; transition:.15s;}
@@ -141,6 +145,43 @@
     <!-- filled by JS -->
   </div>
 </header>
+
+<div class="hero-image">
+  <svg viewBox="0 0 1600 260" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Illustration of a dog and cat sitting together at golden hour">
+    <defs>
+      <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#E8A33D"/>
+        <stop offset="55%" stop-color="#D98A3D"/>
+        <stop offset="100%" stop-color="#A64B2A"/>
+      </linearGradient>
+    </defs>
+    <rect width="1600" height="260" fill="url(#skyGrad)"/>
+    <circle cx="800" cy="90" r="52" fill="#FBF6EA" opacity="0.9"/>
+    <path d="M0 200 Q 400 165 800 195 T 1600 185 V260 H0 Z" fill="#8A3D22" opacity="0.55"/>
+    <path d="M0 220 Q 440 190 800 215 T 1600 210 V260 H0 Z" fill="#132E20"/>
+    <!-- dog silhouette, sitting -->
+    <g fill="#132E20">
+      <ellipse cx="700" cy="210" rx="72" ry="50"/>
+      <circle cx="660" cy="140" r="42"/>
+      <path d="M624 116 Q598 84 612 148 Q630 142 624 116 Z"/>
+      <path d="M700 116 Q726 84 712 148 Q694 142 700 116 Z"/>
+      <path d="M752 200 Q788 176 776 226 Q760 220 752 200 Z"/>
+    </g>
+    <!-- cat silhouette, sitting close beside -->
+    <g fill="#FBF6EA">
+      <ellipse cx="875" cy="216" rx="50" ry="42"/>
+      <circle cx="875" cy="156" r="30"/>
+      <path d="M850 140 L840 112 L866 134 Z"/>
+      <path d="M900 140 L910 112 L884 134 Z"/>
+      <path d="M918 210 Q958 198 950 132 Q938 130 934 172 Q926 202 918 210 Z"/>
+    </g>
+    <g fill="#FBF6EA" opacity="0.32">
+      <circle cx="220" cy="90" r="6"/><circle cx="250" cy="68" r="5"/><circle cx="190" cy="62" r="4"/>
+      <circle cx="1340" cy="80" r="6"/><circle cx="1310" cy="58" r="5"/><circle cx="1370" cy="52" r="4"/>
+      <circle cx="130" cy="150" r="5"/><circle cx="1470" cy="140" r="5"/>
+    </g>
+  </svg>
+</div>
 
 <div class="tabs">
   <button class="tab-btn active" data-tab="browse">Find a Match</button>
