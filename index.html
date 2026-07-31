@@ -430,14 +430,8 @@ function renderAuthbar(){
     });
   } else {
     bar.innerHTML = `
-      <button class="btn btn-forest" id="googleBtn" style="padding:9px 16px">Continue with Google</button>
       <input type="email" id="authEmail" placeholder="you@email.com">
       <button class="btn btn-clay" id="sendLinkBtn" style="padding:9px 16px">Sign in to list a pet</button>`;
-    document.getElementById('googleBtn').addEventListener('click', async ()=>{
-      await supabase.auth.signInWithOAuth({
-        provider: 'google', options:{ redirectTo: window.location.href }
-      });
-    });
     document.getElementById('sendLinkBtn').addEventListener('click', async ()=>{
       const email = document.getElementById('authEmail').value.trim();
       const btn = document.getElementById('sendLinkBtn');
