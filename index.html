@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Petmatch — Find a mate for your pet, near you</title>
+<title>Petmatch: Find a mate for your pet, near you</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
 
@@ -35,9 +35,22 @@
   .authbar .who{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--marigold);}
   .authbar .who button{background:none; border:none; color:#DCE7DD; text-decoration:underline; cursor:pointer; font-family:'Work Sans',sans-serif; font-size:12px;}
 
-  .hero-image{width:100%; height:190px; overflow:hidden; border-bottom:3px solid var(--marigold);}
-  .hero-image svg{display:block; width:100%; height:100%;}
-  @media (max-width:600px){ .hero-image{height:150px;} }
+  .hero-image{width:calc(100% - 32px); max-width:900px; margin:20px auto; height:260px; border-radius:var(--radius); overflow:hidden; display:flex; position:relative; cursor:pointer; box-shadow:0 12px 30px rgba(0,0,0,0.28);}
+  @media (max-width:600px){ .hero-image{height:220px; margin:14px auto; border-radius:10px;} }
+
+  .hero-photo-half{flex:1; overflow:hidden; position:relative;}
+  .hero-photo-half img{width:100%; height:100%; object-fit:cover; object-position:50% 35%; display:block; transition:transform .6s ease;}
+  .hero-photo-half::after{content:''; position:absolute; inset:0; pointer-events:none; background:linear-gradient(180deg, rgba(19,46,32,0) 55%, rgba(19,46,32,0.5) 100%);}
+  .hero-image:hover .hero-photo-half img, .hero-image:focus-visible .hero-photo-half img{transform:scale(1.06);}
+  .hero-seam{width:4px; flex:none; background:var(--marigold); z-index:2;}
+
+  .hero-heart-pop{position:absolute; left:50%; top:50%; width:52px; height:44px; margin:-30px 0 0 -26px; opacity:0; pointer-events:none; z-index:3; filter:drop-shadow(0 2px 8px rgba(0,0,0,0.3)); transform-origin:50% 100%;}
+  .hero-image.poked .hero-heart-pop{animation:heartPop 1.1s ease-out;}
+  @keyframes heartPop{0%{opacity:0; transform:translateY(0) scale(.5);} 30%{opacity:1; transform:translateY(-14px) scale(1.15);} 100%{opacity:0; transform:translateY(-46px) scale(.9);}}
+  @media (prefers-reduced-motion:reduce){
+    .hero-photo-half img{transition:none;}
+    .hero-image.poked .hero-heart-pop{animation:none; opacity:.9;}
+  }
 
   .tabs{display:flex; justify-content:center; gap:6px; background:var(--forest-dark); padding:10px; position:sticky; top:0; z-index:10; border-bottom:1px solid rgba(255,255,255,0.08);}
   .tab-btn{font-family:'IBM Plex Mono',monospace; font-size:12.5px; letter-spacing:.04em; text-transform:uppercase; background:transparent; border:1px solid rgba(255,255,255,0.25); color:#CFE0D2; padding:9px 18px; border-radius:999px; cursor:pointer; transition:.15s;}
@@ -113,6 +126,11 @@
   .modal .connect-row{display:flex; gap:8px; flex-wrap:wrap; margin-top:18px;}
   .modal .connect-row a, .modal .connect-row button{flex:1; min-width:110px; text-align:center; text-decoration:none;}
   .modal .owner-line{font-size:13px; color:#5b5142; margin:10px 0 0;}
+  .report-wrap{margin-top:18px; padding-top:14px; border-top:1px solid var(--line);}
+  .report-link{background:none; border:none; padding:0; font-family:'Work Sans',sans-serif; font-size:12.5px; color:#8a5f16; text-decoration:underline; cursor:pointer;}
+  .report-link:hover{color:var(--clay-dark);}
+  .report-form{margin-top:12px;}
+  .report-form select, .report-form textarea{width:100%;}
 
   .formcard{background:var(--paper); border-radius:var(--radius); padding:26px; box-shadow:0 10px 30px rgba(0,0,0,0.18);}
   .formcard h2{font-family:'Fraunces',serif; font-size:22px; margin:0 0 4px; color:var(--forest-dark);}
@@ -121,6 +139,10 @@
   .field label{font-size:12.5px; font-weight:600; color:var(--forest-dark); letter-spacing:.02em;}
   .field-row{display:flex; gap:12px; flex-wrap:wrap;} .field-row .field{flex:1; min-width:160px;}
   .checkline{display:flex; align-items:center; gap:8px; margin:4px 0 18px;} .checkline input{width:auto;} .checkline label{font-size:13px; color:#4a4437;}
+  .photo-input-row{display:flex; gap:8px; flex-wrap:wrap;}
+  .photo-input-row .btn{padding:9px 14px; font-size:11.5px;}
+  .photo-preview{display:flex; align-items:center; gap:12px; margin-top:10px;}
+  .photo-preview img{width:64px; height:64px; object-fit:cover; border-radius:9px; border:1.5px solid var(--line);}
   #formMsg{font-family:'IBM Plex Mono',monospace; font-size:12.5px; margin-top:12px; color:var(--forest-dark);}
 
   .gate{background:var(--paper); border-radius:var(--radius); padding:34px 26px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.18);}
@@ -141,48 +163,22 @@
 <header class="top">
   <div class="eyebrow">Dogs &amp; Cats · Near You</div>
   <h1>Petmatch</h1>
-  <p>Find a Mate for Your Pet. Discover nearby dogs and cats available for mating and connect directly with their owners.</p>
+  <p>Discover nearby dogs and cats available for mating, and connect directly with their owners.</p>
 
   <div class="authbar" id="authbar">
     <!-- filled by JS -->
   </div>
 </header>
 
-<div class="hero-image">
-  <svg viewBox="0 0 1600 260" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Illustration of a dog and cat sitting together at golden hour">
-    <defs>
-      <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#E8A33D"/>
-        <stop offset="55%" stop-color="#D98A3D"/>
-        <stop offset="100%" stop-color="#A64B2A"/>
-      </linearGradient>
-    </defs>
-    <rect width="1600" height="260" fill="url(#skyGrad)"/>
-    <circle cx="800" cy="90" r="52" fill="#FBF6EA" opacity="0.9"/>
-    <path d="M0 200 Q 400 165 800 195 T 1600 185 V260 H0 Z" fill="#8A3D22" opacity="0.55"/>
-    <path d="M0 220 Q 440 190 800 215 T 1600 210 V260 H0 Z" fill="#132E20"/>
-    <!-- dog silhouette, sitting -->
-    <g fill="#132E20">
-      <ellipse cx="700" cy="210" rx="72" ry="50"/>
-      <circle cx="660" cy="140" r="42"/>
-      <path d="M624 116 Q598 84 612 148 Q630 142 624 116 Z"/>
-      <path d="M700 116 Q726 84 712 148 Q694 142 700 116 Z"/>
-      <path d="M752 200 Q788 176 776 226 Q760 220 752 200 Z"/>
-    </g>
-    <!-- cat silhouette, sitting close beside -->
-    <g fill="#FBF6EA">
-      <ellipse cx="875" cy="216" rx="50" ry="42"/>
-      <circle cx="875" cy="156" r="30"/>
-      <path d="M850 140 L840 112 L866 134 Z"/>
-      <path d="M900 140 L910 112 L884 134 Z"/>
-      <path d="M918 210 Q958 198 950 132 Q938 130 934 172 Q926 202 918 210 Z"/>
-    </g>
-    <g fill="#FBF6EA" opacity="0.32">
-      <circle cx="220" cy="90" r="6"/><circle cx="250" cy="68" r="5"/><circle cx="190" cy="62" r="4"/>
-      <circle cx="1340" cy="80" r="6"/><circle cx="1310" cy="58" r="5"/><circle cx="1370" cy="52" r="4"/>
-      <circle cx="130" cy="150" r="5"/><circle cx="1470" cy="140" r="5"/>
-    </g>
-  </svg>
+<div class="hero-image" id="heroIllustration">
+  <div class="hero-photo-half">
+    <img src="https://images.unsplash.com/photo-1558821078-8b2696bae783?w=1600&h=680&fit=crop&q=80&auto=format" alt="A warm-toned puppy with a red collar looking gently at the camera">
+  </div>
+  <div class="hero-seam"></div>
+  <div class="hero-photo-half">
+    <img src="https://images.unsplash.com/photo-1642332280884-d5b0ef96ed2c?w=1600&h=680&fit=crop&q=80&auto=format" alt="An orange tabby cat with big round eyes looking directly at the camera">
+  </div>
+  <svg class="hero-heart-pop" viewBox="0 0 60 50" aria-hidden="true"><path d="M30 12 C26 4 12 6 12 18 C12 28 30 40 30 40 C30 40 48 28 48 18 C48 6 34 4 30 12 Z" fill="#FBF6EA"/></svg>
 </div>
 
 <div class="tabs">
@@ -195,7 +191,7 @@
   <section id="panel-browse" class="panel active">
     <div class="finder">
       <h2>Quick match finder</h2>
-      <p class="sub">Tell us your pet — we'll show suitable partners of the opposite sex.</p>
+      <p class="sub">Tell us about your pet and we'll show suitable partners of the opposite sex.</p>
       <div class="row">
         <select id="mySpecies"><option value="Dog">I have a Dog</option><option value="Cat">I have a Cat</option></select>
         <select id="myGender"><option value="Male">Male</option><option value="Female">Female</option></select>
@@ -226,7 +222,7 @@
   <section id="panel-add" class="panel">
     <div id="gate" class="gate" style="display:none">
       <h2>Sign in to list a pet</h2>
-      <p>We ask for an email just to keep listings spam-free — it won't be shown publicly. Your WhatsApp number (entered below) is what other owners will actually use to contact you.</p>
+      <p>We ask for an email just to keep listings spam-free. It won't be shown publicly. Your WhatsApp number (entered below) is what other owners will actually use to contact you.</p>
     </div>
 
     <div class="formcard" id="formcard" style="display:none">
@@ -257,7 +253,19 @@
           </div>
         </div>
         <div class="field"><label for="notes">Notes (optional)</label><textarea id="notes" rows="3" placeholder="Health status, papers/vaccination, what you're looking for…"></textarea></div>
-        <div class="field"><label for="photo">Photo (optional)</label><input id="photo" type="file" accept="image/*"></div>
+        <div class="field">
+          <label>Photo (optional)</label>
+          <input id="photo" type="file" accept="image/*" style="display:none">
+          <input id="photoCamera" type="file" accept="image/*" capture="environment" style="display:none">
+          <div class="photo-input-row">
+            <button type="button" class="btn btn-ghost" id="takePhotoBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z"/><circle cx="12" cy="13" r="3.5"/></svg>Take a photo</button>
+            <button type="button" class="btn btn-ghost" id="choosePhotoBtn">Choose from device</button>
+          </div>
+          <div class="photo-preview" id="photoPreviewWrap" style="display:none">
+            <img id="photoPreviewImg" alt="Selected pet photo preview">
+            <button type="button" class="btn btn-ghost" id="clearPhotoBtn" style="padding:6px 10px; font-size:11px">Remove photo</button>
+          </div>
+        </div>
         <div class="checkline"><input type="checkbox" id="breeder"><label for="breeder">I'm a registered/experienced breeder</label></div>
         <div class="checkline"><input type="checkbox" id="availableForMating" checked><label for="availableForMating">Available for mating right now</label></div>
 
@@ -294,7 +302,7 @@
 
     <div id="partnerGate" class="gate" style="display:none">
       <h2>Sign in to apply</h2>
-      <p>Applying as a Petmatch Partner uses the same sign-in as listing a pet — sign in above, then come back to this page.</p>
+      <p>Applying as a Petmatch Partner uses the same sign-in as listing a pet. Sign in above, then come back to this page.</p>
     </div>
 
     <div id="partnerPending" class="gate" style="display:none">
@@ -309,7 +317,7 @@
         <div class="qr-box">
           <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=https%3A%2F%2Fpetmatch.fit%2F" alt="QR code linking to the Petmatch pet discovery page" width="220" height="220">
         </div>
-        <p class="meta" style="margin-top:10px">Scan to open Petmatch's pet discovery page — print it for your counter, add it to a poster, or share it on WhatsApp/Instagram.</p>
+        <p class="meta" style="margin-top:10px">Scan to open Petmatch's pet discovery page. Print it for your counter, add it to a poster, or share it on WhatsApp/Instagram.</p>
       </div>
     </div>
 
@@ -355,7 +363,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 // =====================================================================
-// CONFIG — paste your own Supabase project details here before deploying
+// CONFIG: paste your own Supabase project details here before deploying
 // (Project Settings > API in your Supabase dashboard)
 // =====================================================================
 const SUPABASE_URL = 'https://pnawdtpavemfjzdsevey.supabase.co';
@@ -401,6 +409,17 @@ function fillStatics(){
   COMMON_BREEDS.forEach(b=> breedList.insertAdjacentHTML('beforeend', `<option value="${b}">`));
 }
 fillStatics();
+
+// ---------- hero illustration: heart pop on click/tap ----------
+const heroIllustration = document.getElementById('heroIllustration');
+let pokeTimer = null;
+heroIllustration.addEventListener('click', ()=>{
+  heroIllustration.classList.remove('poked');
+  void heroIllustration.offsetWidth; // restart the animation on repeat clicks
+  heroIllustration.classList.add('poked');
+  clearTimeout(pokeTimer);
+  pokeTimer = setTimeout(()=> heroIllustration.classList.remove('poked'), 1200);
+});
 
 // ---------- tabs ----------
 function showPanel(tab){
@@ -686,10 +705,55 @@ function openProfile(id){
       </div>
       <p class="meta">${p.age} yr${p.age==1?'':'s'} old · ${escapeHtml(p.state)} · ${serial(p.id)}</p>
       ${p.notes ? `<p class="notes">${escapeHtml(p.notes)}</p>` : ''}
-      <p class="owner-line">${p.is_partner ? `Listed by Petmatch Partner — ${escapeHtml(p.partner_business_name || p.owner_name)}` : `Listed by ${escapeHtml(p.owner_name)}`}</p>
+      <p class="owner-line">${p.is_partner ? `Listed by Petmatch Partner: ${escapeHtml(p.partner_business_name || p.owner_name)}` : `Listed by ${escapeHtml(p.owner_name)}`}</p>
       <div class="connect-row">${connectButtonsHtml(p)}</div>
+      <div class="report-wrap">
+        <button type="button" class="report-link" id="reportToggleBtn">Report this listing</button>
+        <div class="report-form" id="reportFormWrap" style="display:none">
+          <div class="field">
+            <label for="reportReason">Reason</label>
+            <select id="reportReason">
+              <option value="Spam">Spam</option>
+              <option value="Fake listing">Fake listing</option>
+              <option value="Inappropriate content">Inappropriate content</option>
+              <option value="Scam or fraud">Scam or fraud</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="reportNotes">Details (optional)</label>
+            <textarea id="reportNotes" rows="2" placeholder="Anything that helps us review this"></textarea>
+          </div>
+          <button type="button" class="btn btn-clay" id="reportSubmitBtn" style="padding:9px 16px">Submit report</button>
+          <div id="reportMsg" style="font-family:'IBM Plex Mono',monospace; font-size:12px; margin-top:8px; color:var(--forest-dark)"></div>
+        </div>
+      </div>
     </div>`;
   document.getElementById('modalCloseBtn').addEventListener('click', closeProfile);
+  document.getElementById('reportToggleBtn').addEventListener('click', ()=>{
+    const wrap = document.getElementById('reportFormWrap');
+    wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none';
+  });
+  document.getElementById('reportSubmitBtn').addEventListener('click', async ()=>{
+    const btn = document.getElementById('reportSubmitBtn');
+    const msg = document.getElementById('reportMsg');
+    btn.disabled = true;
+    msg.textContent = 'Submitting…';
+    const { error } = await supabase.from('reports').insert({
+      pet_id: p.id,
+      reporter_email: currentUser?.email ?? null,
+      reason: document.getElementById('reportReason').value,
+      notes: document.getElementById('reportNotes').value.trim()
+    });
+    if(error){
+      msg.textContent = 'Something went wrong: ' + error.message;
+      btn.disabled = false;
+      return;
+    }
+    msg.textContent = '✓ Thanks, we\'ll take a look.';
+    document.getElementById('reportReason').disabled = true;
+    document.getElementById('reportNotes').disabled = true;
+  });
   document.getElementById('modalBackdrop').classList.add('open');
 }
 function closeProfile(){
@@ -751,7 +815,7 @@ document.getElementById('nearBtn').addEventListener('click', ()=>{
       render();
     },
     ()=>{
-      status.textContent = "Couldn't get your location — check browser permissions.";
+      status.textContent = "Couldn't get your location. Check browser permissions.";
       btn.disabled = false;
     }
   );
@@ -765,6 +829,30 @@ document.getElementById('findBtn').addEventListener('click', ()=>{
   document.getElementById('countLine').scrollIntoView({behavior:'smooth', block:'start'});
 });
 
+// ---------- photo: choose from device or take with camera ----------
+let selectedPhotoFile = null;
+function setSelectedPhoto(file){
+  selectedPhotoFile = file || null;
+  const wrap = document.getElementById('photoPreviewWrap');
+  const img = document.getElementById('photoPreviewImg');
+  if(selectedPhotoFile){
+    img.src = URL.createObjectURL(selectedPhotoFile);
+    wrap.style.display = 'flex';
+  } else {
+    img.src = '';
+    wrap.style.display = 'none';
+  }
+}
+document.getElementById('takePhotoBtn').addEventListener('click', ()=> document.getElementById('photoCamera').click());
+document.getElementById('choosePhotoBtn').addEventListener('click', ()=> document.getElementById('photo').click());
+document.getElementById('photo').addEventListener('change', (e)=> setSelectedPhoto(e.target.files[0]));
+document.getElementById('photoCamera').addEventListener('change', (e)=> setSelectedPhoto(e.target.files[0]));
+document.getElementById('clearPhotoBtn').addEventListener('click', ()=>{
+  document.getElementById('photo').value = '';
+  document.getElementById('photoCamera').value = '';
+  setSelectedPhoto(null);
+});
+
 // ---------- add pet form ----------
 document.getElementById('petForm').addEventListener('submit', async (e)=>{
   e.preventDefault();
@@ -775,12 +863,12 @@ document.getElementById('petForm').addEventListener('submit', async (e)=>{
   msg.textContent = 'Saving…';
 
   let photo_url = null;
-  const file = document.getElementById('photo').files[0];
+  const file = selectedPhotoFile;
   if(file){
     const path = `${currentUser.id}/${Date.now()}-${file.name}`;
     const { error: upErr } = await supabase.storage.from('pet-photos').upload(path, file);
     if(upErr){
-      msg.textContent = 'Photo upload failed — saving listing without photo.';
+      msg.textContent = 'Photo upload failed. Saving listing without photo.';
     } else {
       photo_url = supabase.storage.from('pet-photos').getPublicUrl(path).data.publicUrl;
     }
@@ -837,6 +925,7 @@ document.getElementById('petForm').addEventListener('submit', async (e)=>{
   e.target.reset();
   formCoords = null;
   document.getElementById('locationStatus').textContent = '';
+  setSelectedPhoto(null);
 });
 
 // ---------- capture geolocation on the listing form ----------
@@ -850,9 +939,9 @@ document.getElementById('useLocationBtn').addEventListener('click', ()=>{
   navigator.geolocation.getCurrentPosition(
     (pos)=>{
       formCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-      status.textContent = '📍 Location captured — helps nearby owners find you';
+      status.textContent = '📍 Location captured. Helps nearby owners find you';
     },
-    ()=>{ status.textContent = "Couldn't get your location — check browser permissions."; }
+    ()=>{ status.textContent = "Couldn't get your location. Check browser permissions."; }
   );
 });
 

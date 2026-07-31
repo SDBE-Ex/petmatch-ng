@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Petmatch Admin</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root{
+    --ink:#14241C; --paper:#FBF6EA; --forest:#1F4732; --forest-dark:#132E20;
+    --marigold:#E8A33D; --clay:#A64B2A; --clay-dark:#8A3D22;
+    --line:#D8CBA8; --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:#EFE9D8; color:var(--ink); font-family:'Work Sans', sans-serif; -webkit-font-smoothing:antialiased;}
+  ::selection{background:var(--marigold); color:var(--forest-dark);}
+
+  header.top{
+    background:var(--forest); color:var(--paper); padding:18px 20px;
+    display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+  }
+  header.top .brand{display:flex; align-items:baseline; gap:10px;}
+  header.top h1{font-family:'Fraunces',serif; font-weight:600; font-size:20px; margin:0;}
+  header.top .eyebrow{font-family:'IBM Plex Mono',monospace; letter-spacing:.1em; text-transform:uppercase; font-size:10.5px; color:var(--marigold);}
+  header.top .who{font-family:'IBM Plex Mono',monospace; font-size:12px; color:#DCE7DD;}
+  header.top .authbox{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+  header.top input{border:none; border-radius:999px; padding:8px 14px; font-size:13px; min-width:180px;}
+
+  .btn{font-family:'IBM Plex Mono',monospace; font-size:12.5px; font-weight:600; letter-spacing:.03em; text-transform:uppercase; border:none; border-radius:9px; padding:9px 16px; cursor:pointer; transition:.15s;}
+  .btn-clay{background:var(--clay); color:#fff;} .btn-clay:hover{background:var(--clay-dark);}
+  .btn-forest{background:var(--forest); color:#fff;} .btn-forest:hover{background:var(--forest-dark);}
+  .btn-ghost{background:transparent; border:1.5px solid var(--forest); color:var(--forest);}
+  .btn-ghost:hover{background:var(--forest); color:#fff;}
+  .btn-outline-light{background:transparent; border:1.5px solid rgba(255,255,255,0.4); color:#DCE7DD;}
+  .btn-outline-light:hover{border-color:var(--marigold); color:var(--marigold);}
+  .btn:disabled{opacity:.5; cursor:not-allowed;}
+  .btn-sm{padding:6px 10px; font-size:11px;}
+
+  .tabs{display:flex; gap:6px; background:var(--forest-dark); padding:10px 20px; flex-wrap:wrap;}
+  .tab-btn{font-family:'IBM Plex Mono',monospace; font-size:12.5px; letter-spacing:.04em; text-transform:uppercase; background:transparent; border:1px solid rgba(255,255,255,0.25); color:#CFE0D2; padding:9px 18px; border-radius:999px; cursor:pointer;}
+  .tab-btn:hover{border-color:var(--marigold); color:var(--marigold);}
+  .tab-btn.active{background:var(--marigold); color:var(--forest-dark); border-color:var(--marigold); font-weight:600;}
+
+  main{max-width:1100px; margin:0 auto; padding:26px 18px 80px;}
+  .panel{display:none;} .panel.active{display:block;}
+
+  .gate{max-width:440px; margin:60px auto; background:var(--paper); border-radius:var(--radius); padding:32px 26px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.14);}
+  .gate h2{font-family:'Fraunces',serif; color:var(--forest-dark); margin:0 0 8px;}
+  .gate p{color:#5b5142; font-size:14px; margin:0 0 18px; line-height:1.5;}
+  .gate input{width:100%; padding:10px 14px; border:1.5px solid var(--line); border-radius:9px; font-size:14px; margin-bottom:12px;}
+
+  .toolbar{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:16px;}
+  .toolbar input, .toolbar select{font-family:'Work Sans',sans-serif; font-size:13.5px; padding:9px 12px; border:1.5px solid var(--line); border-radius:9px; background:#fff; color:var(--ink);}
+  .toolbar .checkline{display:flex; align-items:center; gap:6px; font-size:13px; color:#4a4437;}
+  .count-line{font-family:'IBM Plex Mono',monospace; font-size:12px; color:#5b5142; margin:0 0 12px;}
+
+  .table-wrap{background:var(--paper); border-radius:var(--radius); box-shadow:0 8px 20px rgba(0,0,0,0.1); overflow-x:auto;}
+  table{width:100%; border-collapse:collapse; font-size:13.5px;}
+  th{text-align:left; font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.05em; text-transform:uppercase; color:#8a7f65; padding:12px 14px; border-bottom:1.5px solid var(--line); white-space:nowrap;}
+  td{padding:12px 14px; border-bottom:1px solid var(--line); vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:rgba(31,71,50,0.035);}
+  td.muted{color:#8a7f65;}
+  td.nowrap{white-space:nowrap;}
+
+  .badge{font-family:'IBM Plex Mono',monospace; font-size:10.5px; font-weight:600; padding:3px 9px; border-radius:999px; display:inline-block; white-space:nowrap;}
+  .badge.pending{background:rgba(232,163,61,0.22); color:#8a5f16;}
+  .badge.approved{background:rgba(31,71,50,0.14); color:var(--forest);}
+  .badge.rejected{background:rgba(166,75,42,0.14); color:var(--clay-dark);}
+  .badge.open{background:rgba(166,75,42,0.14); color:var(--clay-dark);}
+  .badge.resolved{background:rgba(31,71,50,0.14); color:var(--forest);}
+  .badge.dismissed{background:rgba(0,0,0,0.08); color:#5b5142;}
+  .badge.partner{background:rgba(232,163,61,0.28); color:#8a5f16;}
+  .badge.admin{background:rgba(60,110,156,0.14); color:#3C6E9C;}
+
+  .row-actions{display:flex; gap:6px; flex-wrap:wrap;}
+  .empty{padding:40px 20px; text-align:center; color:#5b5142;}
+  .empty h3{font-family:'Fraunces',serif; color:var(--forest-dark); margin:0 0 6px;}
+
+  a.wa-link{color:var(--forest); font-weight:600; text-decoration:none;}
+  a.wa-link:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <div>
+      <div class="eyebrow">Petmatch</div>
+      <h1>Admin</h1>
+    </div>
+  </div>
+  <div class="authbox" id="authbox"><!-- filled by JS --></div>
+</header>
+
+<div class="tabs" id="tabs" style="display:none">
+  <button class="tab-btn active" data-tab="listings">Listings</button>
+  <button class="tab-btn" data-tab="users">Users</button>
+  <button class="tab-btn" data-tab="partners">Partners</button>
+  <button class="tab-btn" data-tab="reports">Reports</button>
+</div>
+
+<main>
+  <div id="gateWrap"></div>
+
+  <!-- LISTINGS -->
+  <section id="panel-listings" class="panel active">
+    <div class="toolbar">
+      <input id="listSearch" type="text" placeholder="Search name, owner, or breed…" style="min-width:220px">
+      <select id="listSpecies"><option value="">All species</option><option value="Dog">Dogs</option><option value="Cat">Cats</option></select>
+      <label class="checkline"><input type="checkbox" id="listPartnerOnly">Partners only</label>
+    </div>
+    <p class="count-line" id="listCount"></p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Pet</th><th>Species / Sex</th><th>Breed</th><th>Owner</th><th>Location</th><th>Listed</th><th>Status</th><th></th></tr></thead>
+      <tbody id="listBody"></tbody>
+    </table></div>
+  </section>
+
+  <!-- USERS -->
+  <section id="panel-users" class="panel">
+    <p class="count-line" id="userCount"></p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Email</th><th>Joined</th><th>Listings</th><th></th></tr></thead>
+      <tbody id="userBody"></tbody>
+    </table></div>
+  </section>
+
+  <!-- PARTNERS -->
+  <section id="panel-partners" class="panel">
+    <p class="count-line" id="partnerCount"></p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Business</th><th>Type</th><th>Contact</th><th>Phone</th><th>City</th><th>Applied</th><th>Status</th><th></th></tr></thead>
+      <tbody id="partnerBody"></tbody>
+    </table></div>
+  </section>
+
+  <!-- REPORTS -->
+  <section id="panel-reports" class="panel">
+    <div class="toolbar">
+      <select id="reportStatusFilter">
+        <option value="open">Open</option>
+        <option value="resolved">Resolved</option>
+        <option value="dismissed">Dismissed</option>
+        <option value="">All</option>
+      </select>
+    </div>
+    <p class="count-line" id="reportCount"></p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Listing</th><th>Reason</th><th>Notes</th><th>Reported by</th><th>Reported</th><th>Status</th><th></th></tr></thead>
+      <tbody id="reportBody"></tbody>
+    </table></div>
+  </section>
+</main>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+// =====================================================================
+// CONFIG — same Supabase project as index.html
+// =====================================================================
+const SUPABASE_URL = 'https://pnawdtpavemfjzdsevey.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_CHwFvmImO-SxEMDO52uWeA_WUuU1k2l';
+// =====================================================================
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentUser = null;
+let isAdmin = false;
+let pets = [];
+let users = [];
+let partners = [];
+let reports = [];
+
+function escapeHtml(str){
+  return String(str ?? '').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function fmtDate(iso){
+  if(!iso) return '';
+  return new Date(iso).toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' });
+}
+function waLink(number, petName){
+  const intl = String(number ?? '').replace(/[^0-9]/g,'');
+  const msg = encodeURIComponent(`Hi, this is Petmatch admin reaching out about your listing for ${petName}.`);
+  return `https://wa.me/${intl}?text=${msg}`;
+}
+
+// ---------- auth bar ----------
+function renderAuthbox(){
+  const box = document.getElementById('authbox');
+  if(currentUser){
+    box.innerHTML = `<span class="who">${escapeHtml(currentUser.email)}</span>
+      <button class="btn btn-outline-light" id="signOutBtn">Sign out</button>`;
+    document.getElementById('signOutBtn').addEventListener('click', async ()=>{ await supabase.auth.signOut(); });
+  } else {
+    box.innerHTML = `
+      <input type="email" id="authEmail" placeholder="admin@petmatch.fit">
+      <button class="btn btn-clay" id="sendLinkBtn">Sign in</button>`;
+    document.getElementById('sendLinkBtn').addEventListener('click', async ()=>{
+      const email = document.getElementById('authEmail').value.trim();
+      const btn = document.getElementById('sendLinkBtn');
+      if(!email) return;
+      btn.disabled = true; btn.textContent = 'Sending…';
+      const { error } = await supabase.auth.signInWithOtp({ email, options:{ emailRedirectTo: window.location.href } });
+      btn.textContent = error ? 'Try again' : 'Check your email';
+      btn.disabled = false;
+    });
+  }
+}
+
+// ---------- gate / dashboard switch ----------
+function renderGate(message){
+  document.getElementById('tabs').style.display = 'none';
+  document.querySelectorAll('.panel').forEach(p=> p.style.display = 'none');
+  document.getElementById('gateWrap').innerHTML = `<div class="gate"><h2>Petmatch Admin</h2><p>${message}</p></div>`;
+}
+function renderDashboard(){
+  document.getElementById('gateWrap').innerHTML = '';
+  document.getElementById('tabs').style.display = 'flex';
+  const active = document.querySelector('.tab-btn.active')?.dataset.tab || 'listings';
+  showTab(active);
+}
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=> showTab(btn.dataset.tab));
+});
+function showTab(tab){
+  document.querySelectorAll('.tab-btn').forEach(b=> b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.panel').forEach(p=>{
+    p.style.display = (p.id === 'panel-'+tab) ? 'block' : 'none';
+  });
+  if(tab === 'listings') renderListings();
+  if(tab === 'users') renderUsers();
+  if(tab === 'partners') renderPartners();
+  if(tab === 'reports') renderReports();
+}
+
+// ---------- data loading ----------
+async function loadAll(){
+  const [petsRes, usersRes, partnersRes, reportsRes] = await Promise.all([
+    supabase.from('pets').select('*').order('created_at', { ascending:false }),
+    supabase.rpc('admin_list_users'),
+    supabase.from('partner_applications').select('*').order('created_at', { ascending:false }),
+    supabase.from('reports').select('*, pets(pet_name, species, breed, owner_name, is_partner)').order('created_at', { ascending:false })
+  ]);
+  pets = petsRes.data || [];
+  users = usersRes.data || [];
+  partners = partnersRes.data || [];
+  reports = reportsRes.data || [];
+  showTab(document.querySelector('.tab-btn.active')?.dataset.tab || 'listings');
+}
+
+// ---------- listings ----------
+function renderListings(){
+  const search = document.getElementById('listSearch').value.trim().toLowerCase();
+  const species = document.getElementById('listSpecies').value;
+  const partnerOnly = document.getElementById('listPartnerOnly').checked;
+
+  const list = pets.filter(p=>{
+    if(species && p.species !== species) return false;
+    if(partnerOnly && !p.is_partner) return false;
+    if(search){
+      const hay = `${p.pet_name} ${p.owner_name} ${p.breed}`.toLowerCase();
+      if(!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  document.getElementById('listCount').textContent = `${list.length} listing${list.length===1?'':'s'} · ${pets.length} total`;
+  const body = document.getElementById('listBody');
+  if(list.length === 0){
+    body.innerHTML = `<tr><td colspan="8"><div class="empty"><h3>No listings match</h3><p>Try a different search or filter.</p></div></td></tr>`;
+    return;
+  }
+  body.innerHTML = list.map(p=>`
+    <tr>
+      <td><strong>${escapeHtml(p.pet_name)}</strong>${p.is_partner ? '<br><span class="badge partner">Partner</span>' : ''}</td>
+      <td class="nowrap">${p.species} · ${p.gender}</td>
+      <td>${escapeHtml(p.breed)}</td>
+      <td>${escapeHtml(p.owner_name)}<br><a class="wa-link" target="_blank" rel="noopener" href="${waLink(p.whatsapp, p.pet_name)}">WhatsApp</a></td>
+      <td>${escapeHtml(p.state)}</td>
+      <td class="muted nowrap">${fmtDate(p.created_at)}</td>
+      <td>${p.available_for_mating ? '<span class="badge approved">Available</span>' : '<span class="badge dismissed">Not available</span>'}</td>
+      <td><div class="row-actions"><button class="btn btn-clay btn-sm" data-remove-pet="${p.id}">Remove</button></div></td>
+    </tr>`).join('');
+
+  body.querySelectorAll('[data-remove-pet]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      if(!confirm('Remove this listing? This cannot be undone.')) return;
+      btn.disabled = true;
+      const { error } = await supabase.from('pets').delete().eq('id', btn.dataset.removePet);
+      if(error){ alert('Something went wrong: ' + error.message); btn.disabled = false; return; }
+      await loadAll();
+    });
+  });
+}
+['listSearch','listSpecies'].forEach(id=> document.getElementById(id).addEventListener('input', renderListings));
+document.getElementById('listPartnerOnly').addEventListener('change', renderListings);
+
+// ---------- users ----------
+function renderUsers(){
+  document.getElementById('userCount').textContent = `${users.length} user${users.length===1?'':'s'}`;
+  const body = document.getElementById('userBody');
+  if(users.length === 0){
+    body.innerHTML = `<tr><td colspan="4"><div class="empty"><h3>No users yet</h3></div></td></tr>`;
+    return;
+  }
+  body.innerHTML = users.map(u=>{
+    const count = pets.filter(p=> p.owner_id === u.id).length;
+    const adminBadge = adminEmails.has((u.email||'').toLowerCase()) ? '<span class="badge admin">Admin</span>' : '';
+    return `<tr>
+      <td>${escapeHtml(u.email)} ${adminBadge}</td>
+      <td class="muted nowrap">${fmtDate(u.created_at)}</td>
+      <td>${count}</td>
+      <td></td>
+    </tr>`;
+  }).join('');
+}
+
+// ---------- partners ----------
+function renderPartners(){
+  document.getElementById('partnerCount').textContent = `${partners.length} application${partners.length===1?'':'s'}`;
+  const body = document.getElementById('partnerBody');
+  if(partners.length === 0){
+    body.innerHTML = `<tr><td colspan="8"><div class="empty"><h3>No applications yet</h3></div></td></tr>`;
+    return;
+  }
+  body.innerHTML = partners.map(a=>{
+    let actions = '';
+    if(a.status === 'pending'){
+      actions = `<button class="btn btn-forest btn-sm" data-partner-status="${a.id}" data-status="approved">Approve</button>
+                 <button class="btn btn-clay btn-sm" data-partner-status="${a.id}" data-status="rejected">Reject</button>`;
+    } else if(a.status === 'approved'){
+      actions = `<button class="btn btn-ghost btn-sm" data-partner-status="${a.id}" data-status="pending">Revoke</button>`;
+    } else {
+      actions = `<button class="btn btn-forest btn-sm" data-partner-status="${a.id}" data-status="approved">Approve</button>`;
+    }
+    return `<tr>
+      <td><strong>${escapeHtml(a.business_name)}</strong>${a.website ? `<br><span class="muted">${escapeHtml(a.website)}</span>` : ''}</td>
+      <td>${escapeHtml(a.business_type)}</td>
+      <td>${escapeHtml(a.contact_name)}<br><span class="muted">${escapeHtml(a.email)}</span></td>
+      <td><a class="wa-link" target="_blank" rel="noopener" href="${waLink(a.phone, a.business_name)}">${escapeHtml(a.phone)}</a></td>
+      <td>${escapeHtml(a.city)}</td>
+      <td class="muted nowrap">${fmtDate(a.created_at)}</td>
+      <td><span class="badge ${a.status}">${a.status}</span></td>
+      <td><div class="row-actions">${actions}</div></td>
+    </tr>`;
+  }).join('');
+
+  body.querySelectorAll('[data-partner-status]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      btn.disabled = true;
+      const { error } = await supabase.from('partner_applications')
+        .update({ status: btn.dataset.status }).eq('id', btn.dataset.partnerStatus);
+      if(error){ alert('Something went wrong: ' + error.message); btn.disabled = false; return; }
+      await loadAll();
+    });
+  });
+}
+
+// ---------- reports ----------
+function renderReports(){
+  const statusFilter = document.getElementById('reportStatusFilter').value;
+  const list = statusFilter ? reports.filter(r=> r.status === statusFilter) : reports;
+  document.getElementById('reportCount').textContent = `${list.length} report${list.length===1?'':'s'}`;
+  const body = document.getElementById('reportBody');
+  if(list.length === 0){
+    body.innerHTML = `<tr><td colspan="7"><div class="empty"><h3>Nothing here</h3><p>No reports match this filter.</p></div></td></tr>`;
+    return;
+  }
+  body.innerHTML = list.map(r=>{
+    const pet = r.pets;
+    const petLabel = pet ? `${escapeHtml(pet.pet_name)} <span class="muted">(${pet.species}, ${escapeHtml(pet.breed)})</span>` : '<span class="muted">Listing removed</span>';
+    let actions = '';
+    if(r.status === 'open'){
+      actions = `<button class="btn btn-ghost btn-sm" data-report-status="${r.id}" data-status="resolved">Resolve</button>
+                 <button class="btn btn-ghost btn-sm" data-report-status="${r.id}" data-status="dismissed">Dismiss</button>`;
+      if(pet) actions += `<button class="btn btn-clay btn-sm" data-remove-reported-pet="${r.pet_id}" data-report-id="${r.id}">Remove listing</button>`;
+    } else {
+      actions = `<button class="btn btn-ghost btn-sm" data-report-status="${r.id}" data-status="open">Reopen</button>`;
+    }
+    return `<tr>
+      <td>${petLabel}</td>
+      <td>${escapeHtml(r.reason)}</td>
+      <td>${escapeHtml(r.notes) || '<span class="muted">None</span>'}</td>
+      <td class="muted">${escapeHtml(r.reporter_email) || 'Anonymous'}</td>
+      <td class="muted nowrap">${fmtDate(r.created_at)}</td>
+      <td><span class="badge ${r.status}">${r.status}</span></td>
+      <td><div class="row-actions">${actions}</div></td>
+    </tr>`;
+  }).join('');
+
+  body.querySelectorAll('[data-report-status]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      btn.disabled = true;
+      const { error } = await supabase.from('reports')
+        .update({ status: btn.dataset.status }).eq('id', btn.dataset.reportStatus);
+      if(error){ alert('Something went wrong: ' + error.message); btn.disabled = false; return; }
+      await loadAll();
+    });
+  });
+  body.querySelectorAll('[data-remove-reported-pet]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      if(!confirm('Remove this listing? This cannot be undone.')) return;
+      btn.disabled = true;
+      const { error } = await supabase.from('pets').delete().eq('id', btn.dataset.removeReportedPet);
+      if(error){ alert('Something went wrong: ' + error.message); btn.disabled = false; return; }
+      await supabase.from('reports').update({ status:'resolved' }).eq('id', btn.dataset.reportId);
+      await loadAll();
+    });
+  });
+}
+document.getElementById('reportStatusFilter').addEventListener('change', renderReports);
+
+// ---------- admin badge lookup for the Users tab ----------
+let adminEmails = new Set();
+async function loadAdminEmails(){
+  if(!currentUser) return;
+  const { data } = await supabase.from('admins').select('email').eq('email', currentUser.email);
+  adminEmails = new Set((data || []).map(r=> r.email.toLowerCase()));
+}
+
+// ---------- admin check + boot ----------
+async function checkAdminAndBoot(){
+  if(!currentUser){
+    renderGate('Sign in above with an admin account to continue.');
+    return;
+  }
+  const { data } = await supabase.from('admins').select('email').eq('email', currentUser.email);
+  isAdmin = !!(data && data.length);
+  if(!isAdmin){
+    renderGate(`${escapeHtml(currentUser.email)} isn't an admin on Petmatch. Ask an existing admin to add your email, or sign in with a different account.`);
+    return;
+  }
+  await loadAdminEmails();
+  renderDashboard();
+  await loadAll();
+}
+
+supabase.auth.onAuthStateChange((_event, session)=>{
+  currentUser = session?.user ?? null;
+  renderAuthbox();
+  checkAdminAndBoot();
+});
+
+// ---------- realtime: keep the dashboard fresh ----------
+supabase.channel('admin-changes')
+  .on('postgres_changes', { event:'*', schema:'public', table:'pets' }, ()=>{ if(isAdmin) loadAll(); })
+  .on('postgres_changes', { event:'*', schema:'public', table:'partner_applications' }, ()=>{ if(isAdmin) loadAll(); })
+  .on('postgres_changes', { event:'*', schema:'public', table:'reports' }, ()=>{ if(isAdmin) loadAll(); })
+  .subscribe();
+
+// ---------- init ----------
+(async function init(){
+  renderGate('Checking your session…');
+  const { data:{ session } } = await supabase.auth.getSession();
+  currentUser = session?.user ?? null;
+  renderAuthbox();
+  await checkAdminAndBoot();
+})();
+</script>
+</body>
+</html>
