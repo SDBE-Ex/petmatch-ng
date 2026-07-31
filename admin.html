@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Petmatch Admin</title>
+<title>PetMatch Admin</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
 
@@ -87,7 +87,7 @@
 <header class="top">
   <div class="brand">
     <div>
-      <div class="eyebrow">Petmatch</div>
+      <div class="eyebrow"><a href="/" style="color:inherit; text-decoration:none" title="Back to the PetMatch homepage">PetMatch</a></div>
       <h1>Admin</h1>
     </div>
   </div>
@@ -99,6 +99,7 @@
   <button class="tab-btn" data-tab="users">Users</button>
   <button class="tab-btn" data-tab="partners">Partners</button>
   <button class="tab-btn" data-tab="reports">Reports</button>
+  <button class="tab-btn" data-tab="subscribers">Subscribers</button>
 </div>
 
 <main>
@@ -152,6 +153,18 @@
       <tbody id="reportBody"></tbody>
     </table></div>
   </section>
+
+  <!-- SUBSCRIBERS -->
+  <section id="panel-subscribers" class="panel">
+    <div class="toolbar">
+      <button class="btn btn-ghost" id="copySubscribersBtn" type="button">Copy all emails</button>
+    </div>
+    <p class="count-line" id="subscriberCount"></p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Email</th><th>Source</th><th>Subscribed</th></tr></thead>
+      <tbody id="subscriberBody"></tbody>
+    </table></div>
+  </section>
 </main>
 
 <script type="module">
@@ -172,6 +185,7 @@ let pets = [];
 let users = [];
 let partners = [];
 let reports = [];
+let subscribers = [];
 
 function escapeHtml(str){
   return String(str ?? '').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
@@ -182,7 +196,7 @@ function fmtDate(iso){
 }
 function waLink(number, petName){
   const intl = String(number ?? '').replace(/[^0-9]/g,'');
-  const msg = encodeURIComponent(`Hi, this is Petmatch admin reaching out about your listing for ${petName}.`);
+  const msg = encodeURIComponent(`Hi, this is PetMatch admin reaching out about your listing for ${petName}.`);
   return `https://wa.me/${intl}?text=${msg}`;
 }
 
@@ -213,7 +227,7 @@ function renderAuthbox(){
 function renderGate(message){
   document.getElementById('tabs').style.display = 'none';
   document.querySelectorAll('.panel').forEach(p=> p.style.display = 'none');
-  document.getElementById('gateWrap').innerHTML = `<div class="gate"><h2>Petmatch Admin</h2><p>${message}</p></div>`;
+  document.getElementById('gateWrap').innerHTML = `<div class="gate"><h2>PetMatch Admin</h2><p>${message}</p></div>`;
 }
 function renderDashboard(){
   document.getElementById('gateWrap').innerHTML = '';
@@ -234,20 +248,23 @@ function showTab(tab){
   if(tab === 'users') renderUsers();
   if(tab === 'partners') renderPartners();
   if(tab === 'reports') renderReports();
+  if(tab === 'subscribers') renderSubscribers();
 }
 
 // ---------- data loading ----------
 async function loadAll(){
-  const [petsRes, usersRes, partnersRes, reportsRes] = await Promise.all([
+  const [petsRes, usersRes, partnersRes, reportsRes, subscribersRes] = await Promise.all([
     supabase.from('pets').select('*').order('created_at', { ascending:false }),
     supabase.rpc('admin_list_users'),
     supabase.from('partner_applications').select('*').order('created_at', { ascending:false }),
-    supabase.from('reports').select('*, pets(pet_name, species, breed, owner_name, is_partner)').order('created_at', { ascending:false })
+    supabase.from('reports').select('*, pets(pet_name, species, breed, owner_name, is_partner)').order('created_at', { ascending:false }),
+    supabase.from('subscribers').select('*').order('created_at', { ascending:false })
   ]);
   pets = petsRes.data || [];
   users = usersRes.data || [];
   partners = partnersRes.data || [];
   reports = reportsRes.data || [];
+  subscribers = subscribersRes.data || [];
   showTab(document.querySelector('.tab-btn.active')?.dataset.tab || 'listings');
 }
 
@@ -413,6 +430,30 @@ function renderReports(){
 }
 document.getElementById('reportStatusFilter').addEventListener('change', renderReports);
 
+// ---------- subscribers ----------
+function renderSubscribers(){
+  document.getElementById('subscriberCount').textContent = `${subscribers.length} subscriber${subscribers.length===1?'':'s'}`;
+  const body = document.getElementById('subscriberBody');
+  if(subscribers.length === 0){
+    body.innerHTML = `<tr><td colspan="3"><div class="empty"><h3>No subscribers yet</h3><p>People who check "Keep me posted" when signing in will show up here.</p></div></td></tr>`;
+    return;
+  }
+  body.innerHTML = subscribers.map(s=>`
+    <tr>
+      <td>${escapeHtml(s.email)}</td>
+      <td class="muted">${escapeHtml(s.source) || '<span class="muted">Unknown</span>'}</td>
+      <td class="muted nowrap">${fmtDate(s.created_at)}</td>
+    </tr>`).join('');
+}
+document.getElementById('copySubscribersBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('copySubscribersBtn');
+  const emails = subscribers.map(s=> s.email).join('\n');
+  await navigator.clipboard.writeText(emails);
+  const original = btn.textContent;
+  btn.textContent = 'Copied!';
+  setTimeout(()=> btn.textContent = original, 1500);
+});
+
 // ---------- admin badge lookup for the Users tab ----------
 let adminEmails = new Set();
 async function loadAdminEmails(){
@@ -430,7 +471,7 @@ async function checkAdminAndBoot(){
   const { data } = await supabase.from('admins').select('email').eq('email', currentUser.email);
   isAdmin = !!(data && data.length);
   if(!isAdmin){
-    renderGate(`${escapeHtml(currentUser.email)} isn't an admin on Petmatch. Ask an existing admin to add your email, or sign in with a different account.`);
+    renderGate(`${escapeHtml(currentUser.email)} doesn't have admin access yet. Ask an existing admin to add your email, or sign in with a different account.`);
     return;
   }
   await loadAdminEmails();
@@ -449,6 +490,7 @@ supabase.channel('admin-changes')
   .on('postgres_changes', { event:'*', schema:'public', table:'pets' }, ()=>{ if(isAdmin) loadAll(); })
   .on('postgres_changes', { event:'*', schema:'public', table:'partner_applications' }, ()=>{ if(isAdmin) loadAll(); })
   .on('postgres_changes', { event:'*', schema:'public', table:'reports' }, ()=>{ if(isAdmin) loadAll(); })
+  .on('postgres_changes', { event:'*', schema:'public', table:'subscribers' }, ()=>{ if(isAdmin) loadAll(); })
   .subscribe();
 
 // ---------- init ----------

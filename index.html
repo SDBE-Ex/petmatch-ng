@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Petmatch: Find a mate for your pet, near you</title>
+<title>PetMatch: Find a mate for your pet, near you</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
 
@@ -24,6 +24,8 @@
   }
   header.top .eyebrow{font-family:'IBM Plex Mono',monospace; letter-spacing:.14em; text-transform:uppercase; font-size:11.5px; color:var(--marigold); margin-bottom:10px;}
   header.top h1{font-family:'Fraunces',serif; font-weight:600; font-size:clamp(26px,5vw,40px); margin:0 0 8px; letter-spacing:-0.01em;}
+  header.top h1 a{color:inherit; text-decoration:none;}
+  header.top h1 a:hover{opacity:.85;}
   header.top p{margin:0 auto 18px; max-width:480px; color:#DCE7DD; font-size:14.5px; line-height:1.5;}
 
   .authbar{
@@ -34,6 +36,9 @@
   .authbar .btn{border-radius:999px;}
   .authbar .who{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--marigold);}
   .authbar .who button{background:none; border:none; color:#DCE7DD; text-decoration:underline; cursor:pointer; font-family:'Work Sans',sans-serif; font-size:12px;}
+
+  .optin-line{display:flex; align-items:center; justify-content:center; gap:7px; margin:10px auto 0; max-width:460px; font-size:12px; color:#CFE0D2; cursor:pointer;}
+  .optin-line input{width:auto; margin:0;}
 
   .hero-image{width:calc(100% - 32px); max-width:900px; margin:20px auto; height:260px; border-radius:var(--radius); overflow:hidden; display:flex; position:relative; cursor:pointer; box-shadow:0 12px 30px rgba(0,0,0,0.28);}
   @media (max-width:600px){ .hero-image{height:220px; margin:14px auto; border-radius:10px;} }
@@ -152,8 +157,11 @@
   .mine{margin-top:34px; padding-top:22px; border-top:2px dashed var(--line);}
   .mine h3{font-family:'Fraunces',serif; color:var(--forest-dark); font-size:17px; margin:0 0 12px;}
   .mine-row{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--line); font-size:13.5px;}
+  .mine-row-actions{display:flex; gap:6px; flex:none;}
   .mine-row button{background:none; border:1.5px solid var(--clay); color:var(--clay); border-radius:7px; padding:5px 10px; font-size:11.5px; cursor:pointer; font-family:'IBM Plex Mono',monospace;}
   .mine-row button:hover{background:var(--clay); color:#fff;}
+  .mine-row [data-edit]{border-color:var(--forest); color:var(--forest);}
+  .mine-row [data-edit]:hover{background:var(--forest); color:#fff;}
 
   footer{text-align:center; color:#B9CBBD; font-size:12px; padding:24px 16px 40px; font-family:'IBM Plex Mono',monospace;}
 </style>
@@ -162,12 +170,15 @@
 
 <header class="top">
   <div class="eyebrow">Dogs &amp; Cats · Near You</div>
-  <h1>Petmatch</h1>
-  <p>Discover nearby dogs and cats available for mating, and connect directly with their owners.</p>
+  <h1><a href="/" title="Back to the PetMatch homepage">PetMatch</a></h1>
+  <p>Discover nearby dogs and cats looking for a mate, and connect directly with their owners.</p>
 
   <div class="authbar" id="authbar">
     <!-- filled by JS -->
   </div>
+  <label class="optin-line" id="optInWrap" style="display:none">
+    <input type="checkbox" id="marketingOptIn"> Keep me posted about PetMatch news and new features
+  </label>
 </header>
 
 <div class="hero-image" id="heroIllustration">
@@ -226,8 +237,8 @@
     </div>
 
     <div class="formcard" id="formcard" style="display:none">
-      <h2>List your pet</h2>
-      <p class="sub">Your listing is public to everyone using Petmatch so owners can reach you directly on WhatsApp. Only share details you're comfortable making public.</p>
+      <h2 id="formTitle">List your pet</h2>
+      <p class="sub">Your listing is public to everyone using PetMatch so owners can reach you directly on WhatsApp. Only share details you're comfortable making public.</p>
 
       <form id="petForm">
         <div class="field-row">
@@ -282,7 +293,10 @@
           <div class="checkline"><input type="radio" name="listedBy" id="listedByBusiness" value="business"><label for="listedByBusiness" id="listedByBusinessLabel">Pet Business</label></div>
         </div>
 
-        <button type="submit" class="btn btn-forest" id="submitBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add Listing</button>
+        <div class="row">
+          <button type="submit" class="btn btn-forest" id="submitBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path id="submitBtnIcon" d="M12 5v14M5 12h14"/></svg>Add Listing</button>
+          <button type="button" class="btn btn-ghost" id="cancelEditBtn" style="display:none">Cancel edit</button>
+        </div>
         <div id="formMsg"></div>
       </form>
 
@@ -296,13 +310,13 @@
   <!-- PARTNERS -->
   <section id="panel-partners" class="panel">
     <div class="finder">
-      <h2>Partner with Petmatch</h2>
-      <p class="sub">Help your customers find suitable mating partners for their pets. List eligible pets for free and connect with pet owners looking for a match.</p>
+      <h2>Partner with PetMatch</h2>
+      <p class="sub">Help your customers find a mate for their pets. List eligible pets for free, and reach owners who are looking for exactly that.</p>
     </div>
 
     <div id="partnerGate" class="gate" style="display:none">
       <h2>Sign in to apply</h2>
-      <p>Applying as a Petmatch Partner uses the same sign-in as listing a pet. Sign in above, then come back to this page.</p>
+      <p>Applying as a PetMatch Partner uses the same sign-in as listing a pet. Sign in above, then come back to this page.</p>
     </div>
 
     <div id="partnerPending" class="gate" style="display:none">
@@ -311,18 +325,18 @@
     </div>
 
     <div id="partnerApproved" class="formcard" style="display:none">
-      <h2>You're a Petmatch Partner</h2>
-      <p class="sub">When listing a pet, choose "Pet Business" under "Listed by" to show it under <span id="approvedBizName"></span> with the Petmatch Partner badge.</p>
+      <h2>You're a PetMatch Partner</h2>
+      <p class="sub">When listing a pet, choose "Pet Business" under "Listed by" to show it under <span id="approvedBizName"></span> with the PetMatch Partner badge.</p>
       <div style="text-align:center; padding:10px 0">
         <div class="qr-box">
-          <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=https%3A%2F%2Fpetmatch.fit%2F" alt="QR code linking to the Petmatch pet discovery page" width="220" height="220">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=https%3A%2F%2Fpetmatch.fit%2F" alt="QR code linking to the PetMatch pet discovery page" width="220" height="220">
         </div>
-        <p class="meta" style="margin-top:10px">Scan to open Petmatch's pet discovery page. Print it for your counter, add it to a poster, or share it on WhatsApp/Instagram.</p>
+        <p class="meta" style="margin-top:10px">Scan to open PetMatch's pet discovery page. Print it for your counter, add it to a poster, or share it on WhatsApp/Instagram.</p>
       </div>
     </div>
 
     <div class="formcard" id="partnerFormCard" style="display:none">
-      <h2>Become a Petmatch Partner</h2>
+      <h2>Become a PetMatch Partner</h2>
       <p class="sub">Tell us about your business. We review applications manually and follow up by email.</p>
       <form id="partnerForm">
         <div class="field-row">
@@ -346,14 +360,14 @@
           <div class="field"><label for="bizLocation">Business location (optional)</label><input id="bizLocation" placeholder="e.g. 12 Admiralty Way, Lekki Phase 1"></div>
         </div>
         <div class="field"><label for="bizWebsite">Website / social media (optional)</label><input id="bizWebsite" placeholder="e.g. instagram.com/lekkipetclinic"></div>
-        <button type="submit" class="btn btn-forest" id="partnerSubmitBtn">Become a Petmatch Partner</button>
+        <button type="submit" class="btn btn-forest" id="partnerSubmitBtn">Become a PetMatch Partner</button>
         <div id="partnerFormMsg"></div>
       </form>
     </div>
   </section>
 </main>
 
-<footer>PETMATCH · A simple directory, not a broker. Meet safely, verify health &amp; vaccination before any cross.<br>Contact: <a href="mailto:hello@petmatch.fit" style="color:inherit">hello@petmatch.fit</a> · <a href="#" id="partnersLink" style="color:inherit">For Pet Businesses</a></footer>
+<footer>PETMATCH · A simple directory, not a broker. Meet safely, and check health and vaccination records before any pairing.<br>Contact: <a href="mailto:hello@petmatch.fit" style="color:inherit">hello@petmatch.fit</a> · <a href="#" id="partnersLink" style="color:inherit">For Pet Businesses</a></footer>
 
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal" id="modalContent"></div>
@@ -441,24 +455,31 @@ document.getElementById('partnersLink').addEventListener('click', (e)=>{
 // ---------- auth ----------
 function renderAuthbar(){
   const bar = document.getElementById('authbar');
+  const optInWrap = document.getElementById('optInWrap');
   if(currentUser){
+    optInWrap.style.display = 'none';
     bar.innerHTML = `<span class="who">Signed in as ${escapeHtml(currentUser.email)}</span>
       <button class="btn btn-ghost" id="signOutBtn" style="padding:6px 14px">Sign out</button>`;
     document.getElementById('signOutBtn').addEventListener('click', async ()=>{
       await supabase.auth.signOut();
     });
   } else {
+    optInWrap.style.display = 'flex';
     bar.innerHTML = `
       <input type="email" id="authEmail" placeholder="you@email.com">
       <button class="btn btn-clay" id="sendLinkBtn" style="padding:9px 16px">Sign in to list a pet</button>`;
     document.getElementById('sendLinkBtn').addEventListener('click', async ()=>{
       const email = document.getElementById('authEmail').value.trim();
+      const wantsUpdates = document.getElementById('marketingOptIn').checked;
       const btn = document.getElementById('sendLinkBtn');
       if(!email) return;
       btn.disabled = true; btn.textContent = 'Sending…';
       const { error } = await supabase.auth.signInWithOtp({
         email, options:{ emailRedirectTo: window.location.href }
       });
+      if(wantsUpdates){
+        await supabase.from('subscribers').insert({ email, source: 'sign_in_optin' });
+      }
       btn.textContent = error ? 'Try again' : 'Check your email ✓';
       btn.disabled = false;
     });
@@ -539,7 +560,7 @@ document.getElementById('partnerForm').addEventListener('submit', async (e)=>{
   });
   btn.disabled = false;
   if(error){
-    msg.textContent = 'Something went wrong: ' + error.message;
+    msg.textContent = "That didn't go through: " + error.message;
     return;
   }
   partnerApp = undefined;
@@ -558,7 +579,7 @@ function serial(id){ return 'PM-' + id.slice(0,3).toUpperCase(); }
 
 function waLink(number, petName){
   const intl = number.replace(/[^0-9]/g,'');
-  const msg = encodeURIComponent(`Hi! I found ${petName} on Petmatch and I'm interested in a possible match.`);
+  const msg = encodeURIComponent(`Hi! I found ${petName} on PetMatch and I'm interested in a possible match.`);
   return `https://wa.me/${intl}?text=${msg}`;
 }
 function callLink(number){
@@ -566,7 +587,7 @@ function callLink(number){
 }
 function smsLink(number, petName){
   const intl = number.replace(/[^0-9]/g,'');
-  const msg = encodeURIComponent(`Hi! I found ${petName} on Petmatch and I'm interested in a possible match.`);
+  const msg = encodeURIComponent(`Hi! I found ${petName} on PetMatch and I'm interested in a possible match.`);
   return `sms:+${intl}?body=${msg}`;
 }
 function escapeHtml(str){
@@ -593,7 +614,7 @@ function connectButtonsHtml(p){
     buttons.push(`<a class="btn btn-forest contact-btn" href="${callLink(p.whatsapp)}">${ICON.phone}Call ${escapeHtml(p.owner_name.split(' ')[0])}</a>`);
   }
   if(buttons.length === 0){
-    buttons.push(`<span class="btn btn-ghost contact-btn" style="cursor:default">Contact details unavailable</span>`);
+    buttons.push(`<span class="btn btn-ghost contact-btn" style="cursor:default">This owner hasn't listed a way to be reached yet</span>`);
   }
   return buttons.join('');
 }
@@ -646,7 +667,7 @@ function render(){
     });
   }
 
-  countLine.textContent = `${list.length} listing${list.length===1?'':'s'} showing · ${pets.length} total on Petmatch`;
+  countLine.textContent = `${list.length} listing${list.length===1?'':'s'} showing · ${pets.length} total on PetMatch`;
 
   if(list.length === 0){
     grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><h3>No matches here yet</h3><p>Try widening your filters, or be the first to list a pet like this.</p></div>`;
@@ -666,7 +687,7 @@ function render(){
         <span class="tag ${genderClass}">${p.gender}</span>
         <span class="tag">${escapeHtml(p.breed)}</span>
         ${p.breeder ? '<span class="tag breeder">Breeder</span>' : ''}
-        ${p.is_partner ? '<span class="tag partner">🏪 Petmatch Partner</span>' : ''}
+        ${p.is_partner ? '<span class="tag partner">🏪 PetMatch Partner</span>' : ''}
         <span class="tag ${p.available_for_mating ? 'available' : 'unavailable'}">${p.available_for_mating ? 'Available now' : 'Not available now'}</span>
         ${dist != null ? `<span class="tag distance">${dist < 1 ? '<1' : dist.toFixed(0)} km away</span>` : ''}
       </div>
@@ -699,13 +720,13 @@ function openProfile(id){
         <span class="tag ${genderClass}">${p.gender}</span>
         <span class="tag">${escapeHtml(p.breed)}</span>
         ${p.breeder ? '<span class="tag breeder">Breeder</span>' : ''}
-        ${p.is_partner ? '<span class="tag partner">🏪 Petmatch Partner</span>' : ''}
+        ${p.is_partner ? '<span class="tag partner">🏪 PetMatch Partner</span>' : ''}
         <span class="tag ${p.available_for_mating ? 'available' : 'unavailable'}">${p.available_for_mating ? 'Available now' : 'Not available now'}</span>
         ${dist != null ? `<span class="tag distance">${dist < 1 ? '<1' : dist.toFixed(0)} km away</span>` : ''}
       </div>
       <p class="meta">${p.age} yr${p.age==1?'':'s'} old · ${escapeHtml(p.state)} · ${serial(p.id)}</p>
       ${p.notes ? `<p class="notes">${escapeHtml(p.notes)}</p>` : ''}
-      <p class="owner-line">${p.is_partner ? `Listed by Petmatch Partner: ${escapeHtml(p.partner_business_name || p.owner_name)}` : `Listed by ${escapeHtml(p.owner_name)}`}</p>
+      <p class="owner-line">${p.is_partner ? `Listed by PetMatch Partner: ${escapeHtml(p.partner_business_name || p.owner_name)}` : `Listed by ${escapeHtml(p.owner_name)}`}</p>
       <div class="connect-row">${connectButtonsHtml(p)}</div>
       <div class="report-wrap">
         <button type="button" class="report-link" id="reportToggleBtn">Report this listing</button>
@@ -746,7 +767,7 @@ function openProfile(id){
       notes: document.getElementById('reportNotes').value.trim()
     });
     if(error){
-      msg.textContent = 'Something went wrong: ' + error.message;
+      msg.textContent = "That didn't go through: " + error.message;
       btn.disabled = false;
       return;
     }
@@ -776,15 +797,79 @@ function renderMine(){
   list.innerHTML = mine.map(p=>`
     <div class="mine-row">
       <span>${escapeHtml(p.pet_name)} · ${p.species} · ${p.state}</span>
-      <button data-id="${p.id}">Remove</button>
+      <div class="mine-row-actions">
+        <button data-edit="${p.id}">Edit</button>
+        <button data-remove="${p.id}">Remove</button>
+      </div>
     </div>`).join('');
-  list.querySelectorAll('button').forEach(btn=>{
+  list.querySelectorAll('[data-edit]').forEach(btn=>{
+    btn.addEventListener('click', ()=> startEditPet(btn.dataset.edit));
+  });
+  list.querySelectorAll('[data-remove]').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
       if(!confirm('Remove this listing?')) return;
-      await supabase.from('pets').delete().eq('id', btn.dataset.id);
+      if(editingPetId === btn.dataset.remove) cancelEditPet();
+      await supabase.from('pets').delete().eq('id', btn.dataset.remove);
     });
   });
 }
+
+// ---------- edit an existing listing ----------
+let editingPetId = null;
+let editingPhotoUrl = null;
+let editingCoords = null;
+
+function startEditPet(id){
+  const p = pets.find(x=>x.id === id);
+  if(!p) return;
+  editingPetId = id;
+  editingPhotoUrl = p.photo_url || null;
+  editingCoords = (p.lat != null && p.lng != null) ? { lat: p.lat, lng: p.lng } : null;
+
+  document.getElementById('ownerName').value = p.owner_name;
+  document.getElementById('whatsapp').value = p.whatsapp;
+  document.getElementById('petName').value = p.pet_name;
+  document.getElementById('species').value = p.species;
+  document.getElementById('breed').value = p.breed;
+  document.getElementById('gender').value = p.gender;
+  document.getElementById('age').value = p.age;
+  document.getElementById('state').value = p.state;
+  document.getElementById('notes').value = p.notes || '';
+  document.getElementById('breeder').checked = !!p.breeder;
+  document.getElementById('availableForMating').checked = !!p.available_for_mating;
+  document.getElementById('acceptsWhatsapp').checked = !!p.accepts_whatsapp;
+  document.getElementById('acceptsText').checked = !!p.accepts_text;
+  document.getElementById('acceptsCalls').checked = !!p.accepts_calls;
+  if(p.is_partner) document.getElementById('listedByBusiness').checked = true;
+  else document.getElementById('listedByOwner').checked = true;
+
+  setSelectedPhoto(null);
+  if(editingPhotoUrl){
+    document.getElementById('photoPreviewImg').src = editingPhotoUrl;
+    document.getElementById('photoPreviewWrap').style.display = 'flex';
+  }
+
+  document.getElementById('formTitle').textContent = `Editing ${p.pet_name}`;
+  document.getElementById('submitBtn').lastChild.textContent = 'Save Changes';
+  document.getElementById('submitBtnIcon').setAttribute('d', 'M20 6 9 17l-5-5');
+  document.getElementById('cancelEditBtn').style.display = 'inline-flex';
+  document.getElementById('formMsg').textContent = '';
+  document.getElementById('petForm').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function cancelEditPet(){
+  editingPetId = null;
+  editingPhotoUrl = null;
+  editingCoords = null;
+  document.getElementById('petForm').reset();
+  setSelectedPhoto(null);
+  document.getElementById('formTitle').textContent = 'List your pet';
+  document.getElementById('submitBtn').lastChild.textContent = 'Add Listing';
+  document.getElementById('submitBtnIcon').setAttribute('d', 'M12 5v14M5 12h14');
+  document.getElementById('cancelEditBtn').style.display = 'none';
+  document.getElementById('formMsg').textContent = '';
+}
+document.getElementById('cancelEditBtn').addEventListener('click', cancelEditPet);
 
 // ---------- filters ----------
 ['fSpecies','fGender','fState','fBreed','fDistance'].forEach(id=>{
@@ -802,7 +887,7 @@ document.getElementById('nearBtn').addEventListener('click', ()=>{
   const btn = document.getElementById('nearBtn');
   const status = document.getElementById('nearStatus');
   if(!navigator.geolocation){
-    status.textContent = "Your browser doesn't support location search.";
+    status.textContent = "Your browser doesn't support location search, but you can still search by typing a location above.";
     return;
   }
   btn.disabled = true; status.textContent = 'Locating…';
@@ -815,7 +900,7 @@ document.getElementById('nearBtn').addEventListener('click', ()=>{
       render();
     },
     ()=>{
-      status.textContent = "Couldn't get your location. Check browser permissions.";
+      status.textContent = "We couldn't find your location. Check your browser's location permissions and try again.";
       btn.disabled = false;
     }
   );
@@ -851,6 +936,7 @@ document.getElementById('clearPhotoBtn').addEventListener('click', ()=>{
   document.getElementById('photo').value = '';
   document.getElementById('photoCamera').value = '';
   setSelectedPhoto(null);
+  editingPhotoUrl = null;
 });
 
 // ---------- add pet form ----------
@@ -862,7 +948,7 @@ document.getElementById('petForm').addEventListener('submit', async (e)=>{
   submitBtn.disabled = true;
   msg.textContent = 'Saving…';
 
-  let photo_url = null;
+  let photo_url = editingPetId ? editingPhotoUrl : null;
   const file = selectedPhotoFile;
   if(file){
     const path = `${currentUser.id}/${Date.now()}-${file.name}`;
@@ -910,18 +996,32 @@ document.getElementById('petForm').addEventListener('submit', async (e)=>{
     accepts_calls: acceptsCalls,
     is_partner,
     partner_business_name,
-    lat: formCoords?.lat ?? null,
-    lng: formCoords?.lng ?? null,
+    lat: formCoords?.lat ?? editingCoords?.lat ?? null,
+    lng: formCoords?.lng ?? editingCoords?.lng ?? null,
     photo_url
   };
 
-  const { error } = await supabase.from('pets').insert(newPet);
+  const { error } = editingPetId
+    ? await supabase.from('pets').update(newPet).eq('id', editingPetId)
+    : await supabase.from('pets').insert(newPet);
   submitBtn.disabled = false;
   if(error){
-    msg.textContent = 'Something went wrong: ' + error.message;
+    msg.textContent = "That didn't go through: " + error.message;
     return;
   }
-  msg.textContent = `✓ ${newPet.pet_name} is now listed. Switch to "Find a Match" to see it.`;
+  msg.textContent = editingPetId
+    ? `✓ ${newPet.pet_name} has been updated.`
+    : `✓ ${newPet.pet_name} is now listed. Switch to "Find a Match" to see it.`;
+  const wasEditing = !!editingPetId;
+  editingPetId = null;
+  editingPhotoUrl = null;
+  editingCoords = null;
+  if(wasEditing){
+    document.getElementById('formTitle').textContent = 'List your pet';
+    document.getElementById('submitBtn').lastChild.textContent = 'Add Listing';
+    document.getElementById('submitBtnIcon').setAttribute('d', 'M12 5v14M5 12h14');
+    document.getElementById('cancelEditBtn').style.display = 'none';
+  }
   e.target.reset();
   formCoords = null;
   document.getElementById('locationStatus').textContent = '';
@@ -932,7 +1032,7 @@ document.getElementById('petForm').addEventListener('submit', async (e)=>{
 document.getElementById('useLocationBtn').addEventListener('click', ()=>{
   const status = document.getElementById('locationStatus');
   if(!navigator.geolocation){
-    status.textContent = "Your browser doesn't support this.";
+    status.textContent = "Your browser doesn't support this, but you can still type your location above.";
     return;
   }
   status.textContent = 'Locating…';
@@ -941,7 +1041,7 @@ document.getElementById('useLocationBtn').addEventListener('click', ()=>{
       formCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
       status.textContent = '📍 Location captured. Helps nearby owners find you';
     },
-    ()=>{ status.textContent = "Couldn't get your location. Check browser permissions."; }
+    ()=>{ status.textContent = "We couldn't find your location. Check your browser's location permissions and try again."; }
   );
 });
 
