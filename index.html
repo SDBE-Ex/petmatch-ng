@@ -79,6 +79,8 @@
   .tag{font-family:'IBM Plex Mono',monospace; font-size:11px; padding:3px 8px; border-radius:999px; background:rgba(31,71,50,0.09); color:var(--forest-dark);}
   .tag.male{background:rgba(60,110,156,0.14); color:var(--male);} .tag.female{background:rgba(181,80,122,0.14); color:var(--female);}
   .tag.breeder{background:rgba(232,163,61,0.22); color:#8a5f16;}
+  .tag.partner{background:rgba(232,163,61,0.28); color:#8a5f16; font-weight:600;}
+  .qr-box{display:inline-block; background:#fff; padding:14px; border-radius:12px; box-shadow:0 4px 14px rgba(0,0,0,0.12);}
   .tag.available{background:rgba(31,71,50,0.14); color:var(--forest);}
   .tag.unavailable{background:rgba(166,75,42,0.14); color:var(--clay-dark);}
   .tag.distance{background:rgba(232,163,61,0.18); color:#8a5f16;}
@@ -266,6 +268,12 @@
           <div class="checkline"><input type="checkbox" id="acceptsCalls"><label for="acceptsCalls">Phone calls</label></div>
         </div>
 
+        <div class="field" id="listedByField" style="display:none">
+          <label>Listed by</label>
+          <div class="checkline"><input type="radio" name="listedBy" id="listedByOwner" value="owner" checked><label for="listedByOwner">Pet Owner</label></div>
+          <div class="checkline"><input type="radio" name="listedBy" id="listedByBusiness" value="business"><label for="listedByBusiness" id="listedByBusinessLabel">Pet Business</label></div>
+        </div>
+
         <button type="submit" class="btn btn-forest" id="submitBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add Listing</button>
         <div id="formMsg"></div>
       </form>
@@ -276,9 +284,68 @@
       </div>
     </div>
   </section>
+
+  <!-- PARTNERS -->
+  <section id="panel-partners" class="panel">
+    <div class="finder">
+      <h2>Partner with Petmatch</h2>
+      <p class="sub">Help your customers find suitable mating partners for their pets. List eligible pets for free and connect with pet owners looking for a match.</p>
+    </div>
+
+    <div id="partnerGate" class="gate" style="display:none">
+      <h2>Sign in to apply</h2>
+      <p>Applying as a Petmatch Partner uses the same sign-in as listing a pet — sign in above, then come back to this page.</p>
+    </div>
+
+    <div id="partnerPending" class="gate" style="display:none">
+      <h2>Application received</h2>
+      <p>We're reviewing your application and will follow up by email. This usually doesn't take long.</p>
+    </div>
+
+    <div id="partnerApproved" class="formcard" style="display:none">
+      <h2>You're a Petmatch Partner</h2>
+      <p class="sub">When listing a pet, choose "Pet Business" under "Listed by" to show it under <span id="approvedBizName"></span> with the Petmatch Partner badge.</p>
+      <div style="text-align:center; padding:10px 0">
+        <div class="qr-box">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=https%3A%2F%2Fpetmatch.fit%2F" alt="QR code linking to the Petmatch pet discovery page" width="220" height="220">
+        </div>
+        <p class="meta" style="margin-top:10px">Scan to open Petmatch's pet discovery page — print it for your counter, add it to a poster, or share it on WhatsApp/Instagram.</p>
+      </div>
+    </div>
+
+    <div class="formcard" id="partnerFormCard" style="display:none">
+      <h2>Become a Petmatch Partner</h2>
+      <p class="sub">Tell us about your business. We review applications manually and follow up by email.</p>
+      <form id="partnerForm">
+        <div class="field-row">
+          <div class="field"><label for="bizName">Business name</label><input id="bizName" required placeholder="e.g. Lekki Pet Clinic"></div>
+          <div class="field"><label for="bizType">Business type</label>
+            <select id="bizType" required>
+              <option value="Pet Store">Pet Store</option>
+              <option value="Kennel">Kennel</option>
+              <option value="Breeder">Breeder</option>
+              <option value="Vet">Vet</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="bizContact">Contact person</label><input id="bizContact" required placeholder="e.g. Amaka Obi"></div>
+          <div class="field"><label for="bizPhone">Phone / WhatsApp</label><input id="bizPhone" required placeholder="e.g. +234 801 234 5678"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="bizCity">City</label><input id="bizCity" required placeholder="e.g. Lagos"></div>
+          <div class="field"><label for="bizLocation">Business location (optional)</label><input id="bizLocation" placeholder="e.g. 12 Admiralty Way, Lekki Phase 1"></div>
+        </div>
+        <div class="field"><label for="bizWebsite">Website / social media (optional)</label><input id="bizWebsite" placeholder="e.g. instagram.com/lekkipetclinic"></div>
+        <button type="submit" class="btn btn-forest" id="partnerSubmitBtn">Become a Petmatch Partner</button>
+        <div id="partnerFormMsg"></div>
+      </form>
+    </div>
+  </section>
 </main>
 
-<footer>PETMATCH · A simple directory, not a broker. Meet safely, verify health &amp; vaccination before any cross.<br>Contact: <a href="mailto:hello@petmatch.fit" style="color:inherit">hello@petmatch.fit</a></footer>
+<footer>PETMATCH · A simple directory, not a broker. Meet safely, verify health &amp; vaccination before any cross.<br>Contact: <a href="mailto:hello@petmatch.fit" style="color:inherit">hello@petmatch.fit</a> · <a href="#" id="partnersLink" style="color:inherit">For Pet Businesses</a></footer>
 
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal" id="modalContent"></div>
@@ -307,6 +374,18 @@ let currentUser = null;
 let myCoords = null;      // { lat, lng } from "Search near me"
 let formCoords = null;    // { lat, lng } captured on the listing form
 let petDistances = {};    // pet id -> km from myCoords, recomputed each render
+let partnerApp = undefined; // undefined = not checked yet, null = no application, else the row
+
+// Looks up (and caches) the signed-in user's latest partner application.
+async function getPartnerApplication(){
+  if(!currentUser) return null;
+  if(partnerApp !== undefined) return partnerApp;
+  const { data } = await supabase.from('partner_applications')
+    .select('*').eq('email', currentUser.email)
+    .order('created_at', { ascending:false }).limit(1);
+  partnerApp = (data && data[0]) || null;
+  return partnerApp;
+}
 
 function haversineKm(a, b){
   const R = 6371;
@@ -324,14 +403,20 @@ function fillStatics(){
 fillStatics();
 
 // ---------- tabs ----------
+function showPanel(tab){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+  if(tab === 'add') renderAddPanel();
+  if(tab === 'partners') renderPartnersPanel();
+}
 document.querySelectorAll('.tab-btn').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
-    if(btn.dataset.tab === 'add') renderAddPanel();
-  });
+  btn.addEventListener('click', ()=> showPanel(btn.dataset.tab));
+});
+document.getElementById('partnersLink').addEventListener('click', (e)=>{
+  e.preventDefault();
+  showPanel('partners');
+  document.getElementById('panel-partners').scrollIntoView({behavior:'smooth', block:'start'});
 });
 
 // ---------- auth ----------
@@ -369,22 +454,84 @@ function renderAuthbar(){
 
 supabase.auth.onAuthStateChange((_event, session)=>{
   currentUser = session?.user ?? null;
+  partnerApp = undefined;
   renderAuthbar();
   renderAddPanel();
 });
 
-function renderAddPanel(){
+async function renderAddPanel(){
   const gate = document.getElementById('gate');
   const formcard = document.getElementById('formcard');
   if(currentUser){
     gate.style.display = 'none';
     formcard.style.display = 'block';
     renderMine();
+
+    const app = await getPartnerApplication();
+    const listedByField = document.getElementById('listedByField');
+    if(app && app.status === 'approved'){
+      listedByField.style.display = 'block';
+      document.getElementById('listedByBusinessLabel').textContent = `Pet Business (${app.business_name})`;
+    } else {
+      listedByField.style.display = 'none';
+      document.getElementById('listedByOwner').checked = true;
+    }
   } else {
     gate.style.display = 'block';
     formcard.style.display = 'none';
   }
 }
+
+// ---------- partners ----------
+async function renderPartnersPanel(){
+  const gate = document.getElementById('partnerGate');
+  const pending = document.getElementById('partnerPending');
+  const approved = document.getElementById('partnerApproved');
+  const formCard = document.getElementById('partnerFormCard');
+  [gate, pending, approved, formCard].forEach(el=> el.style.display = 'none');
+
+  if(!currentUser){
+    gate.style.display = 'block';
+    return;
+  }
+  const app = await getPartnerApplication();
+  if(!app){
+    formCard.style.display = 'block';
+  } else if(app.status === 'pending'){
+    pending.style.display = 'block';
+  } else if(app.status === 'approved'){
+    document.getElementById('approvedBizName').textContent = app.business_name;
+    approved.style.display = 'block';
+  } else {
+    formCard.style.display = 'block';
+  }
+}
+
+document.getElementById('partnerForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  if(!currentUser) return;
+  const msg = document.getElementById('partnerFormMsg');
+  const btn = document.getElementById('partnerSubmitBtn');
+  btn.disabled = true; msg.textContent = 'Submitting…';
+
+  const { error } = await supabase.from('partner_applications').insert({
+    business_name: document.getElementById('bizName').value.trim(),
+    business_type: document.getElementById('bizType').value,
+    contact_name: document.getElementById('bizContact').value.trim(),
+    email: currentUser.email,
+    phone: document.getElementById('bizPhone').value.trim(),
+    city: document.getElementById('bizCity').value.trim(),
+    business_location: document.getElementById('bizLocation').value.trim(),
+    website: document.getElementById('bizWebsite').value.trim()
+  });
+  btn.disabled = false;
+  if(error){
+    msg.textContent = 'Something went wrong: ' + error.message;
+    return;
+  }
+  partnerApp = undefined;
+  await renderPartnersPanel();
+});
 
 // ---------- data ----------
 async function loadPets(){
@@ -506,6 +653,7 @@ function render(){
         <span class="tag ${genderClass}">${p.gender}</span>
         <span class="tag">${escapeHtml(p.breed)}</span>
         ${p.breeder ? '<span class="tag breeder">Breeder</span>' : ''}
+        ${p.is_partner ? '<span class="tag partner">🏪 Petmatch Partner</span>' : ''}
         <span class="tag ${p.available_for_mating ? 'available' : 'unavailable'}">${p.available_for_mating ? 'Available now' : 'Not available now'}</span>
         ${dist != null ? `<span class="tag distance">${dist < 1 ? '<1' : dist.toFixed(0)} km away</span>` : ''}
       </div>
@@ -538,12 +686,13 @@ function openProfile(id){
         <span class="tag ${genderClass}">${p.gender}</span>
         <span class="tag">${escapeHtml(p.breed)}</span>
         ${p.breeder ? '<span class="tag breeder">Breeder</span>' : ''}
+        ${p.is_partner ? '<span class="tag partner">🏪 Petmatch Partner</span>' : ''}
         <span class="tag ${p.available_for_mating ? 'available' : 'unavailable'}">${p.available_for_mating ? 'Available now' : 'Not available now'}</span>
         ${dist != null ? `<span class="tag distance">${dist < 1 ? '<1' : dist.toFixed(0)} km away</span>` : ''}
       </div>
       <p class="meta">${p.age} yr${p.age==1?'':'s'} old · ${escapeHtml(p.state)} · ${serial(p.id)}</p>
       ${p.notes ? `<p class="notes">${escapeHtml(p.notes)}</p>` : ''}
-      <p class="owner-line">Listed by ${escapeHtml(p.owner_name)}</p>
+      <p class="owner-line">${p.is_partner ? `Listed by Petmatch Partner — ${escapeHtml(p.partner_business_name || p.owner_name)}` : `Listed by ${escapeHtml(p.owner_name)}`}</p>
       <div class="connect-row">${connectButtonsHtml(p)}</div>
     </div>`;
   document.getElementById('modalCloseBtn').addEventListener('click', closeProfile);
@@ -652,6 +801,15 @@ document.getElementById('petForm').addEventListener('submit', async (e)=>{
     return;
   }
 
+  let is_partner = false, partner_business_name = null;
+  if(document.getElementById('listedByBusiness').checked){
+    const app = await getPartnerApplication();
+    if(app && app.status === 'approved'){
+      is_partner = true;
+      partner_business_name = app.business_name;
+    }
+  }
+
   const newPet = {
     owner_id: currentUser.id,
     owner_name: document.getElementById('ownerName').value.trim(),
@@ -668,6 +826,8 @@ document.getElementById('petForm').addEventListener('submit', async (e)=>{
     accepts_whatsapp: acceptsWhatsapp,
     accepts_text: acceptsText,
     accepts_calls: acceptsCalls,
+    is_partner,
+    partner_business_name,
     lat: formCoords?.lat ?? null,
     lng: formCoords?.lng ?? null,
     photo_url
