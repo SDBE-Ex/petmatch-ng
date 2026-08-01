@@ -80,6 +80,16 @@
 
   a.wa-link{color:var(--forest); font-weight:600; text-decoration:none;}
   a.wa-link:hover{text-decoration:underline;}
+
+  .stat-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:14px; margin-bottom:22px;}
+  .stat-card{background:var(--paper); border-radius:var(--radius); padding:16px 18px; box-shadow:0 8px 20px rgba(0,0,0,0.1);}
+  .stat-card .num{font-family:'Fraunces',serif; font-size:28px; color:var(--forest-dark); line-height:1;}
+  .stat-card .label{font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.04em; text-transform:uppercase; color:#8a7f65; margin-top:6px;}
+
+  .visit-chart{display:flex; align-items:flex-end; gap:6px; height:120px;}
+  .visit-bar{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:6px; height:100%;}
+  .visit-bar .bar{width:100%; background:var(--forest); border-radius:4px 4px 0 0; min-height:2px;}
+  .visit-bar .bar-label{font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:#8a7f65; white-space:nowrap;}
 </style>
 </head>
 <body>
@@ -100,6 +110,7 @@
   <button class="tab-btn" data-tab="partners">Partners</button>
   <button class="tab-btn" data-tab="reports">Reports</button>
   <button class="tab-btn" data-tab="subscribers">Subscribers</button>
+  <button class="tab-btn" data-tab="insights">Insights</button>
 </div>
 
 <main>
@@ -164,6 +175,15 @@
       <thead><tr><th>Email</th><th>Source</th><th>Subscribed</th></tr></thead>
       <tbody id="subscriberBody"></tbody>
     </table></div>
+  </section>
+
+  <!-- INSIGHTS -->
+  <section id="panel-insights" class="panel">
+    <div class="stat-grid" id="insightStats"></div>
+    <div class="table-wrap" style="padding:20px 18px">
+      <p class="count-line" style="margin-bottom:14px">Page views, last 14 days</p>
+      <div class="visit-chart" id="visitChart"></div>
+    </div>
   </section>
 </main>
 
@@ -249,6 +269,47 @@ function showTab(tab){
   if(tab === 'partners') renderPartners();
   if(tab === 'reports') renderReports();
   if(tab === 'subscribers') renderSubscribers();
+  if(tab === 'insights') renderInsights();
+}
+
+// ---------- insights (page views) ----------
+// Loaded lazily on tab open, not in loadAll() — this queries page_views
+// aggregates via security-definer RPCs (admin_visit_stats/admin_visit_daily),
+// not the raw table, so it stays cheap regardless of how large that log gets.
+async function renderInsights(){
+  const statsWrap = document.getElementById('insightStats');
+  const chartWrap = document.getElementById('visitChart');
+  statsWrap.innerHTML = `<div class="stat-card"><div class="num">…</div><div class="label">Loading</div></div>`;
+  chartWrap.innerHTML = '';
+
+  const [statsRes, dailyRes] = await Promise.all([
+    supabase.rpc('admin_visit_stats'),
+    supabase.rpc('admin_visit_daily', { days: 14 })
+  ]);
+  const stats = statsRes.data?.[0];
+
+  if(statsRes.error || !stats){
+    statsWrap.innerHTML = `<div class="empty"><h3>Couldn't load visit stats</h3><p>${escapeHtml(statsRes.error?.message || 'Unknown error')}</p></div>`;
+    return;
+  }
+
+  statsWrap.innerHTML = `
+    <div class="stat-card"><div class="num">${stats.total_views}</div><div class="label">Total page views</div></div>
+    <div class="stat-card"><div class="num">${stats.total_unique_visitors}</div><div class="label">Unique visitors, all-time</div></div>
+    <div class="stat-card"><div class="num">${stats.views_today}</div><div class="label">Views today · ${stats.unique_today} unique</div></div>
+    <div class="stat-card"><div class="num">${stats.views_7d}</div><div class="label">Views last 7 days · ${stats.unique_7d} unique</div></div>`;
+
+  const daily = dailyRes.data || [];
+  if(daily.length === 0){
+    chartWrap.innerHTML = `<p class="count-line">No visits recorded yet.</p>`;
+    return;
+  }
+  const maxViews = Math.max(1, ...daily.map(d=> Number(d.views)));
+  chartWrap.innerHTML = daily.map(d=>{
+    const h = Math.max(2, Math.round((Number(d.views) / maxViews) * 100));
+    const label = new Date(d.day).toLocaleDateString(undefined, { month:'short', day:'numeric' });
+    return `<div class="visit-bar"><div class="bar" style="height:${h}%" title="${d.views} views · ${d.uniques} unique visitors"></div><span class="bar-label">${label}</span></div>`;
+  }).join('');
 }
 
 // ---------- data loading ----------

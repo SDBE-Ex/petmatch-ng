@@ -265,6 +265,7 @@
 
     <p class="count-line" id="countLine">Loading listings…</p>
     <div class="grid" id="grid"></div>
+    <button class="btn btn-ghost" id="loadMoreBtn" type="button" style="display:none; margin:20px auto 0">Load more</button>
   </section>
 
   <!-- ADD -->
@@ -430,11 +431,41 @@ const COMMON_BREEDS = ["Local / Mixed Breed","German Shepherd","Caucasian Shephe
 "Siamese","Maine Coon"];
 
 let pets = [];
+let myPets = [];           // current user's own listings, always fetched in full (never paginated)
 let currentUser = null;
 let myCoords = null;      // { lat, lng } from "Search near me"
 let formCoords = null;    // { lat, lng } captured on the listing form
 let petDistances = {};    // pet id -> km from myCoords, recomputed each render
 let partnerApp = undefined; // undefined = not checked yet, null = no application, else the row
+
+const PAGE_SIZE = 24;
+let totalCount = 0;
+let hasMore = false;
+let loadingMore = false;
+
+// Resizes/re-encodes a photo client-side before it ever reaches Storage.
+// Phone camera photos routinely run 3-8MB; nothing here needs more than
+// ~1280px on the long edge to look good in a 260px grid card or a modal.
+// Falls back to the original file on any failure (e.g. HEIC the browser
+// can't decode) rather than blocking the listing over a compression error.
+async function compressImage(file, { maxDim = 1280, quality = 0.82 } = {}){
+  if(!file || !file.type.startsWith('image/')) return file;
+  try{
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
+    const w = Math.round(bitmap.width * scale);
+    const h = Math.round(bitmap.height * scale);
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h);
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
+    if(!blob || blob.size >= file.size) return file;
+    const base = file.name.replace(/\.\w+$/, '') || 'photo';
+    return new File([blob], `${base}.jpg`, { type: 'image/jpeg' });
+  } catch {
+    return file;
+  }
+}
 
 // Looks up (and caches) the signed-in user's latest partner application.
 async function getPartnerApplication(){
@@ -445,6 +476,25 @@ async function getPartnerApplication(){
     .order('created_at', { ascending:false }).limit(1);
   partnerApp = (data && data[0]) || null;
   return partnerApp;
+}
+
+// ---------- anonymous visit logging (feeds the admin Insights tab) ----------
+function getVisitorId(){
+  let id = localStorage.getItem('petmatch_visitor_id');
+  if(!id){
+    id = crypto.randomUUID();
+    localStorage.setItem('petmatch_visitor_id', id);
+  }
+  return id;
+}
+function logPageView(){
+  // Fire-and-forget: supabase-js resolves (never throws) on API errors, and
+  // a failed view log should never hold up or break the page for a visitor.
+  supabase.from('page_views').insert({
+    session_id: getVisitorId(),
+    path: window.location.pathname,
+    referrer: document.referrer || null
+  });
 }
 
 function haversineKm(a, b){
@@ -604,6 +654,7 @@ async function renderAddPanel(){
   if(currentUser){
     gate.style.display = 'none';
     formcard.style.display = 'block';
+    await loadMyPets();
     renderMine();
 
     const pendingPhone = localStorage.getItem('petmatch_pending_phone');
@@ -680,19 +731,64 @@ document.getElementById('partnerForm').addEventListener('submit', async (e)=>{
 });
 
 // ---------- data ----------
+// Browse list is paginated: only the first page loads on open, "Load more"
+// fetches subsequent pages. Keeps initial load fast and bounded as the
+// table grows, instead of pulling every listing on every visit.
 async function loadPets(){
-  const { data, error } = await supabase
-    .from('pets').select('*').order('created_at', { ascending:false });
+  const { data, error, count } = await supabase
+    .from('pets').select('*', { count:'exact' })
+    .order('created_at', { ascending:false })
+    .range(0, PAGE_SIZE - 1);
   pets = error ? [] : data;
+  totalCount = error ? 0 : (count ?? pets.length);
+  hasMore = !error && pets.length < totalCount;
   renderStatLine();
   render();
 }
 
+async function loadMorePets(){
+  if(loadingMore || !hasMore) return;
+  loadingMore = true;
+  updateLoadMoreBtn();
+  const from = pets.length;
+  const { data, error } = await supabase
+    .from('pets').select('*')
+    .order('created_at', { ascending:false })
+    .range(from, from + PAGE_SIZE - 1);
+  if(!error && data){
+    pets = pets.concat(data);
+    hasMore = pets.length < totalCount;
+  }
+  loadingMore = false;
+  render();
+}
+
+function updateLoadMoreBtn(){
+  const btn = document.getElementById('loadMoreBtn');
+  if(!hasMore){ btn.style.display = 'none'; return; }
+  btn.style.display = 'inline-flex';
+  btn.disabled = loadingMore;
+  btn.textContent = loadingMore ? 'Loading…' : `Load more (${totalCount - pets.length} more)`;
+}
+document.getElementById('loadMoreBtn').addEventListener('click', loadMorePets);
+
+// The current user's own listings need to always be complete (so "Your
+// listings" can edit/remove any of them), independent of the browse
+// pagination above — a listing from a while back could easily sit past
+// the first loaded page.
+async function loadMyPets(){
+  if(!currentUser){ myPets = []; return; }
+  const { data, error } = await supabase
+    .from('pets').select('*').eq('owner_id', currentUser.id)
+    .order('created_at', { ascending:false });
+  myPets = error ? [] : data;
+}
+
 function renderStatLine(){
   const el = document.getElementById('statLine');
-  if(!pets.length){ el.style.display = 'none'; return; }
+  if(!totalCount){ el.style.display = 'none'; return; }
   const partnerCount = new Set(pets.filter(p=> p.is_partner && p.partner_business_name).map(p=> p.partner_business_name)).size;
-  el.innerHTML = `<span>${pets.length} pet${pets.length===1?'':'s'} listed</span>` +
+  el.innerHTML = `<span>${totalCount} pet${totalCount===1?'':'s'} listed</span>` +
     (partnerCount ? `<span class="dot"></span><span>${partnerCount} partner store${partnerCount===1?'':'s'}</span>` : '');
   el.style.display = 'flex';
 }
@@ -789,7 +885,9 @@ function render(){
     });
   }
 
-  countLine.textContent = `${list.length} listing${list.length===1?'':'s'} showing · ${pets.length} total on PetMatch`;
+  const totalLabel = hasMore ? `${pets.length} of ${totalCount} loaded` : `${totalCount} total on PetMatch`;
+  countLine.textContent = `${list.length} listing${list.length===1?'':'s'} showing · ${totalLabel}`;
+  updateLoadMoreBtn();
 
   if(list.length === 0){
     grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><h3>No matches here yet</h3><p>Try widening your filters, or be the first to list a pet like this.</p></div>`;
@@ -912,11 +1010,9 @@ document.addEventListener('keydown', (e)=>{
 function renderMine(){
   const wrap = document.getElementById('mineWrap');
   const list = document.getElementById('mineList');
-  if(!currentUser) { wrap.style.display='none'; return; }
-  const mine = pets.filter(p => p.owner_id === currentUser.id);
-  if(mine.length === 0){ wrap.style.display='none'; return; }
+  if(!currentUser || myPets.length === 0){ wrap.style.display='none'; return; }
   wrap.style.display = 'block';
-  list.innerHTML = mine.map(p=>`
+  list.innerHTML = myPets.map(p=>`
     <div class="mine-row">
       <span>${escapeHtml(p.pet_name)} · ${p.species} · ${p.state}</span>
       <div class="mine-row-actions">
@@ -932,6 +1028,8 @@ function renderMine(){
       if(!confirm('Remove this listing?')) return;
       if(editingPetId === btn.dataset.remove) cancelEditPet();
       await supabase.from('pets').delete().eq('id', btn.dataset.remove);
+      myPets = myPets.filter(p=> p.id !== btn.dataset.remove);
+      renderMine();
     });
   });
 }
@@ -942,7 +1040,7 @@ let editingPhotoUrl = null;
 let editingCoords = null;
 
 function startEditPet(id){
-  const p = pets.find(x=>x.id === id);
+  const p = myPets.find(x=>x.id === id);
   if(!p) return;
   editingPetId = id;
   editingPhotoUrl = p.photo_url || null;
@@ -1074,8 +1172,11 @@ document.getElementById('petForm').addEventListener('submit', async (e)=>{
   let photo_url = editingPetId ? editingPhotoUrl : null;
   const file = selectedPhotoFile;
   if(file){
-    const path = `${currentUser.id}/${Date.now()}-${file.name}`;
-    const { error: upErr } = await supabase.storage.from('pet-photos').upload(path, file);
+    msg.textContent = 'Optimizing photo…';
+    const compressed = await compressImage(file);
+    msg.textContent = 'Saving…';
+    const path = `${currentUser.id}/${Date.now()}-${compressed.name}`;
+    const { error: upErr } = await supabase.storage.from('pet-photos').upload(path, compressed);
     if(upErr){
       msg.textContent = 'Photo upload failed. Saving listing without photo.';
     } else {
@@ -1133,6 +1234,8 @@ document.getElementById('petForm').addEventListener('submit', async (e)=>{
     return;
   }
   const wasEditing = !!editingPetId;
+  await loadMyPets();
+  renderMine();
   msg.textContent = wasEditing
     ? `✓ ${newPet.pet_name} has been updated.`
     : `✓ ${newPet.pet_name} is now listed. Switch to "Find a Match" to see it.`;
@@ -1177,14 +1280,37 @@ document.getElementById('useLocationBtn').addEventListener('click', ()=>{
   );
 });
 
-// ---------- realtime: refresh when anyone adds/removes a listing ----------
+// ---------- realtime: merge changes into the already-loaded pages ----------
+// Was a blanket loadPets() on any change; with pagination that would silently
+// reset anyone's "Load more" progress back to page one every time a stranger
+// added or removed a listing. Merge the specific row instead.
 supabase.channel('pets-changes')
-  .on('postgres_changes', { event:'*', schema:'public', table:'pets' }, ()=> loadPets())
+  .on('postgres_changes', { event:'INSERT', schema:'public', table:'pets' }, (payload)=>{
+    if(pets.some(p=> p.id === payload.new.id)) return;
+    pets = [payload.new, ...pets];
+    totalCount += 1;
+    renderStatLine();
+    render();
+  })
+  .on('postgres_changes', { event:'UPDATE', schema:'public', table:'pets' }, (payload)=>{
+    pets = pets.map(p=> p.id === payload.new.id ? payload.new : p);
+    render();
+  })
+  .on('postgres_changes', { event:'DELETE', schema:'public', table:'pets' }, (payload)=>{
+    const existed = pets.some(p=> p.id === payload.old.id);
+    if(existed){
+      pets = pets.filter(p=> p.id !== payload.old.id);
+      totalCount = Math.max(0, totalCount - 1);
+      renderStatLine();
+      render();
+    }
+  })
   .subscribe();
 
 // ---------- init ----------
 (async function init(){
   document.getElementById('countLine').textContent = 'Loading listings…';
+  logPageView();
   const { data:{ session } } = await supabase.auth.getSession();
   currentUser = session?.user ?? null;
   renderAuthbar();
