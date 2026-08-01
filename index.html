@@ -4,6 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PetMatch: Find a mate for your pet, near you</title>
+<meta name="description" content="Discover nearby dogs and cats looking for a mate, and connect directly with their owners.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="PetMatch">
+<meta property="og:title" content="PetMatch: Find a mate for your pet, near you">
+<meta property="og:description" content="Discover nearby dogs and cats looking for a mate, and connect directly with their owners.">
+<meta property="og:url" content="https://petmatch.fit/">
+<meta property="og:image" content="https://images.unsplash.com/photo-1558821078-8b2696bae783?w=1200&h=630&fit=crop&q=80&auto=format">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="PetMatch: Find a mate for your pet, near you">
+<meta name="twitter:description" content="Discover nearby dogs and cats looking for a mate, and connect directly with their owners.">
+<meta name="twitter:image" content="https://images.unsplash.com/photo-1558821078-8b2696bae783?w=1200&h=630&fit=crop&q=80&auto=format">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
 
@@ -27,6 +40,9 @@
   header.top h1 a{color:inherit; text-decoration:none;}
   header.top h1 a:hover{opacity:.85;}
   header.top p{margin:0 auto 18px; max-width:480px; color:#DCE7DD; font-size:14.5px; line-height:1.5;}
+
+  .stat-line{font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.03em; color:var(--marigold); margin:0 0 16px; display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap;}
+  .stat-line .dot{width:4px; height:4px; border-radius:999px; background:var(--marigold); display:inline-block; flex:none;}
 
   .authbar{
     display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap;
@@ -149,6 +165,9 @@
   .photo-preview{display:flex; align-items:center; gap:12px; margin-top:10px;}
   .photo-preview img{width:64px; height:64px; object-fit:cover; border-radius:9px; border:1.5px solid var(--line);}
   #formMsg{font-family:'IBM Plex Mono',monospace; font-size:12.5px; margin-top:12px; color:var(--forest-dark);}
+  .share-prompt{margin-top:14px; padding:16px; border-radius:11px; background:rgba(232,163,61,0.14); border:1.5px dashed var(--marigold);}
+  .share-prompt p{margin:0 0 10px; font-size:13.5px; color:var(--forest-dark); font-family:'Work Sans',sans-serif;}
+  .share-prompt .btn{text-decoration:none;}
 
   .gate{background:var(--paper); border-radius:var(--radius); padding:34px 26px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.18);}
   .gate h2{font-family:'Fraunces',serif; color:var(--forest-dark); margin:0 0 8px;}
@@ -172,6 +191,8 @@
   <div class="eyebrow">Dogs &amp; Cats · Near You</div>
   <h1><a href="/" title="Back to the PetMatch homepage">PetMatch</a></h1>
   <p>Discover nearby dogs and cats looking for a mate, and connect directly with their owners.</p>
+
+  <p class="stat-line" id="statLine" aria-live="polite" style="display:none"></p>
 
   <div class="authbar" id="authbar">
     <!-- filled by JS -->
@@ -572,7 +593,17 @@ async function loadPets(){
   const { data, error } = await supabase
     .from('pets').select('*').order('created_at', { ascending:false });
   pets = error ? [] : data;
+  renderStatLine();
   render();
+}
+
+function renderStatLine(){
+  const el = document.getElementById('statLine');
+  if(!pets.length){ el.style.display = 'none'; return; }
+  const partnerCount = new Set(pets.filter(p=> p.is_partner && p.partner_business_name).map(p=> p.partner_business_name)).size;
+  el.innerHTML = `<span>${pets.length} pet${pets.length===1?'':'s'} listed</span>` +
+    (partnerCount ? `<span class="dot"></span><span>${partnerCount} partner store${partnerCount===1?'':'s'}</span>` : '');
+  el.style.display = 'flex';
 }
 
 function serial(id){ return 'PM-' + id.slice(0,3).toUpperCase(); }
@@ -947,6 +978,7 @@ document.getElementById('petForm').addEventListener('submit', async (e)=>{
   const submitBtn = document.getElementById('submitBtn');
   submitBtn.disabled = true;
   msg.textContent = 'Saving…';
+  document.querySelector('.share-prompt')?.remove();
 
   let photo_url = editingPetId ? editingPhotoUrl : null;
   const file = selectedPhotoFile;
@@ -1009,10 +1041,18 @@ document.getElementById('petForm').addEventListener('submit', async (e)=>{
     msg.textContent = "That didn't go through: " + error.message;
     return;
   }
-  msg.textContent = editingPetId
+  const wasEditing = !!editingPetId;
+  msg.textContent = wasEditing
     ? `✓ ${newPet.pet_name} has been updated.`
     : `✓ ${newPet.pet_name} is now listed. Switch to "Find a Match" to see it.`;
-  const wasEditing = !!editingPetId;
+  if(!wasEditing){
+    const shareText = encodeURIComponent(`🐾 I just listed ${newPet.pet_name} on PetMatch! Help find a match: https://petmatch.fit`);
+    const shareEl = document.createElement('div');
+    shareEl.className = 'share-prompt';
+    shareEl.innerHTML = `<p>Tell others your pet is listed!</p>
+      <a class="btn btn-clay" target="_blank" rel="noopener" href="https://wa.me/?text=${shareText}">Share to WhatsApp</a>`;
+    msg.after(shareEl);
+  }
   editingPetId = null;
   editingPhotoUrl = null;
   editingCoords = null;
