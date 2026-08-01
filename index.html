@@ -486,25 +486,73 @@ function renderAuthbar(){
     });
   } else {
     optInWrap.style.display = 'flex';
-    bar.innerHTML = `
-      <input type="email" id="authEmail" placeholder="you@email.com">
-      <button class="btn btn-clay" id="sendLinkBtn" style="padding:9px 16px">Sign in to list a pet</button>`;
-    document.getElementById('sendLinkBtn').addEventListener('click', async ()=>{
-      const email = document.getElementById('authEmail').value.trim();
-      const wantsUpdates = document.getElementById('marketingOptIn').checked;
-      const btn = document.getElementById('sendLinkBtn');
-      if(!email) return;
-      btn.disabled = true; btn.textContent = 'Sending…';
-      const { error } = await supabase.auth.signInWithOtp({
-        email, options:{ emailRedirectTo: window.location.href }
-      });
-      if(wantsUpdates){
-        await supabase.from('subscribers').insert({ email, source: 'sign_in_optin' });
-      }
-      btn.textContent = error ? 'Try again' : 'Check your email ✓';
-      btn.disabled = false;
-    });
+    renderIdentifierStep();
   }
+}
+
+// Accepts an email or a phone number in one box. Phone numbers can't be
+// verified for free yet (real SMS/WhatsApp OTP needs a paid provider like
+// Twilio Verify wired into Supabase Auth), so we fall back to asking for
+// an email while remembering the phone to prefill the listing form later.
+function isLikelyPhone(raw){
+  if(raw.includes('@')) return false;
+  const digits = raw.replace(/[\s\-().]/g, '');
+  return /^\+?[0-9]{7,15}$/.test(digits);
+}
+function normalizePhone(raw){
+  let digits = raw.replace(/[\s\-().]/g, '');
+  if(digits.startsWith('0')) digits = '+234' + digits.slice(1);
+  else if(!digits.startsWith('+')) digits = '+' + digits;
+  return digits;
+}
+
+function renderIdentifierStep(){
+  const bar = document.getElementById('authbar');
+  bar.innerHTML = `
+    <input type="text" id="authIdentifier" placeholder="Email or WhatsApp number">
+    <button class="btn btn-clay" id="sendLinkBtn" style="padding:9px 16px">Sign in to list a pet</button>`;
+  document.getElementById('sendLinkBtn').addEventListener('click', ()=>{
+    const raw = document.getElementById('authIdentifier').value.trim();
+    const btn = document.getElementById('sendLinkBtn');
+    if(!raw) return;
+    if(raw.includes('@')){
+      sendEmailLink(raw, btn);
+    } else if(isLikelyPhone(raw)){
+      const phone = normalizePhone(raw);
+      localStorage.setItem('petmatch_pending_phone', phone);
+      renderPhoneFallbackStep(phone);
+    } else {
+      btn.textContent = 'Enter a valid email or phone';
+      setTimeout(()=>{ btn.textContent = 'Sign in to list a pet'; }, 2200);
+    }
+  });
+}
+
+function renderPhoneFallbackStep(phone){
+  const bar = document.getElementById('authbar');
+  bar.innerHTML = `
+    <span class="who" style="text-align:left; line-height:1.45; max-width:230px; padding:0 4px">Verify free by email for now — we'll keep ${escapeHtml(phone)} for your listing.</span>
+    <input type="email" id="authEmail" placeholder="you@email.com">
+    <button class="btn btn-clay" id="sendLinkBtn" style="padding:9px 16px">Send link</button>`;
+  document.getElementById('sendLinkBtn').addEventListener('click', ()=>{
+    const email = document.getElementById('authEmail').value.trim();
+    const btn = document.getElementById('sendLinkBtn');
+    if(!email) return;
+    sendEmailLink(email, btn);
+  });
+}
+
+async function sendEmailLink(email, btn){
+  const wantsUpdates = document.getElementById('marketingOptIn').checked;
+  btn.disabled = true; btn.textContent = 'Sending…';
+  const { error } = await supabase.auth.signInWithOtp({
+    email, options:{ emailRedirectTo: window.location.href }
+  });
+  if(wantsUpdates){
+    await supabase.from('subscribers').insert({ email, source: 'sign_in_optin' });
+  }
+  btn.textContent = error ? 'Try again' : 'Check your email ✓';
+  btn.disabled = false;
 }
 
 supabase.auth.onAuthStateChange((_event, session)=>{
@@ -521,6 +569,13 @@ async function renderAddPanel(){
     gate.style.display = 'none';
     formcard.style.display = 'block';
     renderMine();
+
+    const pendingPhone = localStorage.getItem('petmatch_pending_phone');
+    const waInput = document.getElementById('whatsapp');
+    if(pendingPhone && waInput && !waInput.value){
+      waInput.value = pendingPhone;
+      localStorage.removeItem('petmatch_pending_phone');
+    }
 
     const app = await getPartnerApplication();
     const listedByField = document.getElementById('listedByField');
