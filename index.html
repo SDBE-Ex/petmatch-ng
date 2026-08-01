@@ -71,6 +71,9 @@
   @media (prefers-reduced-motion:reduce){
     .hero-photo-half img{transition:none;}
     .hero-image.poked .hero-heart-pop{animation:none; opacity:.9;}
+    .card{animation:none;}
+    .btn:hover, .btn:active, .tag:hover{transform:none;}
+    .burst-piece{animation:none; display:none;}
   }
 
   .tabs{display:flex; justify-content:center; gap:6px; background:var(--forest-dark); padding:10px; position:sticky; top:0; z-index:10; border-bottom:1px solid rgba(255,255,255,0.08);}
@@ -89,11 +92,13 @@
   select, input, textarea{font-family:'Work Sans',sans-serif; font-size:14.5px; padding:10px 12px; border:1.5px solid var(--line); border-radius:9px; background:#fff; color:var(--ink); outline:none;}
   select:focus, input:focus, textarea:focus{border-color:var(--forest); box-shadow:0 0 0 3px rgba(31,71,50,0.12);}
   .row select{flex:1; min-width:140px;}
-  .btn{font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; letter-spacing:.03em; text-transform:uppercase; border:none; border-radius:9px; padding:11px 20px; cursor:pointer; transition:.15s; display:inline-flex; align-items:center; justify-content:center; gap:6px;}
+  .btn{font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; letter-spacing:.03em; text-transform:uppercase; border:none; border-radius:9px; padding:11px 20px; cursor:pointer; transition:.15s ease; display:inline-flex; align-items:center; justify-content:center; gap:6px;}
   .btn svg{width:15px; height:15px; flex:none;}
   .btn-clay{background:var(--clay); color:#fff;} .btn-clay:hover{background:var(--clay-dark);}
   .btn-forest{background:var(--forest); color:#fff;} .btn-forest:hover{background:var(--forest-dark);}
   .btn-ghost{background:transparent; border:1.5px solid var(--forest); color:var(--forest);}
+  .btn:hover:not(:disabled){transform:translateY(-1px);}
+  .btn:active:not(:disabled){transform:scale(.95);}
   .btn:disabled{opacity:.5; cursor:not-allowed;}
   .btn:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible{outline:3px solid var(--marigold); outline-offset:2px;}
 
@@ -102,7 +107,9 @@
   .count-line{font-family:'IBM Plex Mono',monospace; font-size:12px; color:#DCE7DD; margin:0 0 14px 2px; letter-spacing:.03em;}
 
   .grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:16px;}
-  .card{position:relative; background:var(--paper); border-radius:var(--radius); padding:0 18px 16px 26px; box-shadow:0 8px 20px rgba(0,0,0,0.16); overflow:hidden;}
+  @keyframes cardIn{from{opacity:0; transform:translateY(12px) scale(.96);} to{opacity:1; transform:none;}}
+  .card{position:relative; background:var(--paper); border-radius:var(--radius); padding:0 18px 16px 26px; box-shadow:0 8px 20px rgba(0,0,0,0.16); overflow:hidden; animation:cardIn .5s cubic-bezier(.22,1,.36,1) backwards; transition:transform .2s ease, box-shadow .2s ease;}
+  .card:hover{transform:translateY(-4px); box-shadow:0 14px 28px rgba(0,0,0,0.22);}
   .card::before{content:''; position:absolute; left:8px; top:0; bottom:0; width:1px; background-image:linear-gradient(var(--line) 60%, transparent 0%); background-size:1px 8px; background-repeat:repeat-y;}
   .card .photo{width:calc(100% + 18px); margin-left:-18px; height:150px; object-fit:cover; display:block; margin-bottom:12px;}
   .card .photo-ph{width:calc(100% + 18px); margin-left:-18px; height:60px;}
@@ -110,7 +117,8 @@
   .card h3{font-family:'Fraunces',serif; font-size:19px; margin:0 6px 2px 0; color:var(--forest-dark); padding-right:60px; padding-top:16px;}
   .card.has-photo h3{padding-top:0;}
   .tagrow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0 10px;}
-  .tag{font-family:'IBM Plex Mono',monospace; font-size:11px; padding:3px 8px; border-radius:999px; background:rgba(31,71,50,0.09); color:var(--forest-dark);}
+  .tag{font-family:'IBM Plex Mono',monospace; font-size:11px; padding:3px 8px; border-radius:999px; background:rgba(31,71,50,0.09); color:var(--forest-dark); transition:transform .15s ease; display:inline-block;}
+  .tag:hover{transform:scale(1.1);}
   .tag.male{background:rgba(60,110,156,0.14); color:var(--male);} .tag.female{background:rgba(181,80,122,0.14); color:var(--female);}
   .tag.breeder{background:rgba(232,163,61,0.22); color:#8a5f16;}
   .tag.partner{background:rgba(232,163,61,0.28); color:#8a5f16; font-weight:600;}
@@ -168,6 +176,15 @@
   .share-prompt{margin-top:14px; padding:16px; border-radius:11px; background:rgba(232,163,61,0.14); border:1.5px dashed var(--marigold);}
   .share-prompt p{margin:0 0 10px; font-size:13.5px; color:var(--forest-dark); font-family:'Work Sans',sans-serif;}
   .share-prompt .btn{text-decoration:none;}
+
+  #formActionsRow{position:relative;}
+  .burst{position:absolute; left:0; right:0; top:-4px; height:0; pointer-events:none; overflow:visible;}
+  .burst-piece{position:absolute; top:0; font-size:17px; opacity:0; animation:burstPop .9s ease-out forwards; will-change:transform,opacity;}
+  @keyframes burstPop{
+    0%{opacity:0; transform:translate(-50%,0) scale(.4) rotate(0deg);}
+    20%{opacity:1;}
+    100%{opacity:0; transform:translate(calc(-50% + var(--dx,0px)), -54px) scale(1) rotate(var(--rot,0deg));}
+  }
 
   .gate{background:var(--paper); border-radius:var(--radius); padding:34px 26px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.18);}
   .gate h2{font-family:'Fraunces',serif; color:var(--forest-dark); margin:0 0 8px;}
@@ -314,7 +331,7 @@
           <div class="checkline"><input type="radio" name="listedBy" id="listedByBusiness" value="business"><label for="listedByBusiness" id="listedByBusinessLabel">Pet Business</label></div>
         </div>
 
-        <div class="row">
+        <div class="row" id="formActionsRow">
           <button type="submit" class="btn btn-forest" id="submitBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path id="submitBtnIcon" d="M12 5v14M5 12h14"/></svg>Add Listing</button>
           <button type="button" class="btn btn-ghost" id="cancelEditBtn" style="display:none">Cancel edit</button>
         </div>
@@ -455,6 +472,25 @@ heroIllustration.addEventListener('click', ()=>{
   clearTimeout(pokeTimer);
   pokeTimer = setTimeout(()=> heroIllustration.classList.remove('poked'), 1200);
 });
+
+// ---------- little paw/heart burst, used to celebrate a successful listing ----------
+function burstConfetti(anchorEl){
+  if(!anchorEl) return;
+  const burst = document.createElement('div');
+  burst.className = 'burst';
+  ['🐾','❤️','🐾','❤️','🐾'].forEach((emoji, i)=>{
+    const piece = document.createElement('span');
+    piece.className = 'burst-piece';
+    piece.textContent = emoji;
+    piece.style.left = (42 + Math.random()*16) + '%';
+    piece.style.setProperty('--dx', (Math.random()*70 - 35).toFixed(0) + 'px');
+    piece.style.setProperty('--rot', (Math.random()*50 - 25).toFixed(0) + 'deg');
+    piece.style.animationDelay = (i * 70) + 'ms';
+    burst.appendChild(piece);
+  });
+  anchorEl.appendChild(burst);
+  setTimeout(()=> burst.remove(), 1200);
+}
 
 // ---------- tabs ----------
 function showPanel(tab){
@@ -760,11 +796,11 @@ function render(){
     return;
   }
 
-  grid.innerHTML = list.map(p=>{
+  grid.innerHTML = list.map((p,i)=>{
     const genderClass = p.gender === 'Male' ? 'male' : 'female';
     const dist = petDistances[p.id];
     return `
-    <div class="card ${p.photo_url ? 'has-photo':''}">
+    <div class="card ${p.photo_url ? 'has-photo':''}" style="animation-delay:${Math.min(i,10)*40}ms">
       ${p.photo_url ? `<img class="photo" src="${p.photo_url}" alt="${escapeHtml(p.pet_name)}">` : ''}
       <span class="stamp">${serial(p.id)}</span>
       <h3>${escapeHtml(p.pet_name)}</h3>
@@ -1107,6 +1143,7 @@ document.getElementById('petForm').addEventListener('submit', async (e)=>{
     shareEl.innerHTML = `<p>Tell others your pet is listed!</p>
       <a class="btn btn-clay" target="_blank" rel="noopener" href="https://wa.me/?text=${shareText}">Share to WhatsApp</a>`;
     msg.after(shareEl);
+    burstConfetti(document.getElementById('formActionsRow'));
   }
   editingPetId = null;
   editingPhotoUrl = null;
