@@ -9,6 +9,7 @@
 <meta property="og:site_name" content="PetMatch">
 <meta property="og:title" content="PetMatch: Find a mate for your pet, near you">
 <meta property="og:description" content="Discover nearby dogs and cats looking for a mate, and connect directly with their owners.">
+<link rel="canonical" href="https://petmatch.fit/">
 <meta property="og:url" content="https://petmatch.fit/">
 <meta property="og:image" content="https://images.unsplash.com/photo-1558821078-8b2696bae783?w=1200&h=630&fit=crop&q=80&auto=format">
 <meta property="og:image:width" content="1200">
@@ -406,7 +407,7 @@
   </section>
 </main>
 
-<footer>PETMATCH · A simple directory, not a broker. Meet safely, and check health and vaccination records before any pairing.<br>Contact: <a href="mailto:hello@petmatch.fit" style="color:inherit">hello@petmatch.fit</a> · <a href="#" id="partnersLink" style="color:inherit">For Pet Businesses</a></footer>
+<footer>PETMATCH · A simple directory, not a broker. Meet safely, and check health and vaccination records before any pairing.<br>Contact: <a href="mailto:hello@petmatch.fit" style="color:inherit">hello@petmatch.fit</a> · <a href="/about" style="color:inherit">About</a> · <a href="/#partners" id="partnersLink" style="color:inherit">For Pet Businesses</a></footer>
 
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal" id="modalContent"></div>
@@ -1316,6 +1317,10 @@ supabase.channel('pets-changes')
   renderAuthbar();
   renderAddPanel();
   await loadPets();
+  if(location.hash === '#partners'){
+    showPanel('partners');
+    document.getElementById('panel-partners').scrollIntoView({behavior:'smooth', block:'start'});
+  }
 })();
 </script>
 </body>

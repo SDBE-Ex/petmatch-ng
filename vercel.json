@@ -1,5 +1,14 @@
 {
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.petmatch.fit" }],
+      "destination": "https://petmatch.fit/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
-    { "source": "/admin", "destination": "/admin.html" }
+    { "source": "/admin", "destination": "/admin.html" },
+    { "source": "/about", "destination": "/about.html" }
   ]
 }
