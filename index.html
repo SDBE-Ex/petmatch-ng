@@ -1138,10 +1138,12 @@ document.getElementById('nearBtn').addEventListener('click', ()=>{
 document.getElementById('findBtn').addEventListener('click', ()=>{
   const species = document.getElementById('mySpecies').value;
   const myGender = document.getElementById('myGender').value;
+  const seekingGender = myGender === 'Male' ? 'Female' : 'Male';
   document.getElementById('fSpecies').value = species;
-  document.getElementById('fGender').value = myGender === 'Male' ? 'Female' : 'Male';
+  document.getElementById('fGender').value = seekingGender;
   render();
   document.getElementById('countLine').scrollIntoView({behavior:'smooth', block:'start'});
+  gtag('event', 'find_a_match', { species, seeking_gender: seekingGender });
 });
 
 // ---------- photo: choose from device or take with camera ----------
@@ -1250,6 +1252,7 @@ document.getElementById('petForm').addEventListener('submit', async (e)=>{
     ? `✓ ${newPet.pet_name} has been updated.`
     : `✓ ${newPet.pet_name} is now listed. Switch to "Find a Match" to see it.`;
   if(!wasEditing){
+    gtag('event', 'list_pet', { species: newPet.species, breed: newPet.breed, is_partner });
     const shareText = encodeURIComponent(`🐾 I just listed ${newPet.pet_name} on PetMatch! Help me find a match: https://petmatch.fit`);
     const shareEl = document.createElement('div');
     shareEl.className = 'share-prompt';
