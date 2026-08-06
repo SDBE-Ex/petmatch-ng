@@ -675,8 +675,8 @@ async function sendEmailLink(email, btn){
 function renderCodeStep(email){
   const bar = document.getElementById('authbar');
   bar.innerHTML = `
-    <span class="who" style="text-align:left; line-height:1.45; max-width:230px; padding:0 4px">Enter the 6-digit code we sent to ${escapeHtml(email)}</span>
-    <input type="text" id="authCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456" style="max-width:110px; letter-spacing:2px; text-align:center">
+    <span class="who" style="text-align:left; line-height:1.45; max-width:230px; padding:0 4px">Enter the 8-digit code we sent to ${escapeHtml(email)}</span>
+    <input type="text" id="authCode" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="12345678" style="max-width:130px; letter-spacing:2px; text-align:center">
     <button class="btn btn-clay" id="verifyCodeBtn" style="padding:9px 16px">Verify</button>
     <button class="btn btn-ghost" id="backToEmailBtn" style="padding:6px 10px; font-size:12px">Use a different email</button>`;
   document.getElementById('verifyCodeBtn').addEventListener('click', ()=>{
