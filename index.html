@@ -446,10 +446,12 @@ const SUPABASE_ANON_KEY = 'sb_publishable_CHwFvmImO-SxEMDO52uWeA_WUuU1k2l';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const COMMON_BREEDS = ["Local / Mixed Breed","German Shepherd","Caucasian Shepherd","Boerboel",
-"Rottweiler","Lhasa Apso","Aseel","Bull Mastiff","American Pitbull Terrier","Neapolitan Mastiff",
-"Tibetan Mastiff","Labrador Retriever","Poodle","Persian","British Shorthair","Domestic Shorthair",
-"Siamese","Maine Coon"];
+const COMMON_BREEDS = ["Local / Mixed Breed","German Shepherd","Alsatian","Caucasian Shepherd","Boerboel",
+"Rottweiler","Lhasa Apso","Aseel","Bull Mastiff","Cane Corso","American Pitbull Terrier","American Bully",
+"Dogo Argentino","Neapolitan Mastiff","Tibetan Mastiff","Doberman Pinscher","Belgian Malinois","Great Dane",
+"Labrador Retriever","Golden Retriever","Border Collie","Siberian Husky","Akita","Beagle","Dachshund",
+"Poodle","Shih Tzu","Pomeranian","Japanese Spitz","Chihuahua","French Bulldog","English Bulldog",
+"Persian","British Shorthair","Domestic Shorthair","Siamese","Maine Coon"];
 
 let pets = [];
 let myPets = [];           // current user's own listings, always fetched in full (never paginated)
@@ -652,14 +654,51 @@ function renderPhoneFallbackStep(phone){
 async function sendEmailLink(email, btn){
   const wantsUpdates = document.getElementById('marketingOptIn').checked;
   btn.disabled = true; btn.textContent = 'Sending…';
-  const { error } = await supabase.auth.signInWithOtp({
-    email, options:{ emailRedirectTo: window.location.href }
-  });
+  const { error } = await supabase.auth.signInWithOtp({ email });
   if(wantsUpdates){
     await supabase.from('subscribers').insert({ email, source: 'sign_in_optin' });
   }
-  btn.textContent = error ? 'Try again' : 'Check your email ✓';
-  btn.disabled = false;
+  if(error){
+    btn.textContent = 'Try again';
+    btn.disabled = false;
+  } else {
+    renderCodeStep(email);
+  }
+}
+
+// Users type the 6-digit code from the email instead of tapping a link.
+// A tapped link often opens in a different app/browser than the one the
+// user started in (Gmail app, WhatsApp in-app browser), so the session
+// never reaches the original tab and they end up "signing in" every visit.
+// Typing the code back into the same tab guarantees the session lands
+// where localStorage can persist it, so this really is a one-time step.
+function renderCodeStep(email){
+  const bar = document.getElementById('authbar');
+  bar.innerHTML = `
+    <span class="who" style="text-align:left; line-height:1.45; max-width:230px; padding:0 4px">Enter the 6-digit code we sent to ${escapeHtml(email)}</span>
+    <input type="text" id="authCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456" style="max-width:110px; letter-spacing:2px; text-align:center">
+    <button class="btn btn-clay" id="verifyCodeBtn" style="padding:9px 16px">Verify</button>
+    <button class="btn btn-ghost" id="backToEmailBtn" style="padding:6px 10px; font-size:12px">Use a different email</button>`;
+  document.getElementById('verifyCodeBtn').addEventListener('click', ()=>{
+    const code = document.getElementById('authCode').value.trim();
+    const btn = document.getElementById('verifyCodeBtn');
+    if(!code) return;
+    verifyCode(email, code, btn);
+  });
+  document.getElementById('authCode').addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter') document.getElementById('verifyCodeBtn').click();
+  });
+  document.getElementById('backToEmailBtn').addEventListener('click', renderIdentifierStep);
+}
+
+async function verifyCode(email, code, btn){
+  btn.disabled = true; btn.textContent = 'Verifying…';
+  const { error } = await supabase.auth.verifyOtp({ email, token: code, type: 'email' });
+  if(error){
+    btn.textContent = 'Wrong code, try again';
+    btn.disabled = false;
+  }
+  // on success, onAuthStateChange re-renders the authbar as signed in
 }
 
 supabase.auth.onAuthStateChange((_event, session)=>{
