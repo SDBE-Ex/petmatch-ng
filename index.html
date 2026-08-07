@@ -511,13 +511,15 @@ function getVisitorId(){
   return id;
 }
 function logPageView(){
-  // Fire-and-forget: supabase-js resolves (never throws) on API errors, and
-  // a failed view log should never hold up or break the page for a visitor.
+  // Fire-and-forget: supabase-js query builders are lazy thenables that
+  // only send their request once something calls .then()/await on them,
+  // so this still needs a .then() to actually fire — a bare call here
+  // builds the request and drops it without ever hitting the network.
   supabase.from('page_views').insert({
     session_id: getVisitorId(),
     path: window.location.pathname,
     referrer: document.referrer || null
-  });
+  }).then(()=>{});
 }
 
 function haversineKm(a, b){
