@@ -46,7 +46,7 @@ function notFoundPage(res) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Listing not found | Petmatch</title>
+<title>Listing not found | PetMatch</title>
 <meta name="robots" content="noindex">
 ${fontLinks()}
 <style>${sharedStyles()}</style>
@@ -139,8 +139,8 @@ module.exports = async (req, res) => {
   const image = p.photo_url || DEFAULT_IMAGE;
 
   const title = p.available_for_mating
-    ? `${name}, ${breed} ${p.species}, Available for Mating in ${state} | Petmatch`
-    : `${name}, ${breed} ${p.species} in ${state} | Petmatch`;
+    ? `${name}, ${breed} ${p.species}, Available for Mating in ${state} | PetMatch`
+    : `${name}, ${breed} ${p.species} in ${state} | PetMatch`;
 
   const descBase = `${name} is a ${p.age} year old ${p.gender.toLowerCase()} ${breed} ${p.species.toLowerCase()} in ${state}${p.available_for_mating ? ', available for mating now' : ''}.`;
   const description = (p.notes ? `${descBase} ${p.notes}` : descBase).slice(0, 300);
