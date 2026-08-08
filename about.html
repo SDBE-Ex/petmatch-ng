@@ -37,9 +37,10 @@
   "description": "A free directory helping dog and cat owners find nearby mates and connect directly."
 }
 </script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
-
   :root{
     --ink:#14241C; --paper:#FBF6EA; --forest:#1F4732; --forest-dark:#132E20;
     --marigold:#E8A33D; --clay:#A64B2A; --clay-dark:#8A3D22;
@@ -56,9 +57,9 @@
     color:var(--paper); padding:30px 20px 22px; text-align:center;
   }
   header.top .eyebrow{font-family:'IBM Plex Mono',monospace; letter-spacing:.14em; text-transform:uppercase; font-size:11.5px; color:var(--marigold); margin-bottom:10px;}
-  header.top h1{font-family:'Fraunces',serif; font-weight:600; font-size:clamp(26px,5vw,40px); margin:0 0 8px; letter-spacing:-0.01em;}
-  header.top h1 a{color:inherit; text-decoration:none;}
-  header.top h1 a:hover{opacity:.85;}
+  header.top .brand-mark{font-family:'Fraunces',serif; font-weight:600; font-size:clamp(26px,5vw,40px); margin:0 0 8px; letter-spacing:-0.01em;}
+  header.top .brand-mark a{color:inherit; text-decoration:none;}
+  header.top .brand-mark a:hover{opacity:.85;}
   header.top p{margin:0 auto; max-width:480px; color:#DCE7DD; font-size:14.5px; line-height:1.5;}
 
   main{max-width:700px; margin:0 auto; padding:28px 16px 80px;}
@@ -85,7 +86,7 @@
 
 <header class="top">
   <div class="eyebrow">Dogs &amp; Cats · Near You</div>
-  <h1><a href="/" title="Back to the PetMatch homepage">PetMatch</a></h1>
+  <p class="brand-mark"><a href="/" title="Back to the PetMatch homepage">PetMatch</a></p>
   <p>Discover nearby dogs and cats looking for a mate, and connect directly with their owners.</p>
 </header>
 

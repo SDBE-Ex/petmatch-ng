@@ -48,12 +48,13 @@ function notFoundPage(res) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Listing not found | Petmatch</title>
 <meta name="robots" content="noindex">
+${fontLinks()}
 <style>${sharedStyles()}</style>
 </head>
 <body>
 <header class="top">
   <div class="eyebrow">Dogs &amp; Cats · Near You</div>
-  <h1><a href="/" title="Back to the PetMatch homepage">PetMatch</a></h1>
+  <p class="brand-mark"><a href="/" title="Back to the PetMatch homepage">PetMatch</a></p>
 </header>
 <main>
   <article class="formcard" style="text-align:center">
@@ -67,16 +68,21 @@ function notFoundPage(res) {
   res.status(404).setHeader('Content-Type', 'text/html; charset=utf-8').send(html);
 }
 
+function fontLinks() {
+  return `<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">`;
+}
+
 function sharedStyles() {
   return `
-  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
   :root{ --ink:#14241C; --paper:#FBF6EA; --forest:#1F4732; --forest-dark:#132E20; --marigold:#E8A33D; --clay:#A64B2A; --clay-dark:#8A3D22; --line:#D8CBA8; --male:#3C6E9C; --female:#B5507A; --radius:14px; }
   *{box-sizing:border-box;}
   body{margin:0; background:var(--forest); color:var(--ink); font-family:'Work Sans', sans-serif; -webkit-font-smoothing:antialiased;}
   header.top{ background:var(--forest); color:var(--paper); padding:30px 20px 22px; text-align:center; }
   header.top .eyebrow{font-family:'IBM Plex Mono',monospace; letter-spacing:.14em; text-transform:uppercase; font-size:11.5px; color:var(--marigold); margin-bottom:10px;}
-  header.top h1{font-family:'Fraunces',serif; font-weight:600; font-size:clamp(26px,5vw,40px); margin:0; letter-spacing:-0.01em;}
-  header.top h1 a{color:inherit; text-decoration:none;}
+  header.top .brand-mark{font-family:'Fraunces',serif; font-weight:600; font-size:clamp(26px,5vw,40px); margin:0; letter-spacing:-0.01em;}
+  header.top .brand-mark a{color:inherit; text-decoration:none;}
   main{max-width:700px; margin:0 auto; padding:28px 16px 80px;}
   .formcard{background:var(--paper); border-radius:var(--radius); padding:30px 28px; box-shadow:0 10px 30px rgba(0,0,0,0.18);}
   .formcard h1{font-family:'Fraunces',serif; font-size:26px; margin:0 0 4px; color:var(--forest-dark); padding-right:0;}
@@ -165,12 +171,13 @@ module.exports = async (req, res) => {
 <meta name="twitter:title" content="${escapeHtml(title)}">
 <meta name="twitter:description" content="${escapeHtml(description)}">
 <meta name="twitter:image" content="${escapeHtml(image)}">
+${fontLinks()}
 <style>${sharedStyles()}</style>
 </head>
 <body>
 <header class="top">
   <div class="eyebrow">Dogs &amp; Cats · Near You</div>
-  <h1><a href="/" title="Back to the PetMatch homepage">PetMatch</a></h1>
+  <p class="brand-mark"><a href="/" title="Back to the PetMatch homepage">PetMatch</a></p>
 </header>
 <main>
   <article class="formcard">

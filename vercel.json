@@ -16,7 +16,8 @@
   "rewrites": [
     { "source": "/admin", "destination": "/admin.html" },
     { "source": "/about", "destination": "/about.html" },
-    { "source": "/pets/:id", "destination": "/api/pets/:id" }
+    { "source": "/pets/:id", "destination": "/api/pets/:id" },
+    { "source": "/sitemap.xml", "destination": "/api/sitemap" }
   ],
   "headers": [
     {
