@@ -5,6 +5,7 @@ const STATIC_URLS = [
   { loc: 'https://petmatch.fit/', changefreq: 'daily' },
   { loc: 'https://petmatch.fit/about', changefreq: 'monthly' },
   { loc: 'https://petmatch.fit/updates', changefreq: 'weekly' },
+  { loc: 'https://petmatch.fit/safety', changefreq: 'monthly' },
 ];
 
 function urlEntry({ loc, lastmod, changefreq }) {
