@@ -142,7 +142,8 @@ async function loadPosts(){
     .order('created_at', { ascending:false });
 
   if(error){
-    wrap.innerHTML = `<div class="empty"><h1>Couldn't load updates</h1><p>${escapeHtml(error.message)}</p></div>`;
+    console.error('Failed to load posts:', error.message);
+    wrap.innerHTML = `<div class="empty"><h1>Nothing posted yet</h1><p>Check back soon for news from the PetMatch team.</p></div>`;
     return;
   }
   if(!data || data.length === 0){
