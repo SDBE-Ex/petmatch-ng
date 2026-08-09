@@ -211,6 +211,10 @@
   .gate{background:var(--paper); border-radius:var(--radius); padding:34px 26px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.18);}
   .gate h2{font-family:'Fraunces',serif; color:var(--forest-dark); margin:0 0 8px;}
   .gate p{color:#5b5142; font-size:14px; margin:0 0 18px;}
+  .gate .authbar{background:rgba(31,71,50,0.06); border:1px solid var(--line); max-width:420px;}
+  .gate .authbar input{background:#fff; border:1px solid var(--line); color:var(--ink);}
+  .gate .authbar .who{color:var(--clay-dark);}
+  .gate .authbar .who button{color:var(--forest); text-decoration:underline;}
 
   .mine{margin-top:34px; padding-top:22px; border-top:2px dashed var(--line);}
   .mine h3{font-family:'Fraunces',serif; color:var(--forest-dark); font-size:17px; margin:0 0 12px;}
@@ -229,8 +233,8 @@
 <header class="top">
   <div class="eyebrow">Dogs &amp; Cats · Near You</div>
   <h1><a href="/" title="Back to the PetMatch homepage">PetMatch</a></h1>
-  <p>Discover nearby dogs and cats looking for a mate, and connect directly with their owners.</p>
-  <p style="margin:-8px auto 18px; max-width:480px; color:#B9CBBD; font-size:13px; line-height:1.5;">PetMatch helps you find a mate for your dog or cat, nearby. It's not a marketplace, we don't handle buying or selling.</p>
+  <p>List your dog or cat to find them a mate nearby — then connect directly with other owners.</p>
+  <p style="margin:-8px auto 18px; max-width:480px; color:#B9CBBD; font-size:13px; line-height:1.5;">It's not a marketplace, we don't handle buying or selling.</p>
 
   <p class="stat-line" id="statLine" aria-live="polite" style="display:none"></p>
 
@@ -254,15 +258,15 @@
 </div>
 
 <div class="tabs">
-  <button class="tab-btn active" data-tab="browse">Find a Match</button>
-  <button class="tab-btn" data-tab="add">List Your Pet</button>
+  <button class="tab-btn active" data-tab="add">List Your Pet</button>
+  <button class="tab-btn" data-tab="browse">Find a Match</button>
 </div>
 
 <p class="count-line" style="text-align:center; margin:14px auto 0;">Free for everyone, always. No referral fees, no commissions, no earning from who you invite.</p>
 
 <main>
   <!-- BROWSE -->
-  <section id="panel-browse" class="panel active">
+  <section id="panel-browse" class="panel">
     <div class="finder">
       <h2>Find a Match</h2>
       <p class="sub">Tell us about your pet and we'll show suitable matches of the opposite sex.</p>
@@ -294,10 +298,11 @@
   </section>
 
   <!-- ADD -->
-  <section id="panel-add" class="panel">
+  <section id="panel-add" class="panel active">
     <div id="gate" class="gate" style="display:none">
-      <h2>Sign in to list a pet</h2>
+      <h2>List your pet — takes under a minute</h2>
       <p>We ask for an email just to keep listings spam-free. It won't be shown publicly. Your WhatsApp number (entered below) is what other owners will actually use to contact you.</p>
+      <div class="authbar" id="gateAuth"><!-- filled by JS --></div>
     </div>
 
     <div class="formcard" id="formcard" style="display:none">
@@ -603,15 +608,24 @@ document.getElementById('partnersLink').addEventListener('click', (e)=>{
 });
 
 // ---------- auth ----------
+// The sign-in widget is rendered into every slot below (the sticky header
+// and the "List Your Pet" gate card) so whichever one the visitor sees is
+// immediately actionable — no dead-end text pointing them somewhere else
+// on the page.
+function authSlots(){
+  return ['authbar', 'gateAuth'].map(id=>document.getElementById(id)).filter(Boolean);
+}
+
 function renderAuthbar(){
-  const bar = document.getElementById('authbar');
   const optInWrap = document.getElementById('optInWrap');
   if(currentUser){
     optInWrap.style.display = 'none';
-    bar.innerHTML = `<span class="who">Signed in as ${escapeHtml(currentUser.email)}</span>
-      <button class="btn btn-ghost" id="signOutBtn" style="padding:6px 14px">Sign out</button>`;
-    document.getElementById('signOutBtn').addEventListener('click', async ()=>{
-      await supabase.auth.signOut();
+    authSlots().forEach(bar=>{
+      bar.innerHTML = `<span class="who">Signed in as ${escapeHtml(currentUser.email)}</span>
+        <button class="btn btn-ghost auth-signout" style="padding:6px 14px">Sign out</button>`;
+      bar.querySelector('.auth-signout').addEventListener('click', async ()=>{
+        await supabase.auth.signOut();
+      });
     });
   } else {
     optInWrap.style.display = 'flex';
@@ -619,68 +633,43 @@ function renderAuthbar(){
   }
 }
 
-// Accepts an email or a phone number in one box. Phone numbers can't be
-// verified for free yet (real SMS/WhatsApp OTP needs a paid provider like
-// Twilio Verify wired into Supabase Auth), so we fall back to asking for
-// an email while remembering the phone to prefill the listing form later.
-function isLikelyPhone(raw){
-  if(raw.includes('@')) return false;
-  const digits = raw.replace(/[\s\-().]/g, '');
-  return /^\+?[0-9]{7,15}$/.test(digits);
-}
-function normalizePhone(raw){
-  let digits = raw.replace(/[\s\-().]/g, '');
-  if(digits.startsWith('0')) digits = '+234' + digits.slice(1);
-  else if(!digits.startsWith('+')) digits = '+' + digits;
-  return digits;
-}
-
+// Real SMS/WhatsApp OTP needs a paid provider (e.g. Twilio Verify) wired
+// into Supabase Auth, which isn't set up — so sign-in is email-only for now.
 function renderIdentifierStep(){
-  const bar = document.getElementById('authbar');
-  bar.innerHTML = `
-    <input type="text" id="authIdentifier" placeholder="Email or WhatsApp number">
-    <button class="btn btn-clay" id="sendLinkBtn" style="padding:9px 16px">Sign in to list a pet</button>`;
-  document.getElementById('sendLinkBtn').addEventListener('click', ()=>{
-    const raw = document.getElementById('authIdentifier').value.trim();
-    const btn = document.getElementById('sendLinkBtn');
-    if(!raw) return;
-    if(raw.includes('@')){
-      sendEmailLink(raw, btn);
-    } else if(isLikelyPhone(raw)){
-      const phone = normalizePhone(raw);
-      localStorage.setItem('petmatch_pending_phone', phone);
-      renderPhoneFallbackStep(phone);
-    } else {
-      btn.textContent = 'Enter a valid email or phone';
-      setTimeout(()=>{ btn.textContent = 'Sign in to list a pet'; }, 2200);
-    }
+  authSlots().forEach(bar=>{
+    bar.innerHTML = `
+      <input type="email" class="auth-identifier" placeholder="Email address">
+      <button class="btn btn-clay auth-send" style="padding:9px 16px">Get started — it's free</button>`;
+    const input = bar.querySelector('.auth-identifier');
+    const btn = bar.querySelector('.auth-send');
+    const submit = ()=>{
+      const raw = input.value.trim();
+      if(!raw) return;
+      if(raw.includes('@')){
+        sendEmailLink(raw);
+      } else {
+        authSlots().forEach(b=>{
+          const sendBtn = b.querySelector('.auth-send');
+          if(sendBtn) sendBtn.textContent = 'Enter a valid email';
+        });
+        setTimeout(renderIdentifierStep, 2200);
+      }
+    };
+    btn.addEventListener('click', submit);
+    input.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') submit(); });
   });
 }
 
-function renderPhoneFallbackStep(phone){
-  const bar = document.getElementById('authbar');
-  bar.innerHTML = `
-    <span class="who" style="text-align:left; line-height:1.45; max-width:230px; padding:0 4px">Verify free by email for now — we'll keep ${escapeHtml(phone)} for your listing.</span>
-    <input type="email" id="authEmail" placeholder="you@email.com">
-    <button class="btn btn-clay" id="sendLinkBtn" style="padding:9px 16px">Send link</button>`;
-  document.getElementById('sendLinkBtn').addEventListener('click', ()=>{
-    const email = document.getElementById('authEmail').value.trim();
-    const btn = document.getElementById('sendLinkBtn');
-    if(!email) return;
-    sendEmailLink(email, btn);
-  });
-}
-
-async function sendEmailLink(email, btn){
+async function sendEmailLink(email){
   const wantsUpdates = document.getElementById('marketingOptIn').checked;
-  btn.disabled = true; btn.textContent = 'Sending…';
+  const buttons = authSlots().map(b=>b.querySelector('.auth-send')).filter(Boolean);
+  buttons.forEach(b=>{ b.disabled = true; b.textContent = 'Sending…'; });
   const { error } = await supabase.auth.signInWithOtp({ email });
   if(wantsUpdates){
     await supabase.from('subscribers').insert({ email, source: 'sign_in_optin' });
   }
   if(error){
-    btn.textContent = 'Try again';
-    btn.disabled = false;
+    buttons.forEach(b=>{ b.textContent = 'Try again'; b.disabled = false; });
   } else {
     renderCodeStep(email);
   }
@@ -693,30 +682,31 @@ async function sendEmailLink(email, btn){
 // Typing the code back into the same tab guarantees the session lands
 // where localStorage can persist it, so this really is a one-time step.
 function renderCodeStep(email){
-  const bar = document.getElementById('authbar');
-  bar.innerHTML = `
-    <span class="who" style="text-align:left; line-height:1.45; max-width:230px; padding:0 4px">Enter the 8-digit code we sent to ${escapeHtml(email)}</span>
-    <input type="text" id="authCode" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="12345678" style="max-width:130px; letter-spacing:2px; text-align:center">
-    <button class="btn btn-clay" id="verifyCodeBtn" style="padding:9px 16px">Verify</button>
-    <button class="btn btn-ghost" id="backToEmailBtn" style="padding:6px 10px; font-size:12px">Use a different email</button>`;
-  document.getElementById('verifyCodeBtn').addEventListener('click', ()=>{
-    const code = document.getElementById('authCode').value.trim();
-    const btn = document.getElementById('verifyCodeBtn');
-    if(!code) return;
-    verifyCode(email, code, btn);
+  authSlots().forEach(bar=>{
+    bar.innerHTML = `
+      <span class="who" style="text-align:left; line-height:1.45; max-width:230px; padding:0 4px">Enter the 8-digit code we sent to ${escapeHtml(email)}</span>
+      <input type="text" class="auth-code" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="12345678" style="max-width:130px; letter-spacing:2px; text-align:center">
+      <button class="btn btn-clay auth-verify" style="padding:9px 16px">Verify</button>
+      <button class="btn btn-ghost auth-back" style="padding:6px 10px; font-size:12px">Use a different email</button>`;
+    const codeInput = bar.querySelector('.auth-code');
+    const verifyBtn = bar.querySelector('.auth-verify');
+    const submit = ()=>{
+      const code = codeInput.value.trim();
+      if(!code) return;
+      verifyCode(email, code);
+    };
+    verifyBtn.addEventListener('click', submit);
+    codeInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') submit(); });
+    bar.querySelector('.auth-back').addEventListener('click', renderIdentifierStep);
   });
-  document.getElementById('authCode').addEventListener('keydown', (e)=>{
-    if(e.key === 'Enter') document.getElementById('verifyCodeBtn').click();
-  });
-  document.getElementById('backToEmailBtn').addEventListener('click', renderIdentifierStep);
 }
 
-async function verifyCode(email, code, btn){
-  btn.disabled = true; btn.textContent = 'Verifying…';
+async function verifyCode(email, code){
+  const buttons = authSlots().map(b=>b.querySelector('.auth-verify')).filter(Boolean);
+  buttons.forEach(b=>{ b.disabled = true; b.textContent = 'Verifying…'; });
   const { error } = await supabase.auth.verifyOtp({ email, token: code, type: 'email' });
   if(error){
-    btn.textContent = 'Wrong code, try again';
-    btn.disabled = false;
+    buttons.forEach(b=>{ b.textContent = 'Wrong code, try again'; b.disabled = false; });
   }
   // on success, onAuthStateChange re-renders the authbar as signed in
 }
@@ -736,13 +726,6 @@ async function renderAddPanel(){
     formcard.style.display = 'block';
     await loadMyPets();
     renderMine();
-
-    const pendingPhone = localStorage.getItem('petmatch_pending_phone');
-    const waInput = document.getElementById('whatsapp');
-    if(pendingPhone && waInput && !waInput.value){
-      waInput.value = pendingPhone;
-      localStorage.removeItem('petmatch_pending_phone');
-    }
 
     const app = await getPartnerApplication();
     const listedByField = document.getElementById('listedByField');
