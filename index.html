@@ -177,6 +177,12 @@
   .modal .connect-row{display:flex; gap:8px; flex-wrap:wrap; margin-top:18px;}
   .modal .connect-row a, .modal .connect-row button{flex:1; min-width:110px; text-align:center; text-decoration:none;}
   .modal .owner-line{font-size:13px; color:#5b5142; margin:10px 0 0;}
+  .suggested-locations{margin-top:18px; padding-top:14px; border-top:1px solid var(--line);}
+  .suggested-locations-label{font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:600; color:var(--forest-dark); margin:0 0 4px; display:flex; align-items:center; gap:6px;}
+  .suggested-locations-note{font-size:12px; color:#7a7261; line-height:1.5; margin:0 0 10px;}
+  .suggested-locations-list{display:flex; flex-direction:column; gap:6px;}
+  .suggested-location-row{display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-size:13px; color:#4a4437;}
+  .suggested-location-name{font-weight:600; color:var(--forest-dark);}
   .report-wrap{margin-top:18px; padding-top:14px; border-top:1px solid var(--line);}
   .report-link{background:none; border:none; padding:0; font-family:'Work Sans',sans-serif; font-size:12.5px; color:#8a5f16; text-decoration:underline; cursor:pointer;}
   .report-link:hover{color:var(--clay-dark);}
@@ -428,7 +434,12 @@
         </div>
         <div class="field-row">
           <div class="field"><label for="bizCity">City</label><input id="bizCity" required placeholder="e.g. Lagos"></div>
-          <div class="field"><label for="bizLocation">Business location (optional)</label><input id="bizLocation" placeholder="e.g. 12 Admiralty Way, Lekki Phase 1"></div>
+          <div class="field">
+            <label for="bizLocation">Business location (optional)</label>
+            <input id="bizLocation" placeholder="e.g. 12 Admiralty Way, Lekki Phase 1">
+            <button type="button" class="btn btn-ghost" id="bizUseLocationBtn" style="padding:7px 10px; font-size:11px; align-self:flex-start"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="M12 22s7-7.58 7-13a7 7 0 1 0-14 0c0 5.42 7 13 7 13Z"/><circle cx="12" cy="9" r="2.5"/></svg>Use my current location</button>
+            <span id="bizLocationStatus" style="font-size:11.5px; color:#5b5142"></span>
+          </div>
         </div>
         <div class="field"><label for="bizWebsite">Website / social media (optional)</label><input id="bizWebsite" placeholder="e.g. instagram.com/lekkipetclinic"></div>
         <button type="submit" class="btn btn-forest" id="partnerSubmitBtn">Become a PetMatch Partner</button>
@@ -481,6 +492,10 @@ let myPets = [];           // current user's own listings, always fetched in ful
 let currentUser = null;
 let myCoords = null;      // { lat, lng } from "Search near me"
 let formCoords = null;    // { lat, lng } captured on the listing form
+let partnerFormCoords = null; // { lat, lng } captured on the partner application form
+let partnerCandidates = [];   // approved partners with lat/lng, for suggested meeting locations
+const PARTNER_SUGGESTION_RADIUS_KM = 100; // same cap as the #fDistance "Within 100 km" tier
+const MAX_SUGGESTED_LOCATIONS = 3;
 let petDistances = {};    // pet id -> km from myCoords, recomputed each render
 let partnerApp = undefined; // undefined = not checked yet, null = no application, else the row
 
@@ -782,7 +797,9 @@ document.getElementById('partnerForm').addEventListener('submit', async (e)=>{
     phone: document.getElementById('bizPhone').value.trim(),
     city: document.getElementById('bizCity').value.trim(),
     business_location: document.getElementById('bizLocation').value.trim(),
-    website: document.getElementById('bizWebsite').value.trim()
+    website: document.getElementById('bizWebsite').value.trim(),
+    lat: partnerFormCoords?.lat ?? null,
+    lng: partnerFormCoords?.lng ?? null
   });
   btn.disabled = false;
   if(error){
@@ -790,6 +807,8 @@ document.getElementById('partnerForm').addEventListener('submit', async (e)=>{
     return;
   }
   partnerApp = undefined;
+  partnerFormCoords = null;
+  document.getElementById('bizLocationStatus').textContent = '';
   await renderPartnersPanel();
 });
 
@@ -834,6 +853,15 @@ function updateLoadMoreBtn(){
   btn.textContent = loadingMore ? 'Loading…' : `Load more (${totalCount - pets.length} more)`;
 }
 document.getElementById('loadMoreBtn').addEventListener('click', loadMorePets);
+
+// Approved partners with a location on file, fetched once at boot for the
+// "Suggested meeting spots nearby" panel — no realtime refresh, since
+// partner approvals are infrequent and a stale list for the rest of a
+// session is an acceptable tradeoff over the added complexity.
+async function loadPartnerCandidates(){
+  const { data, error } = await supabase.rpc('nearby_approved_partners');
+  partnerCandidates = error ? [] : data;
+}
 
 // The current user's own listings need to always be complete (so "Your
 // listings" can edit/remove any of them), independent of the browse
@@ -898,6 +926,27 @@ function connectButtonsHtml(p){
     buttons.push(`<span class="btn btn-ghost contact-btn" style="cursor:default">This owner hasn't listed a way to be reached yet</span>`);
   }
   return buttons.join('');
+}
+
+// ---------- suggested meeting locations ----------
+// Anchors on the pet's own lat/lng, or the midpoint of pet+viewer if the
+// viewer has used "Search near me" (myCoords). Approved partners only,
+// self-excluded by exact partner_business_name match, capped at 100km
+// (same tier as #fDistance's largest option), top 3 nearest, empty array
+// (no panel) if the pet has no lat/lng or nothing is within range.
+function suggestedLocationsFor(pet){
+  if(pet.lat == null || pet.lng == null) return [];
+  const anchor = myCoords
+    ? { lat: (myCoords.lat + pet.lat) / 2, lng: (myCoords.lng + pet.lng) / 2 }
+    : { lat: pet.lat, lng: pet.lng };
+  const selfName = (pet.is_partner && pet.partner_business_name)
+    ? pet.partner_business_name.trim().toLowerCase() : null;
+  return partnerCandidates
+    .filter(c => !selfName || c.business_name.trim().toLowerCase() !== selfName)
+    .map(c => ({ ...c, distanceKm: haversineKm(anchor, { lat: c.lat, lng: c.lng }) }))
+    .filter(c => c.distanceKm <= PARTNER_SUGGESTION_RADIUS_KM)
+    .sort((a,b) => a.distanceKm - b.distanceKm)
+    .slice(0, MAX_SUGGESTED_LOCATIONS);
 }
 
 function currentFilters(){
@@ -993,6 +1042,7 @@ function openProfile(id){
   if(!p) return;
   const genderClass = p.gender === 'Male' ? 'male' : 'female';
   const dist = petDistances[p.id];
+  const suggestions = suggestedLocationsFor(p);
   document.getElementById('modalContent').innerHTML = `
     <button class="modal-close" id="modalCloseBtn" type="button" aria-label="Close">✕</button>
     ${p.photo_url ? `<img class="photo" src="${p.photo_url}" alt="${escapeHtml(p.pet_name)}">` : ''}
@@ -1011,6 +1061,19 @@ function openProfile(id){
       ${p.notes ? `<p class="notes">${escapeHtml(p.notes)}</p>` : ''}
       <p class="owner-line">${p.is_partner ? `Listed by PetMatch Partner: ${escapeHtml(p.partner_business_name || p.owner_name)}` : `Listed by ${escapeHtml(p.owner_name)}`}</p>
       <div class="connect-row">${connectButtonsHtml(p)}</div>
+      ${suggestions.length ? `
+      <div class="suggested-locations">
+        <p class="suggested-locations-label">Suggested meeting spots nearby <span class="tag">Optional</span></p>
+        <p class="suggested-locations-note">You're always free to choose your own meeting spot. These are PetMatch Partners we've reviewed and approved — not a safety guarantee, just a neutral, easier default than a stranger's home.</p>
+        <div class="suggested-locations-list">
+          ${suggestions.map(s => `
+          <div class="suggested-location-row">
+            <span class="suggested-location-name">${escapeHtml(s.business_name)}</span>
+            <span class="tag">${escapeHtml(s.business_type)}</span>
+            <span class="tag distance">${s.distanceKm < 1 ? '<1' : s.distanceKm.toFixed(0)} km away</span>
+          </div>`).join('')}
+        </div>
+      </div>` : ''}
       <div class="report-wrap">
         <button type="button" class="report-link" id="reportToggleBtn">Report this listing</button>
         <div class="report-form" id="reportFormWrap" style="display:none">
@@ -1346,6 +1409,22 @@ document.getElementById('useLocationBtn').addEventListener('click', ()=>{
   );
 });
 
+document.getElementById('bizUseLocationBtn').addEventListener('click', ()=>{
+  const status = document.getElementById('bizLocationStatus');
+  if(!navigator.geolocation){
+    status.textContent = "Your browser doesn't support this, but you can still type your address above.";
+    return;
+  }
+  status.textContent = 'Locating…';
+  navigator.geolocation.getCurrentPosition(
+    (pos)=>{
+      partnerFormCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      status.textContent = '📍 Location captured. Helps us suggest your business as a nearby meeting spot';
+    },
+    ()=>{ status.textContent = "We couldn't find your location. Check your browser's location permissions and try again."; }
+  );
+});
+
 // ---------- realtime: merge changes into the already-loaded pages ----------
 // Was a blanket loadPets() on any change; with pagination that would silently
 // reset anyone's "Load more" progress back to page one every time a stranger
@@ -1382,6 +1461,7 @@ supabase.channel('pets-changes')
   renderAuthbar();
   renderAddPanel();
   await loadPets();
+  await loadPartnerCandidates();
   if(location.hash === '#partners'){
     showPanel('partners');
     document.getElementById('panel-partners').scrollIntoView({behavior:'smooth', block:'start'});

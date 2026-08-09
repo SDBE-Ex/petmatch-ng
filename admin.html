@@ -159,7 +159,7 @@
   <section id="panel-partners" class="panel">
     <p class="count-line" id="partnerCount"></p>
     <div class="table-wrap"><table>
-      <thead><tr><th>Business</th><th>Type</th><th>Contact</th><th>Phone</th><th>City</th><th>Applied</th><th>Status</th><th></th></tr></thead>
+      <thead><tr><th>Business</th><th>Type</th><th>Contact</th><th>Phone</th><th>City</th><th>Location</th><th>Applied</th><th>Status</th><th></th></tr></thead>
       <tbody id="partnerBody"></tbody>
     </table></div>
   </section>
@@ -466,11 +466,17 @@ function renderUsers(){
 }
 
 // ---------- partners ----------
+// No geocoding service exists to auto-fill partner lat/lng, so this gives
+// admins a manual override — used to backfill partners who applied before
+// the "Suggested meeting spots" feature existed, or who skipped/denied the
+// location prompt on the application form.
+let editingPartnerLocationId = null;
+
 function renderPartners(){
   document.getElementById('partnerCount').textContent = `${partners.length} application${partners.length===1?'':'s'}`;
   const body = document.getElementById('partnerBody');
   if(partners.length === 0){
-    body.innerHTML = `<tr><td colspan="8"><div class="empty"><h3>No applications yet</h3></div></td></tr>`;
+    body.innerHTML = `<tr><td colspan="9"><div class="empty"><h3>No applications yet</h3></div></td></tr>`;
     return;
   }
   body.innerHTML = partners.map(a=>{
@@ -483,12 +489,25 @@ function renderPartners(){
     } else {
       actions = `<button class="btn btn-forest btn-sm" data-partner-status="${a.id}" data-status="approved">Approve</button>`;
     }
+    const locationCell = editingPartnerLocationId === a.id
+      ? `<div style="display:flex; flex-direction:column; gap:6px; min-width:150px">
+          <input type="number" step="any" min="-90" max="90" placeholder="Latitude" id="editLat_${a.id}" value="${a.lat ?? ''}" style="width:100%; padding:6px 8px; font-size:12.5px; border:1.5px solid var(--line); border-radius:7px">
+          <input type="number" step="any" min="-180" max="180" placeholder="Longitude" id="editLng_${a.id}" value="${a.lng ?? ''}" style="width:100%; padding:6px 8px; font-size:12.5px; border:1.5px solid var(--line); border-radius:7px">
+          <div class="row-actions">
+            <button class="btn btn-forest btn-sm" data-save-location="${a.id}" type="button">Save</button>
+            <button class="btn btn-ghost btn-sm" data-cancel-location type="button">Cancel</button>
+          </div>
+        </div>`
+      : (a.lat != null && a.lng != null
+          ? `<span class="muted nowrap">${a.lat.toFixed(4)}, ${a.lng.toFixed(4)}</span><br><button class="btn btn-ghost btn-sm" data-edit-location="${a.id}" type="button">Edit location</button>`
+          : `<span class="muted">Not set</span><br><button class="btn btn-ghost btn-sm" data-edit-location="${a.id}" type="button">Add location</button>`);
     return `<tr>
       <td><strong>${escapeHtml(a.business_name)}</strong>${a.website ? `<br><span class="muted">${escapeHtml(a.website)}</span>` : ''}</td>
       <td>${escapeHtml(a.business_type)}</td>
       <td>${escapeHtml(a.contact_name)}<br><span class="muted">${escapeHtml(a.email)}</span></td>
       <td><a class="wa-link" target="_blank" rel="noopener" href="${waLink(a.phone, a.business_name)}">${escapeHtml(a.phone)}</a></td>
       <td>${escapeHtml(a.city)}</td>
+      <td>${locationCell}</td>
       <td class="muted nowrap">${fmtDate(a.created_at)}</td>
       <td><span class="badge ${a.status}">${a.status}</span></td>
       <td><div class="row-actions">${actions}</div></td>
@@ -501,6 +520,30 @@ function renderPartners(){
       const { error } = await supabase.from('partner_applications')
         .update({ status: btn.dataset.status }).eq('id', btn.dataset.partnerStatus);
       if(error){ alert('Something went wrong: ' + error.message); btn.disabled = false; return; }
+      await loadAll();
+    });
+  });
+  body.querySelectorAll('[data-edit-location]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ editingPartnerLocationId = btn.dataset.editLocation; renderPartners(); });
+  });
+  body.querySelectorAll('[data-cancel-location]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ editingPartnerLocationId = null; renderPartners(); });
+  });
+  body.querySelectorAll('[data-save-location]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const id = btn.dataset.saveLocation;
+      const lat = document.getElementById(`editLat_${id}`).value;
+      const lng = document.getElementById(`editLng_${id}`).value;
+      const latVal = lat === '' ? null : parseFloat(lat);
+      const lngVal = lng === '' ? null : parseFloat(lng);
+      if((latVal != null && (latVal < -90 || latVal > 90)) || (lngVal != null && (lngVal < -180 || lngVal > 180))){
+        alert('Latitude must be between -90 and 90, longitude between -180 and 180.');
+        return;
+      }
+      btn.disabled = true;
+      const { error } = await supabase.from('partner_applications').update({ lat: latVal, lng: lngVal }).eq('id', id);
+      if(error){ alert('Something went wrong: ' + error.message); btn.disabled = false; return; }
+      editingPartnerLocationId = null;
       await loadAll();
     });
   });
