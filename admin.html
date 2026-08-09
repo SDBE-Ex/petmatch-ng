@@ -54,7 +54,7 @@
 
   .toolbar{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:16px;}
   .toolbar input, .toolbar select{font-family:'Work Sans',sans-serif; font-size:13.5px; padding:9px 12px; border:1.5px solid var(--line); border-radius:9px; background:#fff; color:var(--ink);}
-  .toolbar .checkline{display:flex; align-items:center; gap:6px; font-size:13px; color:#4a4437;}
+  .checkline{display:flex; align-items:center; gap:6px; font-size:13px; color:#4a4437;}
   .count-line{font-family:'IBM Plex Mono',monospace; font-size:12px; color:#5b5142; margin:0 0 12px;}
 
   .table-wrap{background:var(--paper); border-radius:var(--radius); box-shadow:0 8px 20px rgba(0,0,0,0.1); overflow-x:auto;}
@@ -88,6 +88,19 @@
   .stat-card .num{font-family:'Fraunces',serif; font-size:28px; color:var(--forest-dark); line-height:1;}
   .stat-card .label{font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.04em; text-transform:uppercase; color:#8a7f65; margin-top:6px;}
 
+  .postform{background:var(--paper); border-radius:var(--radius); padding:22px 20px; margin-bottom:20px; box-shadow:0 8px 20px rgba(0,0,0,0.1);}
+  .postform h2{font-family:'Fraunces',serif; margin:0 0 16px; color:var(--forest-dark); font-size:19px;}
+  .postform .field{margin-bottom:14px;}
+  .postform label{display:block; font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.03em; text-transform:uppercase; color:#8a7f65; margin-bottom:5px;}
+  .postform input[type=text], .postform input[type=url], .postform textarea{width:100%; padding:9px 12px; border:1.5px solid var(--line); border-radius:9px; font-size:14px; font-family:inherit; background:#fff; color:var(--ink);}
+  .postform textarea{resize:vertical;}
+  .postform .field-row{display:flex; gap:14px; flex-wrap:wrap;}
+  .postform .field-row .field{flex:1; min-width:200px;}
+  .postform .actions-row{display:flex; align-items:center; gap:16px; flex-wrap:wrap;}
+  .postform .msg{font-size:13px; color:#5b5142; margin:10px 0 0;}
+  .post-thumb-preview{max-width:180px; border-radius:8px; display:block; margin-top:8px;}
+  .post-thumb{width:36px; height:36px; border-radius:6px; object-fit:cover; vertical-align:middle; margin-right:8px;}
+
   .visit-chart{display:flex; align-items:flex-end; gap:6px; height:120px;}
   .visit-bar{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:6px; height:100%;}
   .visit-bar .bar{width:100%; background:var(--forest); border-radius:4px 4px 0 0; min-height:2px;}
@@ -112,6 +125,7 @@
   <button class="tab-btn" data-tab="partners">Partners</button>
   <button class="tab-btn" data-tab="reports">Reports</button>
   <button class="tab-btn" data-tab="subscribers">Subscribers</button>
+  <button class="tab-btn" data-tab="posts">Posts</button>
   <button class="tab-btn" data-tab="insights">Insights</button>
 </div>
 
@@ -179,6 +193,55 @@
     </table></div>
   </section>
 
+  <!-- POSTS -->
+  <section id="panel-posts" class="panel">
+    <div class="postform">
+      <h2 id="postFormTitle">New post</h2>
+      <form id="postForm">
+        <div class="field">
+          <label for="postTitle">Title</label>
+          <input id="postTitle" type="text" required placeholder="e.g. PetMatch now covers Ibadan">
+        </div>
+        <div class="field">
+          <label for="postBody">Body</label>
+          <textarea id="postBody" rows="6" required placeholder="Write your update here. Leave a blank line between paragraphs. Links (https://...) are turned into clickable links automatically."></textarea>
+        </div>
+        <div class="field">
+          <label for="postImage">Image (optional)</label>
+          <input id="postImage" type="file" accept="image/*">
+          <div id="postImagePreviewWrap" style="display:none">
+            <img id="postImagePreviewImg" class="post-thumb-preview" alt="Selected post image preview">
+            <button type="button" class="btn btn-ghost btn-sm" id="postImageClearBtn" style="margin-top:6px">Remove image</button>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="postLinkUrl">Link URL (optional)</label>
+            <input id="postLinkUrl" type="url" placeholder="https://…">
+          </div>
+          <div class="field">
+            <label for="postLinkLabel">Link label</label>
+            <input id="postLinkLabel" type="text" placeholder="e.g. Watch the video">
+          </div>
+        </div>
+        <div class="actions-row">
+          <label class="checkline"><input type="checkbox" id="postPublished" checked> Published (visible on /updates)</label>
+          <div class="row-actions" style="margin-left:auto">
+            <button type="button" class="btn btn-ghost" id="postCancelBtn" style="display:none">Cancel edit</button>
+            <button type="submit" class="btn btn-forest" id="postSubmitBtn">Publish post</button>
+          </div>
+        </div>
+        <p class="msg" id="postFormMsg"></p>
+      </form>
+    </div>
+
+    <p class="count-line" id="postCount"></p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Post</th><th>Status</th><th>Posted</th><th></th></tr></thead>
+      <tbody id="postsTableBody"></tbody>
+    </table></div>
+  </section>
+
   <!-- INSIGHTS -->
   <section id="panel-insights" class="panel">
     <div class="stat-grid" id="insightStats"></div>
@@ -208,6 +271,7 @@ let users = [];
 let partners = [];
 let reports = [];
 let subscribers = [];
+let posts = [];
 
 function escapeHtml(str){
   return String(str ?? '').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
@@ -271,6 +335,7 @@ function showTab(tab){
   if(tab === 'partners') renderPartners();
   if(tab === 'reports') renderReports();
   if(tab === 'subscribers') renderSubscribers();
+  if(tab === 'posts') renderPosts();
   if(tab === 'insights') renderInsights();
 }
 
@@ -316,18 +381,20 @@ async function renderInsights(){
 
 // ---------- data loading ----------
 async function loadAll(){
-  const [petsRes, usersRes, partnersRes, reportsRes, subscribersRes] = await Promise.all([
+  const [petsRes, usersRes, partnersRes, reportsRes, subscribersRes, postsRes] = await Promise.all([
     supabase.from('pets').select('*').order('created_at', { ascending:false }),
     supabase.rpc('admin_list_users'),
     supabase.from('partner_applications').select('*').order('created_at', { ascending:false }),
     supabase.from('reports').select('*, pets(pet_name, species, breed, owner_name, is_partner)').order('created_at', { ascending:false }),
-    supabase.from('subscribers').select('*').order('created_at', { ascending:false })
+    supabase.from('subscribers').select('*').order('created_at', { ascending:false }),
+    supabase.from('posts').select('*').order('created_at', { ascending:false })
   ]);
   pets = petsRes.data || [];
   users = usersRes.data || [];
   partners = partnersRes.data || [];
   reports = reportsRes.data || [];
   subscribers = subscribersRes.data || [];
+  posts = postsRes.data || [];
   showTab(document.querySelector('.tab-btn.active')?.dataset.tab || 'listings');
 }
 
@@ -517,6 +584,181 @@ document.getElementById('copySubscribersBtn').addEventListener('click', async ()
   setTimeout(()=> btn.textContent = original, 1500);
 });
 
+// ---------- posts ----------
+// Same client-side resize as the pet-photo uploader in index.html — phone
+// photos routinely run several MB and nothing here needs more than
+// ~1280px on the long edge for a card image.
+async function compressImage(file, { maxDim = 1280, quality = 0.82 } = {}){
+  if(!file || !file.type.startsWith('image/')) return file;
+  try{
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
+    const w = Math.round(bitmap.width * scale);
+    const h = Math.round(bitmap.height * scale);
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h);
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
+    if(!blob || blob.size >= file.size) return file;
+    const base = file.name.replace(/\.\w+$/, '') || 'photo';
+    return new File([blob], `${base}.jpg`, { type: 'image/jpeg' });
+  } catch {
+    return file;
+  }
+}
+
+let editingPostId = null;
+let editingPostImageUrl = null;
+let selectedPostImageFile = null;
+
+function setSelectedPostImage(file){
+  selectedPostImageFile = file;
+  const wrap = document.getElementById('postImagePreviewWrap');
+  const img = document.getElementById('postImagePreviewImg');
+  if(file){
+    img.src = URL.createObjectURL(file);
+    wrap.style.display = 'block';
+  } else if(editingPostImageUrl){
+    img.src = editingPostImageUrl;
+    wrap.style.display = 'block';
+  } else {
+    wrap.style.display = 'none';
+    img.src = '';
+  }
+}
+document.getElementById('postImage').addEventListener('change', (e)=>{
+  setSelectedPostImage(e.target.files[0] || null);
+});
+document.getElementById('postImageClearBtn').addEventListener('click', ()=>{
+  document.getElementById('postImage').value = '';
+  editingPostImageUrl = null;
+  setSelectedPostImage(null);
+});
+
+function resetPostForm(){
+  editingPostId = null;
+  editingPostImageUrl = null;
+  selectedPostImageFile = null;
+  document.getElementById('postForm').reset();
+  document.getElementById('postPublished').checked = true;
+  setSelectedPostImage(null);
+  document.getElementById('postFormTitle').textContent = 'New post';
+  document.getElementById('postSubmitBtn').textContent = 'Publish post';
+  document.getElementById('postCancelBtn').style.display = 'none';
+  document.getElementById('postFormMsg').textContent = '';
+}
+document.getElementById('postCancelBtn').addEventListener('click', resetPostForm);
+
+function startEditPost(id){
+  const p = posts.find(x=> x.id === id);
+  if(!p) return;
+  editingPostId = id;
+  editingPostImageUrl = p.image_url || null;
+  selectedPostImageFile = null;
+  document.getElementById('postTitle').value = p.title;
+  document.getElementById('postBody').value = p.body;
+  document.getElementById('postLinkUrl').value = p.link_url || '';
+  document.getElementById('postLinkLabel').value = p.link_label || '';
+  document.getElementById('postPublished').checked = !!p.published;
+  document.getElementById('postImage').value = '';
+  setSelectedPostImage(null);
+  document.getElementById('postFormTitle').textContent = 'Edit post';
+  document.getElementById('postSubmitBtn').textContent = 'Save changes';
+  document.getElementById('postCancelBtn').style.display = '';
+  document.getElementById('postFormMsg').textContent = '';
+  document.getElementById('panel-posts').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+document.getElementById('postForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  if(!currentUser) return;
+  const msg = document.getElementById('postFormMsg');
+  const submitBtn = document.getElementById('postSubmitBtn');
+  submitBtn.disabled = true;
+  msg.textContent = 'Saving…';
+
+  let image_url = editingPostImageUrl;
+  if(selectedPostImageFile){
+    msg.textContent = 'Optimizing image…';
+    const compressed = await compressImage(selectedPostImageFile);
+    msg.textContent = 'Saving…';
+    const path = `${currentUser.id}/${Date.now()}-${compressed.name}`;
+    const { error: upErr } = await supabase.storage.from('post-images').upload(path, compressed);
+    if(upErr){
+      msg.textContent = 'Image upload failed: ' + upErr.message;
+      submitBtn.disabled = false;
+      return;
+    }
+    image_url = supabase.storage.from('post-images').getPublicUrl(path).data.publicUrl;
+  }
+
+  const row = {
+    title: document.getElementById('postTitle').value.trim(),
+    body: document.getElementById('postBody').value.trim(),
+    image_url,
+    link_url: document.getElementById('postLinkUrl').value.trim() || null,
+    link_label: document.getElementById('postLinkLabel').value.trim() || null,
+    published: document.getElementById('postPublished').checked,
+    author_email: currentUser.email
+  };
+
+  const { error } = editingPostId
+    ? await supabase.from('posts').update(row).eq('id', editingPostId)
+    : await supabase.from('posts').insert(row);
+
+  if(error){
+    msg.textContent = 'Something went wrong: ' + error.message;
+    submitBtn.disabled = false;
+    return;
+  }
+  submitBtn.disabled = false;
+  resetPostForm();
+  await loadAll();
+});
+
+function renderPosts(){
+  document.getElementById('postCount').textContent = `${posts.length} post${posts.length===1?'':'s'}`;
+  const body = document.getElementById('postsTableBody');
+  if(posts.length === 0){
+    body.innerHTML = `<tr><td colspan="4"><div class="empty"><h3>No posts yet</h3><p>Use the form above to publish your first update.</p></div></td></tr>`;
+    return;
+  }
+  body.innerHTML = posts.map(p=>`
+    <tr>
+      <td>${p.image_url ? `<img class="post-thumb" src="${p.image_url}" alt="">` : ''}<strong>${escapeHtml(p.title)}</strong></td>
+      <td><span class="badge ${p.published ? 'approved' : 'pending'}">${p.published ? 'Published' : 'Draft'}</span></td>
+      <td class="muted nowrap">${fmtDate(p.created_at)}</td>
+      <td><div class="row-actions">
+        <button class="btn btn-ghost btn-sm" data-edit-post="${p.id}">Edit</button>
+        <button class="btn btn-ghost btn-sm" data-toggle-post="${p.id}">${p.published ? 'Unpublish' : 'Publish'}</button>
+        <button class="btn btn-clay btn-sm" data-remove-post="${p.id}">Delete</button>
+      </div></td>
+    </tr>`).join('');
+
+  body.querySelectorAll('[data-edit-post]').forEach(btn=>{
+    btn.addEventListener('click', ()=> startEditPost(btn.dataset.editPost));
+  });
+  body.querySelectorAll('[data-toggle-post]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      btn.disabled = true;
+      const p = posts.find(x=> x.id === btn.dataset.togglePost);
+      const { error } = await supabase.from('posts').update({ published: !p.published }).eq('id', btn.dataset.togglePost);
+      if(error){ alert('Something went wrong: ' + error.message); btn.disabled = false; return; }
+      await loadAll();
+    });
+  });
+  body.querySelectorAll('[data-remove-post]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      if(!confirm('Delete this post? This cannot be undone.')) return;
+      btn.disabled = true;
+      const { error } = await supabase.from('posts').delete().eq('id', btn.dataset.removePost);
+      if(error){ alert('Something went wrong: ' + error.message); btn.disabled = false; return; }
+      if(editingPostId === btn.dataset.removePost) resetPostForm();
+      await loadAll();
+    });
+  });
+}
+
 // ---------- admin badge lookup for the Users tab ----------
 let adminEmails = new Set();
 async function loadAdminEmails(){
@@ -554,6 +796,7 @@ supabase.channel('admin-changes')
   .on('postgres_changes', { event:'*', schema:'public', table:'partner_applications' }, ()=>{ if(isAdmin) loadAll(); })
   .on('postgres_changes', { event:'*', schema:'public', table:'reports' }, ()=>{ if(isAdmin) loadAll(); })
   .on('postgres_changes', { event:'*', schema:'public', table:'subscribers' }, ()=>{ if(isAdmin) loadAll(); })
+  .on('postgres_changes', { event:'*', schema:'public', table:'posts' }, ()=>{ if(isAdmin) loadAll(); })
   .subscribe();
 
 // ---------- init ----------

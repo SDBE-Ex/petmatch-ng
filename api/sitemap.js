@@ -4,6 +4,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_CHwFvmImO-SxEMDO52uWeA_WUuU1k2l';
 const STATIC_URLS = [
   { loc: 'https://petmatch.fit/', changefreq: 'daily' },
   { loc: 'https://petmatch.fit/about', changefreq: 'monthly' },
+  { loc: 'https://petmatch.fit/updates', changefreq: 'weekly' },
 ];
 
 function urlEntry({ loc, lastmod, changefreq }) {

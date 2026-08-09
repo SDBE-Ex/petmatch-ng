@@ -99,9 +99,9 @@
   }
 
   .tabs{display:flex; justify-content:center; gap:6px; background:var(--forest-dark); padding:10px; position:sticky; top:0; z-index:10; border-bottom:1px solid rgba(255,255,255,0.08);}
-  .tab-btn{font-family:'IBM Plex Mono',monospace; font-size:12.5px; letter-spacing:.04em; text-transform:uppercase; background:transparent; border:1px solid rgba(255,255,255,0.25); color:#CFE0D2; padding:9px 18px; border-radius:999px; cursor:pointer; transition:.15s;}
-  .tab-btn:hover{border-color:var(--marigold); color:var(--marigold);}
-  .tab-btn.active{background:var(--marigold); color:var(--forest-dark); border-color:var(--marigold); font-weight:600;}
+  .tab-btn{font-family:'IBM Plex Mono',monospace; font-size:12.5px; letter-spacing:.04em; text-transform:uppercase; font-weight:600; background:rgba(255,255,255,0.09); border:1.5px solid rgba(255,255,255,0.5); color:#F1F6F0; padding:9px 18px; border-radius:999px; cursor:pointer; transition:.15s;}
+  .tab-btn:hover{border-color:var(--marigold); color:var(--marigold); background:rgba(232,163,61,0.14);}
+  .tab-btn.active{background:var(--marigold); color:var(--forest-dark); border-color:var(--marigold);}
 
   main{max-width:900px; margin:0 auto; padding:28px 16px 80px;}
   .panel{display:none;} .panel.active{display:block; animation:fade .25s ease;}
@@ -450,7 +450,7 @@
 <a href="https://viberank.dev/apps/Petmatch" target="_blank" rel="noopener" style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#B9CBBD; text-decoration:underline;">Also on Viberank →</a>
 </div>
 
-<footer>PETMATCH · A simple directory, not a broker. Meet safely, and check health and vaccination records before any pairing.<br>Contact: <a href="mailto:hello@petmatch.fit" style="color:inherit">hello@petmatch.fit</a> · <a href="/about" style="color:inherit">About</a> · <a href="/#partners" id="partnersLink" style="color:inherit">For Pet Businesses</a></footer>
+<footer>PETMATCH · A simple directory, not a broker. Meet safely, and check health and vaccination records before any pairing.<br>Contact: <a href="mailto:hello@petmatch.fit" style="color:inherit">hello@petmatch.fit</a> · <a href="/about" style="color:inherit">About</a> · <a href="/updates" style="color:inherit">Updates</a> · <a href="/#partners" id="partnersLink" style="color:inherit">For Pet Businesses</a></footer>
 
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal" id="modalContent"></div>
