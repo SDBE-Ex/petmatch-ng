@@ -7,7 +7,7 @@
 
 -- ---------- Table ----------
 create table public.posts (
-  id            uuid primary key default uuid_generate_v4(),
+  id            uuid primary key default extensions.uuid_generate_v4(),
   title         text not null,
   body          text not null,
   image_url     text,
