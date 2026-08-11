@@ -276,10 +276,6 @@ let posts = [];
 function escapeHtml(str){
   return String(str ?? '').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
-function fmtDate(iso){
-  if(!iso) return '';
-  return new Date(iso).toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' });
-}
 function fmtDateTime(iso){
   if(!iso) return '';
   return new Date(iso).toLocaleString(undefined, { year:'numeric', month:'short', day:'numeric', hour:'numeric', minute:'2-digit' });
@@ -462,7 +458,7 @@ function renderUsers(){
     const adminBadge = adminEmails.has((u.email||'').toLowerCase()) ? '<span class="badge admin">Admin</span>' : '';
     return `<tr>
       <td>${escapeHtml(u.email)} ${adminBadge}</td>
-      <td class="muted nowrap">${fmtDate(u.created_at)}</td>
+      <td class="muted nowrap">${fmtDateTime(u.created_at)}</td>
       <td>${count}</td>
       <td></td>
     </tr>`;
@@ -512,7 +508,7 @@ function renderPartners(){
       <td><a class="wa-link" target="_blank" rel="noopener" href="${waLink(a.phone, a.business_name)}">${escapeHtml(a.phone)}</a></td>
       <td>${escapeHtml(a.city)}</td>
       <td>${locationCell}</td>
-      <td class="muted nowrap">${fmtDate(a.created_at)}</td>
+      <td class="muted nowrap">${fmtDateTime(a.created_at)}</td>
       <td><span class="badge ${a.status}">${a.status}</span></td>
       <td><div class="row-actions">${actions}</div></td>
     </tr>`;
@@ -579,7 +575,7 @@ function renderReports(){
       <td>${escapeHtml(r.reason)}</td>
       <td>${escapeHtml(r.notes) || '<span class="muted">None</span>'}</td>
       <td class="muted">${escapeHtml(r.reporter_email) || 'Anonymous'}</td>
-      <td class="muted nowrap">${fmtDate(r.created_at)}</td>
+      <td class="muted nowrap">${fmtDateTime(r.created_at)}</td>
       <td><span class="badge ${r.status}">${r.status}</span></td>
       <td><div class="row-actions">${actions}</div></td>
     </tr>`;
@@ -619,7 +615,7 @@ function renderSubscribers(){
     <tr>
       <td>${escapeHtml(s.email)}</td>
       <td class="muted">${escapeHtml(s.source) || '<span class="muted">Unknown</span>'}</td>
-      <td class="muted nowrap">${fmtDate(s.created_at)}</td>
+      <td class="muted nowrap">${fmtDateTime(s.created_at)}</td>
     </tr>`).join('');
 }
 document.getElementById('copySubscribersBtn').addEventListener('click', async ()=>{
@@ -774,7 +770,7 @@ function renderPosts(){
     <tr>
       <td>${p.image_url ? `<img class="post-thumb" src="${p.image_url}" alt="">` : ''}<strong>${escapeHtml(p.title)}</strong></td>
       <td><span class="badge ${p.published ? 'approved' : 'pending'}">${p.published ? 'Published' : 'Draft'}</span></td>
-      <td class="muted nowrap">${fmtDate(p.created_at)}</td>
+      <td class="muted nowrap">${fmtDateTime(p.created_at)}</td>
       <td><div class="row-actions">
         <button class="btn btn-ghost btn-sm" data-edit-post="${p.id}">Edit</button>
         <button class="btn btn-ghost btn-sm" data-toggle-post="${p.id}">${p.published ? 'Unpublish' : 'Publish'}</button>

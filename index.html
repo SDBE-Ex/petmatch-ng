@@ -461,7 +461,7 @@
 <a href="https://viberank.dev/apps/Petmatch" target="_blank" rel="noopener" style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#B9CBBD; text-decoration:underline;">Also on Viberank →</a>
 </div>
 
-<footer>PETMATCH · A simple directory, not a broker. Meet safely, and check health and vaccination records before any pairing.<br>Contact: <a href="mailto:hello@petmatch.fit" style="color:inherit">hello@petmatch.fit</a> · <a href="/about" style="color:inherit">About</a> · <a href="/updates" style="color:inherit">Updates</a> · <a href="/safety" style="color:inherit">Trust &amp; Safety</a> · <a href="/#partners" id="partnersLink" style="color:inherit">For Pet Businesses</a></footer>
+<footer>PETMATCH · A simple directory, not a broker. Meet safely, and check health and vaccination records before any pairing.<br>Contact: <a href="mailto:hello@petmatch.fit" style="color:inherit">hello@petmatch.fit</a> · <a href="/about" style="color:inherit">About</a> · <a href="/updates" style="color:inherit">Updates</a> · <a href="/safety" style="color:inherit">Trust &amp; Safety</a> · <a href="/partners" style="color:inherit">For Pet Businesses</a></footer>
 
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal" id="modalContent"></div>
@@ -616,12 +616,6 @@ function showPanel(tab){
 document.querySelectorAll('.tab-btn').forEach(btn=>{
   btn.addEventListener('click', ()=> showPanel(btn.dataset.tab));
 });
-document.getElementById('partnersLink').addEventListener('click', (e)=>{
-  e.preventDefault();
-  showPanel('partners');
-  document.getElementById('panel-partners').scrollIntoView({behavior:'smooth', block:'start'});
-});
-
 // ---------- auth ----------
 // The sign-in widget is rendered into every slot below (the sticky header
 // and the "List Your Pet" gate card) so whichever one the visitor sees is
