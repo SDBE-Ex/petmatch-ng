@@ -280,6 +280,10 @@ function fmtDate(iso){
   if(!iso) return '';
   return new Date(iso).toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' });
 }
+function fmtDateTime(iso){
+  if(!iso) return '';
+  return new Date(iso).toLocaleString(undefined, { year:'numeric', month:'short', day:'numeric', hour:'numeric', minute:'2-digit' });
+}
 function waLink(number, petName){
   const intl = String(number ?? '').replace(/[^0-9]/g,'');
   const msg = encodeURIComponent(`Hi, this is PetMatch admin reaching out about your listing for ${petName}.`);
@@ -425,9 +429,9 @@ function renderListings(){
       <td><strong>${escapeHtml(p.pet_name)}</strong>${p.is_partner ? '<br><span class="badge partner">Partner</span>' : ''}</td>
       <td class="nowrap">${p.species} · ${p.gender}</td>
       <td>${escapeHtml(p.breed)}</td>
-      <td>${escapeHtml(p.owner_name)}<br><a class="wa-link" target="_blank" rel="noopener" href="${waLink(p.whatsapp, p.pet_name)}">WhatsApp</a></td>
+      <td>${escapeHtml(p.owner_name)}<br><span class="muted nowrap">${escapeHtml(p.whatsapp)}</span><br><a class="wa-link" target="_blank" rel="noopener" href="${waLink(p.whatsapp, p.pet_name)}">WhatsApp</a></td>
       <td>${escapeHtml(p.state)}</td>
-      <td class="muted nowrap">${fmtDate(p.created_at)}</td>
+      <td class="muted nowrap">${fmtDateTime(p.created_at)}</td>
       <td>${p.available_for_mating ? '<span class="badge approved">Available</span>' : '<span class="badge dismissed">Not available</span>'}</td>
       <td><div class="row-actions"><button class="btn btn-clay btn-sm" data-remove-pet="${p.id}">Remove</button></div></td>
     </tr>`).join('');
