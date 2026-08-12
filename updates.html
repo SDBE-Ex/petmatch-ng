@@ -220,7 +220,8 @@ function getVisitorId(){
 supabase.from('page_views').insert({
   session_id: getVisitorId(),
   path: window.location.pathname,
-  referrer: document.referrer || null
+  referrer: document.referrer || null,
+  browser_language: navigator.language || null
 }).then(()=>{});
 
 loadPosts();

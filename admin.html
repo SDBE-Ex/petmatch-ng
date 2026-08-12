@@ -288,6 +288,13 @@
       <p class="count-line" style="margin-bottom:14px">Page views, last 14 days</p>
       <div class="visit-chart" id="visitChart"></div>
     </div>
+
+    <p class="section-title">Visitor languages</p>
+    <div class="stat-grid" id="languageStats"></div>
+    <div class="table-wrap" style="padding:20px 18px">
+      <p class="count-line" style="margin-bottom:14px">Browser/OS language, last 30 days</p>
+      <div id="languageBreakdown"></div>
+    </div>
   </section>
 </main>
 
@@ -475,12 +482,17 @@ function renderDensity(){
 async function renderInsights(){
   const statsWrap = document.getElementById('insightStats');
   const chartWrap = document.getElementById('visitChart');
+  const langStatsWrap = document.getElementById('languageStats');
+  const langBreakdownWrap = document.getElementById('languageBreakdown');
   statsWrap.innerHTML = `<div class="stat-card"><div class="num">…</div><div class="label">Loading</div></div>`;
   chartWrap.innerHTML = '';
+  langStatsWrap.innerHTML = '';
+  langBreakdownWrap.innerHTML = '';
 
-  const [statsRes, dailyRes] = await Promise.all([
+  const [statsRes, dailyRes, langRes] = await Promise.all([
     supabase.rpc('admin_visit_stats'),
-    supabase.rpc('admin_visit_daily', { days: 14 })
+    supabase.rpc('admin_visit_daily', { days: 14 }),
+    supabase.rpc('admin_visit_languages', { days: 30 })
   ]);
   const stats = statsRes.data?.[0];
 
@@ -506,6 +518,30 @@ async function renderInsights(){
     const label = new Date(d.day).toLocaleDateString(undefined, { month:'short', day:'numeric' });
     return `<div class="visit-bar"><div class="bar" style="height:${h}%" title="${d.views} views · ${d.uniques} unique visitors"></div><span class="bar-label">${label}</span></div>`;
   }).join('');
+
+  // browser_language is the same signal browsers use to decide whether to
+  // offer translate — this is the number that answers "is there real
+  // non-English-speaking traffic" instead of guessing.
+  const langs = (langRes.data || []).map(l=> ({ lang: l.browser_language, views: Number(l.views) }));
+  const totalLangViews = langs.reduce((sum,l)=> sum + l.views, 0);
+  const nonEnglishViews = langs.filter(l=> l.lang !== 'unknown' && !l.lang.toLowerCase().startsWith('en')).reduce((sum,l)=> sum + l.views, 0);
+  const nonEnglishPct = totalLangViews ? Math.round((nonEnglishViews / totalLangViews) * 100) : 0;
+
+  langStatsWrap.innerHTML = `
+    <div class="stat-card"><div class="num">${nonEnglishPct}%</div><div class="label">Non-English views, last 30d</div></div>
+    <div class="stat-card"><div class="num">${langs.filter(l=> l.lang !== 'unknown').length}</div><div class="label">Distinct languages seen</div></div>`;
+
+  if(langs.length === 0){
+    langBreakdownWrap.innerHTML = `<p class="count-line">No visits recorded yet.</p>`;
+  } else {
+    const maxLangViews = Math.max(...langs.map(l=> l.views));
+    langBreakdownWrap.innerHTML = langs.map(l=> `
+      <div class="density-row">
+        <span class="density-label">${escapeHtml(l.lang)}</span>
+        <span class="density-bar-wrap"><span class="density-bar" style="width:${Math.max(4, Math.round((l.views/maxLangViews)*100))}%"></span></span>
+        <span class="density-count">${l.views}</span>
+      </div>`).join('');
+  }
 }
 
 // ---------- data loading ----------
