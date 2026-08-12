@@ -105,6 +105,14 @@
   .visit-bar{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:6px; height:100%;}
   .visit-bar .bar{width:100%; background:var(--forest); border-radius:4px 4px 0 0; min-height:2px;}
   .visit-bar .bar-label{font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:#8a7f65; white-space:nowrap;}
+
+  .section-title{font-family:'Fraunces',serif; font-size:16px; color:var(--forest-dark); margin:0 0 12px;}
+  .density-row{display:flex; align-items:center; gap:10px; margin-bottom:8px;}
+  .density-row .density-label{width:150px; flex:none; font-size:13px; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .density-row .density-bar-wrap{flex:1; background:rgba(31,71,50,0.08); border-radius:6px; height:18px; overflow:hidden;}
+  .density-row .density-bar{height:100%; background:var(--forest); border-radius:6px; min-width:2px;}
+  .density-row .density-count{width:34px; flex:none; text-align:right; font-family:'IBM Plex Mono',monospace; font-size:12px; color:#8a7f65;}
+  .density-note{font-size:12px; color:#8a7f65; margin:10px 0 0;}
 </style>
 </head>
 <body>
@@ -257,6 +265,24 @@
 
   <!-- INSIGHTS -->
   <section id="panel-insights" class="panel">
+    <p class="section-title">Listing density</p>
+    <div class="stat-grid" id="densityStats"></div>
+    <p class="density-note" id="densityCaveat"></p>
+
+    <div class="table-wrap" style="padding:20px 18px; margin-bottom:22px">
+      <p class="count-line" style="margin-bottom:14px">Listings by area</p>
+      <div id="densityByArea"></div>
+    </div>
+
+    <div class="table-wrap" style="padding:20px 18px; margin-bottom:22px">
+      <p class="count-line" style="margin-bottom:14px">New listings, last 8 weeks</p>
+      <div class="visit-chart" id="listingGrowthChart"></div>
+    </div>
+
+    <p class="section-title">Community engagement</p>
+    <div class="stat-grid" id="engagementStats"></div>
+
+    <p class="section-title">Page views</p>
     <div class="stat-grid" id="insightStats"></div>
     <div class="table-wrap" style="padding:20px 18px">
       <p class="count-line" style="margin-bottom:14px">Page views, last 14 days</p>
@@ -293,6 +319,13 @@ function escapeHtml(str){
 function fmtDateTime(iso){
   if(!iso) return '';
   return new Date(iso).toLocaleString(undefined, { year:'numeric', month:'short', day:'numeric', hour:'numeric', minute:'2-digit' });
+}
+function haversineKm(a, b){
+  const R = 6371;
+  const dLat = (b.lat - a.lat) * Math.PI/180;
+  const dLng = (b.lng - a.lng) * Math.PI/180;
+  const s = Math.sin(dLat/2)**2 + Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1-s));
 }
 function waLink(number, petName){
   const intl = String(number ?? '').replace(/[^0-9]/g,'');
@@ -351,7 +384,88 @@ function showTab(tab){
   if(tab === 'comments') renderComments();
   if(tab === 'subscribers') renderSubscribers();
   if(tab === 'posts') renderPosts();
-  if(tab === 'insights') renderInsights();
+  if(tab === 'insights'){ renderDensity(); renderInsights(); }
+}
+
+// ---------- insights (listing density) ----------
+// Computed entirely client-side from data already loaded via loadAll() —
+// no new RPC or migration needed. Honest caveat: only listings with
+// lat/lng (from "use my location" at listing time) count toward the
+// radius-based metrics; listings with only a typed-in state still show
+// up in "by area", just not in the density-radius numbers.
+const DENSITY_RADIUS_KM = 10;
+
+function renderDensity(){
+  const statsWrap = document.getElementById('densityStats');
+  const caveatWrap = document.getElementById('densityCaveat');
+  const areaWrap = document.getElementById('densityByArea');
+  const growthWrap = document.getElementById('listingGrowthChart');
+  const engagementWrap = document.getElementById('engagementStats');
+
+  const total = pets.length;
+  const available = pets.filter(p=> p.available_for_mating).length;
+
+  const byArea = {};
+  pets.forEach(p=>{
+    const key = (p.state || 'Unknown').trim().replace(/\s+/g, ' ') || 'Unknown';
+    byArea[key] = (byArea[key] || 0) + 1;
+  });
+  const areas = Object.entries(byArea).sort((a,b)=> b[1]-a[1]);
+
+  const geocoded = pets.filter(p=> p.lat != null && p.lng != null);
+  const nearbyCounts = geocoded.map(p=>
+    geocoded.filter(o=> o.id !== p.id && haversineKm(p, o) <= DENSITY_RADIUS_KM).length
+  );
+  const avgNearby = nearbyCounts.length ? (nearbyCounts.reduce((a,b)=>a+b,0) / nearbyCounts.length) : 0;
+  const wellServedPct = geocoded.length ? Math.round((nearbyCounts.filter(n=> n >= 3).length / geocoded.length) * 100) : 0;
+
+  statsWrap.innerHTML = `
+    <div class="stat-card"><div class="num">${total}</div><div class="label">Total listings</div></div>
+    <div class="stat-card"><div class="num">${available}</div><div class="label">Available for mating now</div></div>
+    <div class="stat-card"><div class="num">${areas.length}</div><div class="label">Areas covered</div></div>
+    <div class="stat-card"><div class="num">${avgNearby.toFixed(1)}</div><div class="label">Avg. nearby listings, ${DENSITY_RADIUS_KM}km</div></div>
+    <div class="stat-card"><div class="num">${wellServedPct}%</div><div class="label">Immediately useful*</div></div>`;
+  caveatWrap.textContent = `*Share of listings with 3+ others within ${DENSITY_RADIUS_KM}km, among the ${geocoded.length} of ${total} listings that have a saved location.`;
+
+  if(areas.length === 0){
+    areaWrap.innerHTML = `<p class="count-line">No listings yet.</p>`;
+  } else {
+    const maxCount = areas[0][1];
+    areaWrap.innerHTML = areas.map(([area, count])=> `
+      <div class="density-row">
+        <span class="density-label" title="${escapeHtml(area)}">${escapeHtml(area)}</span>
+        <span class="density-bar-wrap"><span class="density-bar" style="width:${Math.max(4, Math.round((count/maxCount)*100))}%"></span></span>
+        <span class="density-count">${count}</span>
+      </div>`).join('');
+  }
+
+  const weeks = [];
+  const now = new Date();
+  for(let i = 7; i >= 0; i--){
+    const end = new Date(now); end.setDate(end.getDate() - i*7);
+    const start = new Date(end); start.setDate(start.getDate() - 7);
+    const count = pets.filter(p=>{
+      const d = new Date(p.created_at);
+      return d > start && d <= end;
+    }).length;
+    weeks.push({ end, count });
+  }
+  const maxWeek = Math.max(1, ...weeks.map(w=> w.count));
+  growthWrap.innerHTML = weeks.map(w=>{
+    const h = Math.max(2, Math.round((w.count / maxWeek) * 100));
+    const label = w.end.toLocaleDateString(undefined, { month:'short', day:'numeric' });
+    return `<div class="visit-bar"><div class="bar" style="height:${h}%" title="${w.count} new listings"></div><span class="bar-label">${label}</span></div>`;
+  }).join('');
+
+  const totalComments = comments.length;
+  const totalLikes = posts.reduce((sum, p)=> sum + (p.like_count || 0), 0);
+  const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
+  const commentsThisWeek = comments.filter(c=> new Date(c.created_at) > weekAgo).length;
+
+  engagementWrap.innerHTML = `
+    <div class="stat-card"><div class="num">${totalComments}</div><div class="label">Total comments</div></div>
+    <div class="stat-card"><div class="num">${commentsThisWeek}</div><div class="label">Comments this week</div></div>
+    <div class="stat-card"><div class="num">${totalLikes}</div><div class="label">Total post likes</div></div>`;
 }
 
 // ---------- insights (page views) ----------
