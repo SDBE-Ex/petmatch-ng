@@ -15,12 +15,20 @@ function urlEntry({ loc, lastmod, changefreq }) {
 
 module.exports = async (req, res) => {
   let pets = [];
+  let posts = [];
   try {
-    const resp = await fetch(
-      `${SUPABASE_URL}/rest/v1/pets?select=id,created_at`,
-      { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } }
-    );
-    if (resp.ok) pets = await resp.json();
+    const [petsResp, postsResp] = await Promise.all([
+      fetch(
+        `${SUPABASE_URL}/rest/v1/pets?select=id,created_at`,
+        { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } }
+      ),
+      fetch(
+        `${SUPABASE_URL}/rest/v1/posts?published=eq.true&select=id,created_at`,
+        { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } }
+      ),
+    ]);
+    if (petsResp.ok) pets = await petsResp.json();
+    if (postsResp.ok) posts = await postsResp.json();
   } catch (e) {
     // fall through with just the static pages below
   }
@@ -31,6 +39,11 @@ module.exports = async (req, res) => {
       loc: `https://petmatch.fit/pets/${p.id}`,
       lastmod: p.created_at ? p.created_at.slice(0, 10) : undefined,
       changefreq: 'weekly',
+    })),
+    ...posts.map(p => ({
+      loc: `https://petmatch.fit/updates/${p.id}`,
+      lastmod: p.created_at ? p.created_at.slice(0, 10) : undefined,
+      changefreq: 'monthly',
     })),
   ];
 

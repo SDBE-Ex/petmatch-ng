@@ -63,14 +63,19 @@
   .post-card img{width:100%; max-height:360px; object-fit:cover; border-radius:10px; margin:0 0 16px; display:block;}
   .post-card p{font-size:15px; line-height:1.65; color:#3c3628; margin:0 0 14px;}
   .post-card p:last-of-type{margin-bottom:0;}
-  .post-card a{color:var(--clay-dark); font-weight:600;}
-  .post-card a:hover{color:var(--clay);}
+  .post-card a:not(.btn){color:var(--clay-dark); font-weight:600; text-decoration:underline; text-decoration-color:rgba(138,61,34,0.4); text-underline-offset:2px;}
+  .post-card a:not(.btn):hover{color:var(--clay); text-decoration-color:currentColor;}
 
   .btn{font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; letter-spacing:.03em; text-transform:uppercase; border:none; border-radius:9px; padding:11px 20px; cursor:pointer; transition:.15s ease; display:inline-flex; align-items:center; justify-content:center; gap:6px; text-decoration:none;}
   .btn-clay{background:var(--clay); color:#fff;} .btn-clay:hover{background:var(--clay-dark);}
+  .btn-ghost{background:transparent; border:1.5px solid var(--forest); color:var(--forest); text-decoration:none;}
+  .btn-ghost:hover{background:var(--forest); color:#fff;}
+  .btn:disabled{opacity:.55; cursor:not-allowed; transform:none;}
   .btn:hover{transform:translateY(-1px);}
   .btn:focus-visible{outline:3px solid var(--marigold); outline-offset:2px;}
   .post-link-row{margin-top:18px;}
+  .engage-row{display:flex; gap:8px; flex-wrap:wrap; margin-top:18px;}
+  .engage-row .btn{padding:9px 14px; font-size:12px;}
 
   .empty{background:var(--paper); border-radius:var(--radius); padding:40px 26px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.18);}
   .empty h2{font-family:'Fraunces',serif; font-size:22px; color:var(--forest-dark); margin:0 0 8px;}
@@ -138,11 +143,11 @@ function fmtDate(iso){
 
 async function loadPosts(){
   const wrap = document.getElementById('postsWrap');
-  const { data, error } = await supabase
-    .from('posts')
-    .select('*')
-    .eq('published', true)
-    .order('created_at', { ascending:false });
+  const [postsRes, commentsRes] = await Promise.all([
+    supabase.from('posts').select('*').eq('published', true).order('created_at', { ascending:false }),
+    supabase.from('comments').select('post_id')
+  ]);
+  const { data, error } = postsRes;
 
   if(error){
     console.error('Failed to load posts:', error.message);
@@ -154,15 +159,50 @@ async function loadPosts(){
     return;
   }
 
-  wrap.innerHTML = data.map(p => `
+  const commentCounts = {};
+  (commentsRes.data || []).forEach(c=>{ commentCounts[c.post_id] = (commentCounts[c.post_id] || 0) + 1; });
+
+  wrap.innerHTML = data.map(p => {
+    const permalink = `https://petmatch.fit/updates/${p.id}`;
+    const shareText = encodeURIComponent(`🐾 ${p.title} — PetMatch update: ${permalink}`);
+    const count = commentCounts[p.id] || 0;
+    return `
     <article class="post-card">
       <h2>${escapeHtml(p.title)}</h2>
       <p class="post-date">${fmtDate(p.created_at)}</p>
       ${p.image_url ? `<img src="${escapeHtml(p.image_url)}" alt="${escapeHtml(p.title)}" loading="lazy">` : ''}
       ${renderBody(p.body)}
       ${p.link_url ? `<div class="post-link-row"><a class="btn btn-clay" href="${escapeHtml(p.link_url)}" target="_blank" rel="noopener">${escapeHtml(p.link_label || 'Read more')}</a></div>` : ''}
+      <div class="engage-row">
+        <button class="btn btn-ghost" type="button" data-like="${p.id}">🤍 Like<span data-like-count>${p.like_count || 0}</span></button>
+        <a class="btn btn-ghost" href="/updates/${p.id}#comments">💬 ${count} comment${count===1?'':'s'}</a>
+        <a class="btn btn-clay" target="_blank" rel="noopener" href="https://wa.me/?text=${shareText}">Share</a>
+      </div>
     </article>
-  `).join('');
+  `;
+  }).join('');
+
+  wrap.querySelectorAll('[data-like]').forEach(btn=>{
+    const likedKey = 'petmatch_liked_' + btn.dataset.like;
+    if(localStorage.getItem(likedKey)){
+      btn.disabled = true;
+      btn.firstChild.textContent = '💛 Liked ';
+    }
+    btn.addEventListener('click', async ()=>{
+      if(localStorage.getItem(likedKey)) return;
+      btn.disabled = true;
+      const { data: newCount, error } = await supabase.rpc('like_post', { post_id: btn.dataset.like });
+      if(!error){
+        localStorage.setItem(likedKey, '1');
+        btn.firstChild.textContent = '💛 Liked ';
+        const countEl = btn.querySelector('[data-like-count]');
+        if(typeof newCount === 'number') countEl.textContent = newCount;
+        else countEl.textContent = String(Number(countEl.textContent) + 1);
+      } else {
+        btn.disabled = false;
+      }
+    });
+  });
 }
 
 function getVisitorId(){

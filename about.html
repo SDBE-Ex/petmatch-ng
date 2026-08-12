@@ -115,15 +115,16 @@
   header.top .brand-mark a:hover{opacity:.85;}
   header.top p{margin:0 auto; max-width:480px; color:#DCE7DD; font-size:14.5px; line-height:1.5;}
 
-  main{max-width:700px; margin:0 auto; padding:28px 16px 80px;}
+  main{max-width:1040px; margin:0 auto; padding:28px 16px 80px; display:flex; gap:24px; align-items:flex-start; flex-wrap:wrap;}
+  main .formcard{flex:1 1 420px;}
 
   .formcard{background:var(--paper); border-radius:var(--radius); padding:30px 28px; box-shadow:0 10px 30px rgba(0,0,0,0.18);}
   .formcard h1{font-family:'Fraunces',serif; font-size:28px; margin:0 0 22px; color:var(--forest-dark);}
   .formcard h2{font-family:'Fraunces',serif; font-size:19px; margin:26px 0 8px; color:var(--forest-dark);}
   .formcard h2:first-of-type{margin-top:0;}
   .formcard p{font-size:15px; line-height:1.65; color:#3c3628; margin:0 0 14px;}
-  .formcard a:not(.btn){color:var(--clay-dark); font-weight:600;}
-  .formcard a:not(.btn):hover{color:var(--clay);}
+  .formcard a:not(.btn){color:var(--clay-dark); font-weight:600; text-decoration:underline; text-decoration-color:rgba(138,61,34,0.4); text-underline-offset:2px;}
+  .formcard a:not(.btn):hover{color:var(--clay); text-decoration-color:currentColor;}
   .formcard ul{margin:0 0 14px; padding-left:20px;}
   .formcard li{font-size:15px; line-height:1.65; color:#3c3628; margin-bottom:6px;}
   .formcard h3{font-family:'Work Sans',sans-serif; font-weight:600; font-size:15.5px; color:var(--forest-dark); margin:18px 0 6px;}
@@ -134,6 +135,24 @@
   .btn:hover{transform:translateY(-1px);}
   .btn:focus-visible{outline:3px solid var(--marigold); outline-offset:2px;}
   .cta-row{margin-top:24px; text-align:center;}
+
+  .faq-chat{flex:1 1 300px; max-width:340px; background:var(--paper); border-radius:var(--radius); box-shadow:0 10px 30px rgba(0,0,0,0.18); display:flex; flex-direction:column; max-height:640px; position:sticky; top:20px; overflow:hidden;}
+  .faq-chat-header{background:var(--forest); color:var(--paper); padding:14px 16px; display:flex; align-items:center; gap:10px; flex:none;}
+  .faq-chat-avatar{font-size:20px; background:rgba(255,255,255,0.12); width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex:none;}
+  .faq-chat-header strong{font-family:'Fraunces',serif; font-size:15px; display:block;}
+  .faq-chat-header span{font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#B9CBBD;}
+  .faq-chat-thread{padding:14px 16px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:10px; min-height:100px;}
+  .faq-bubble{max-width:88%; padding:10px 13px; border-radius:14px; font-size:13.5px; line-height:1.5; margin:0;}
+  .faq-bubble-bot{background:#fff; border:1px solid var(--line); align-self:flex-start; border-bottom-left-radius:4px; color:#3c3628;}
+  .faq-bubble-user{background:var(--clay); color:#fff; align-self:flex-end; border-bottom-right-radius:4px; font-weight:600;}
+  .faq-chat-chips{padding:12px 16px 16px; border-top:1px solid var(--line); display:flex; flex-wrap:wrap; gap:6px; max-height:190px; overflow-y:auto; flex:none;}
+  .faq-chip{font-family:'Work Sans',sans-serif; font-size:12px; padding:6px 11px; border-radius:999px; border:1.5px solid var(--forest); background:transparent; color:var(--forest); cursor:pointer; transition:.15s;}
+  .faq-chip:hover{background:var(--forest); color:#fff;}
+  .faq-chip.answered{opacity:.5; border-style:dashed;}
+  .faq-chip:focus-visible{outline:3px solid var(--marigold); outline-offset:2px;}
+  @media (max-width:760px){ .faq-chat{position:static; max-height:none; max-width:none;} .faq-chat-thread{max-height:280px;} }
+  .faq-chat-mobile-hint{display:none;}
+  @media (max-width:760px){ .faq-chat-mobile-hint{display:inline;} .faq-chat-desktop-hint{display:none;} }
 
   footer{text-align:center; color:#B9CBBD; font-size:12px; padding:24px 16px 40px; font-family:'IBM Plex Mono',monospace;}
   footer a{color:inherit;}
@@ -185,24 +204,7 @@
     <p>We want pet care and pet life to be something worth taking pride in, not an afterthought. That starts small, one good match at a time.</p>
 
     <h2>Frequently asked questions</h2>
-    <h3>Is PetMatch a marketplace?</h3>
-    <p>No. PetMatch is a directory, not a marketplace. We don't handle buying, selling, or payments of any kind — we simply help owners find each other. Anything you arrange with another owner is between the two of you.</p>
-    <h3>Is PetMatch free to use?</h3>
-    <p>Yes, free for everyone, always. No listing fees, no referral fees, no commissions.</p>
-    <h3>Who can list a pet on PetMatch?</h3>
-    <p>Any dog or cat owner looking for a mate for their pet, including registered and experienced breeders.</p>
-    <h3>Does PetMatch work for cats, or just dogs?</h3>
-    <p>Both. PetMatch is built for dog and cat owners equally — list either species and search for matches of the opposite sex nearby.</p>
-    <h3>What information does a listing need?</h3>
-    <p>Species, breed, sex, age, and a way to reach you — usually a WhatsApp number. No approval wait: most listings go live in under a minute.</p>
-    <h3>How do I contact another owner if I find a match?</h3>
-    <p>Every listing includes a way to reach the owner directly, usually WhatsApp. PetMatch doesn't have its own messaging — you connect and arrange everything between yourselves.</p>
-    <h3>Can I edit or remove my listing later?</h3>
-    <p>Yes. Sign in with the email you listed under and you can edit or take down your listing anytime from the home page.</p>
-    <h3>Does PetMatch verify pets, owners, or businesses?</h3>
-    <p>Listings are self-reported by the person who creates them. Partner applications from pet businesses are reviewed by a real person before approval, but we don't independently verify health records, vaccinations, or business registration. Always meet safely and check health and vaccination records yourself before any pairing.</p>
-    <h3>How does PetMatch help pet stores, kennels, and vet clinics?</h3>
-    <p>PetMatch Partners get their eligible pets shown with a Partner badge, so nearby owners discover their business while browsing for a match — a free way to get in front of people who are already looking for what you offer.</p>
+    <p>Answered in the chat panel <span class="faq-chat-mobile-hint">below</span><span class="faq-chat-desktop-hint">to the right</span> — tap a question to see the answer.</p>
 
     <p>List your pet or find a match today at <a href="/">petmatch.fit</a>.</p>
     <p>Own a pet store, kennel, or clinic? <a href="/#partners">Apply to become a PetMatch Partner</a> and get discovered by owners near you.</p>
@@ -211,6 +213,41 @@
       <a class="btn btn-clay" href="/">List Your Pet</a>
     </div>
   </article>
+
+  <aside class="faq-chat" aria-label="Frequently asked questions, chat format">
+    <div class="faq-chat-header">
+      <span class="faq-chat-avatar" aria-hidden="true">🐾</span>
+      <div>
+        <strong>PetMatch FAQ</strong>
+        <span>Tap a question below</span>
+      </div>
+    </div>
+    <div class="faq-chat-thread" id="faqThread" aria-live="polite">
+      <p class="faq-bubble faq-bubble-bot">Hi! Tap a question below and I'll answer right here 👇</p>
+    </div>
+    <div class="faq-chat-chips" id="faqChips">
+      <button class="faq-chip" type="button" data-faq="0">Is PetMatch a marketplace?</button>
+      <button class="faq-chip" type="button" data-faq="1">Is PetMatch free to use?</button>
+      <button class="faq-chip" type="button" data-faq="2">Who can list a pet?</button>
+      <button class="faq-chip" type="button" data-faq="3">Cats too, or just dogs?</button>
+      <button class="faq-chip" type="button" data-faq="4">What does a listing need?</button>
+      <button class="faq-chip" type="button" data-faq="5">How do I contact a match?</button>
+      <button class="faq-chip" type="button" data-faq="6">Can I edit my listing?</button>
+      <button class="faq-chip" type="button" data-faq="7">Do you verify listings?</button>
+      <button class="faq-chip" type="button" data-faq="8">How do pet businesses benefit?</button>
+    </div>
+    <div id="faqAnswers" hidden>
+      <p data-answer="0">No. PetMatch is a directory, not a marketplace. We don't handle buying, selling, or payments of any kind — we simply help owners find each other. Anything you arrange with another owner is between the two of you.</p>
+      <p data-answer="1">Yes, free for everyone, always. No listing fees, no referral fees, no commissions.</p>
+      <p data-answer="2">Any dog or cat owner looking for a mate for their pet, including registered and experienced breeders.</p>
+      <p data-answer="3">Both. PetMatch is built for dog and cat owners equally — list either species and search for matches of the opposite sex nearby.</p>
+      <p data-answer="4">Species, breed, sex, age, and a way to reach you — usually a WhatsApp number. No approval wait: most listings go live in under a minute.</p>
+      <p data-answer="5">Every listing includes a way to reach the owner directly, usually WhatsApp. PetMatch doesn't have its own messaging — you connect and arrange everything between yourselves.</p>
+      <p data-answer="6">Yes. Sign in with the email you listed under and you can edit or take down your listing anytime from the home page.</p>
+      <p data-answer="7">Listings are self-reported by the person who creates them. Partner applications from pet businesses are reviewed by a real person before approval, but we don't independently verify health records, vaccinations, or business registration. Always meet safely and check health and vaccination records yourself before any pairing.</p>
+      <p data-answer="8">PetMatch Partners get their eligible pets shown with a Partner badge, so nearby owners discover their business while browsing for a match — a free way to get in front of people who are already looking for what you offer.</p>
+    </div>
+  </aside>
 </main>
 
 <div style="display:flex; justify-content:center; padding:16px 16px 0;">
@@ -223,5 +260,35 @@
 
 <footer>PETMATCH · A simple directory, not a broker. Meet safely, and check health and vaccination records before any pairing.<br>Contact: <a href="mailto:hello@petmatch.fit">hello@petmatch.fit</a> · <a href="/">Home</a> · <a href="/updates">Updates</a> · <a href="/safety">Trust &amp; Safety</a> · <a href="/partners">For Pet Businesses</a></footer>
 
+<script>
+(function(){
+  var thread = document.getElementById('faqThread');
+  var answered = new Set();
+  document.getElementById('faqChips').addEventListener('click', function(e){
+    var chip = e.target.closest('[data-faq]');
+    if(!chip) return;
+    var idx = chip.dataset.faq;
+    if(answered.has(idx)){
+      thread.scrollTop = thread.scrollHeight;
+      return;
+    }
+    answered.add(idx);
+    chip.classList.add('answered');
+
+    var question = document.createElement('p');
+    question.className = 'faq-bubble faq-bubble-user';
+    question.textContent = chip.textContent;
+    thread.appendChild(question);
+
+    var answerText = document.querySelector('#faqAnswers [data-answer="' + idx + '"]').textContent;
+    var answer = document.createElement('p');
+    answer.className = 'faq-bubble faq-bubble-bot';
+    answer.textContent = answerText;
+    thread.appendChild(answer);
+
+    thread.scrollTop = thread.scrollHeight;
+  });
+})();
+</script>
 </body>
 </html>

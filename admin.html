@@ -124,6 +124,7 @@
   <button class="tab-btn" data-tab="users">Users</button>
   <button class="tab-btn" data-tab="partners">Partners</button>
   <button class="tab-btn" data-tab="reports">Reports</button>
+  <button class="tab-btn" data-tab="comments">Comments</button>
   <button class="tab-btn" data-tab="subscribers">Subscribers</button>
   <button class="tab-btn" data-tab="posts">Posts</button>
   <button class="tab-btn" data-tab="insights">Insights</button>
@@ -178,6 +179,18 @@
     <div class="table-wrap"><table>
       <thead><tr><th>Listing</th><th>Reason</th><th>Notes</th><th>Reported by</th><th>Reported</th><th>Status</th><th></th></tr></thead>
       <tbody id="reportBody"></tbody>
+    </table></div>
+  </section>
+
+  <!-- COMMENTS -->
+  <section id="panel-comments" class="panel">
+    <div class="toolbar">
+      <label class="checkline"><input type="checkbox" id="commentReportedOnly">Reported only</label>
+    </div>
+    <p class="count-line" id="commentCount"></p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Post</th><th>Author</th><th>Comment</th><th>Reported</th><th>Posted</th><th></th></tr></thead>
+      <tbody id="commentBody"></tbody>
     </table></div>
   </section>
 
@@ -272,6 +285,7 @@ let partners = [];
 let reports = [];
 let subscribers = [];
 let posts = [];
+let comments = [];
 
 function escapeHtml(str){
   return String(str ?? '').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
@@ -334,6 +348,7 @@ function showTab(tab){
   if(tab === 'users') renderUsers();
   if(tab === 'partners') renderPartners();
   if(tab === 'reports') renderReports();
+  if(tab === 'comments') renderComments();
   if(tab === 'subscribers') renderSubscribers();
   if(tab === 'posts') renderPosts();
   if(tab === 'insights') renderInsights();
@@ -381,13 +396,14 @@ async function renderInsights(){
 
 // ---------- data loading ----------
 async function loadAll(){
-  const [petsRes, usersRes, partnersRes, reportsRes, subscribersRes, postsRes] = await Promise.all([
+  const [petsRes, usersRes, partnersRes, reportsRes, subscribersRes, postsRes, commentsRes] = await Promise.all([
     supabase.from('pets').select('*').order('created_at', { ascending:false }),
     supabase.rpc('admin_list_users'),
     supabase.from('partner_applications').select('*').order('created_at', { ascending:false }),
     supabase.from('reports').select('*, pets(pet_name, species, breed, owner_name, is_partner)').order('created_at', { ascending:false }),
     supabase.from('subscribers').select('*').order('created_at', { ascending:false }),
-    supabase.from('posts').select('*').order('created_at', { ascending:false })
+    supabase.from('posts').select('*').order('created_at', { ascending:false }),
+    supabase.from('comments').select('*, posts(title)').order('created_at', { ascending:false })
   ]);
   pets = petsRes.data || [];
   users = usersRes.data || [];
@@ -395,6 +411,7 @@ async function loadAll(){
   reports = reportsRes.data || [];
   subscribers = subscribersRes.data || [];
   posts = postsRes.data || [];
+  comments = commentsRes.data || [];
   showTab(document.querySelector('.tab-btn.active')?.dataset.tab || 'listings');
 }
 
@@ -603,6 +620,40 @@ function renderReports(){
 }
 document.getElementById('reportStatusFilter').addEventListener('change', renderReports);
 
+// ---------- comments ----------
+function renderComments(){
+  const reportedOnly = document.getElementById('commentReportedOnly').checked;
+  const list = reportedOnly ? comments.filter(c=> c.reported_count > 0) : comments;
+  document.getElementById('commentCount').textContent = `${list.length} comment${list.length===1?'':'s'} · ${comments.length} total`;
+  const body = document.getElementById('commentBody');
+  if(list.length === 0){
+    body.innerHTML = `<tr><td colspan="6"><div class="empty"><h3>Nothing here</h3><p>${reportedOnly ? 'No reported comments right now.' : 'No comments yet.'}</p></div></td></tr>`;
+    return;
+  }
+  body.innerHTML = list.map(c=>{
+    const postLabel = c.posts ? escapeHtml(c.posts.title) : '<span class="muted">Post removed</span>';
+    return `<tr>
+      <td>${postLabel}</td>
+      <td>${escapeHtml(c.author_name)}</td>
+      <td>${escapeHtml(c.body)}</td>
+      <td>${c.reported_count > 0 ? `<span class="badge rejected">${c.reported_count}</span>` : '<span class="muted">0</span>'}</td>
+      <td class="muted nowrap">${fmtDateTime(c.created_at)}</td>
+      <td><div class="row-actions"><button class="btn btn-clay btn-sm" data-remove-comment="${c.id}">Delete</button></div></td>
+    </tr>`;
+  }).join('');
+
+  body.querySelectorAll('[data-remove-comment]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      if(!confirm('Delete this comment? This cannot be undone.')) return;
+      btn.disabled = true;
+      const { error } = await supabase.from('comments').delete().eq('id', btn.dataset.removeComment);
+      if(error){ alert('Something went wrong: ' + error.message); btn.disabled = false; return; }
+      await loadAll();
+    });
+  });
+}
+document.getElementById('commentReportedOnly').addEventListener('change', renderComments);
+
 // ---------- subscribers ----------
 function renderSubscribers(){
   document.getElementById('subscriberCount').textContent = `${subscribers.length} subscriber${subscribers.length===1?'':'s'}`;
@@ -774,12 +825,36 @@ function renderPosts(){
       <td><div class="row-actions">
         <button class="btn btn-ghost btn-sm" data-edit-post="${p.id}">Edit</button>
         <button class="btn btn-ghost btn-sm" data-toggle-post="${p.id}">${p.published ? 'Unpublish' : 'Publish'}</button>
+        <button class="btn btn-ghost btn-sm" data-share-post="${p.id}" data-title="${escapeHtml(p.title)}">Share</button>
+        <button class="btn btn-ghost btn-sm" data-copy-post="${p.id}">Copy link</button>
         <button class="btn btn-clay btn-sm" data-remove-post="${p.id}">Delete</button>
       </div></td>
     </tr>`).join('');
 
   body.querySelectorAll('[data-edit-post]').forEach(btn=>{
     btn.addEventListener('click', ()=> startEditPost(btn.dataset.editPost));
+  });
+  body.querySelectorAll('[data-share-post]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const url = `https://petmatch.fit/updates/${btn.dataset.sharePost}`;
+      if(navigator.share){
+        try { await navigator.share({ title: btn.dataset.title, url }); return; }
+        catch(e){ if(e.name === 'AbortError') return; }
+      }
+      await navigator.clipboard.writeText(url);
+      const original = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(()=> btn.textContent = original, 1500);
+    });
+  });
+  body.querySelectorAll('[data-copy-post]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const url = `https://petmatch.fit/updates/${btn.dataset.copyPost}`;
+      await navigator.clipboard.writeText(url);
+      const original = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(()=> btn.textContent = original, 1500);
+    });
   });
   body.querySelectorAll('[data-toggle-post]').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
@@ -840,6 +915,7 @@ supabase.channel('admin-changes')
   .on('postgres_changes', { event:'*', schema:'public', table:'reports' }, ()=>{ if(isAdmin) loadAll(); })
   .on('postgres_changes', { event:'*', schema:'public', table:'subscribers' }, ()=>{ if(isAdmin) loadAll(); })
   .on('postgres_changes', { event:'*', schema:'public', table:'posts' }, ()=>{ if(isAdmin) loadAll(); })
+  .on('postgres_changes', { event:'*', schema:'public', table:'comments' }, ()=>{ if(isAdmin) loadAll(); })
   .subscribe();
 
 // ---------- init ----------

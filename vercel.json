@@ -17,6 +17,7 @@
     { "source": "/admin", "destination": "/admin.html" },
     { "source": "/about", "destination": "/about.html" },
     { "source": "/updates", "destination": "/updates.html" },
+    { "source": "/updates/:id", "destination": "/api/updates/:id" },
     { "source": "/safety", "destination": "/safety.html" },
     { "source": "/partners", "destination": "/partners.html" },
     { "source": "/pets/:id", "destination": "/api/pets/:id" },
