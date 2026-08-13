@@ -194,6 +194,8 @@
   .formcard .sub{font-size:13px; color:#5b5142; margin:0 0 20px;}
   .field{margin-bottom:14px; display:flex; flex-direction:column; gap:6px;}
   .field label{font-size:12.5px; font-weight:600; color:var(--forest-dark); letter-spacing:.02em;}
+  .form-section{font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--marigold); margin:20px 0 10px; padding-top:14px; border-top:1px solid var(--line);}
+  .form-section:first-of-type{margin-top:0; padding-top:0; border-top:none;}
   .field-row{display:flex; gap:12px; flex-wrap:wrap;} .field-row .field{flex:1; min-width:160px;}
   .checkline{display:flex; align-items:center; gap:8px; margin:4px 0 18px;} .checkline input{width:auto;} .checkline label{font-size:13px; color:#4a4437;}
   .photo-input-row{display:flex; gap:8px; flex-wrap:wrap;}
@@ -268,7 +270,7 @@
   <button class="tab-btn" data-tab="browse">Find a Match</button>
 </div>
 
-<p class="count-line" style="text-align:center; margin:14px auto 0;">Free for everyone, always. No referral fees, no commissions, no earning from who you invite.</p>
+<p class="count-line" style="text-align:center; margin:14px auto 0;">Free for everyone, always. No fees, no commissions — ever.</p>
 
 <main>
   <!-- BROWSE -->
@@ -316,10 +318,12 @@
       <p class="sub">Your listing is public to everyone using PetMatch so owners can reach you directly on WhatsApp. Only share details you're comfortable making public.</p>
 
       <form id="petForm">
+        <p class="form-section">About you</p>
         <div class="field-row">
           <div class="field"><label for="ownerName">Your name</label><input id="ownerName" required placeholder="e.g. Jordan Lee"></div>
           <div class="field"><label for="whatsapp">WhatsApp number</label><input id="whatsapp" required placeholder="e.g. +234 801 234 5678"></div>
         </div>
+        <p class="form-section">About your pet</p>
         <div class="field-row">
           <div class="field"><label for="petName">Pet's name</label><input id="petName" required placeholder="e.g. Simba"></div>
           <div class="field"><label for="species">Species</label><select id="species" required><option value="Dog">Dog</option><option value="Cat">Cat</option></select></div>
@@ -355,6 +359,7 @@
         <div class="checkline"><input type="checkbox" id="breeder"><label for="breeder">I'm a registered or experienced breeder</label></div>
         <div class="checkline"><input type="checkbox" id="availableForMating" checked><label for="availableForMating">Available for mating right now</label></div>
 
+        <p class="form-section">Getting in touch</p>
         <div class="field">
           <label>How should other owners reach you?</label>
           <div class="checkline"><input type="checkbox" id="acceptsWhatsapp" checked><label for="acceptsWhatsapp">WhatsApp messages</label></div>
@@ -393,7 +398,8 @@
 
     <div id="partnerGate" class="gate" style="display:none">
       <h2>Sign in to apply</h2>
-      <p>Applying as a PetMatch Partner uses the same sign-in as listing a pet. Sign in above, then come back to this page.</p>
+      <p>We ask for an email just to keep applications spam-free. It won't be shown publicly.</p>
+      <div class="authbar" id="partnerAuth"><!-- filled by JS --></div>
     </div>
 
     <div id="partnerPending" class="gate" style="display:none">
@@ -627,7 +633,7 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
 // immediately actionable — no dead-end text pointing them somewhere else
 // on the page.
 function authSlots(){
-  return ['authbar', 'gateAuth'].map(id=>document.getElementById(id)).filter(Boolean);
+  return ['authbar', 'gateAuth', 'partnerAuth'].map(id=>document.getElementById(id)).filter(Boolean);
 }
 
 function renderAuthbar(){
