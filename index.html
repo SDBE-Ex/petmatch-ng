@@ -307,13 +307,7 @@
 
   <!-- ADD -->
   <section id="panel-add" class="panel active">
-    <div id="gate" class="gate" style="display:none">
-      <h2>List your pet — takes under a minute</h2>
-      <p>We ask for an email just to keep listings spam-free. It won't be shown publicly. Your WhatsApp number (entered below) is what other owners will actually use to contact you.</p>
-      <div class="authbar" id="gateAuth"><!-- filled by JS --></div>
-    </div>
-
-    <div class="formcard" id="formcard" style="display:none">
+    <div class="formcard" id="formcard">
       <h2 id="formTitle">List your pet</h2>
       <p class="sub">Your listing is public to everyone using PetMatch so owners can reach you directly on WhatsApp. Only share details you're comfortable making public.</p>
 
@@ -373,7 +367,13 @@
           <div class="checkline"><input type="radio" name="listedBy" id="listedByBusiness" value="business"><label for="listedByBusiness" id="listedByBusinessLabel">Pet Business</label></div>
         </div>
 
-        <div class="row" id="formActionsRow">
+        <div class="share-prompt" id="formAuthGate" style="display:none">
+          <p style="font-weight:600; color:var(--forest-dark)">One last step — sign in to publish this listing.</p>
+          <p>We ask for an email just to keep listings spam-free. It won't be shown publicly. Everything above is saved — this only takes a few seconds.</p>
+          <div class="authbar" id="formSubmitAuth"><!-- filled by JS --></div>
+        </div>
+
+        <div class="row" id="formActionsRow" style="display:none">
           <button type="submit" class="btn btn-forest" id="submitBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path id="submitBtnIcon" d="M12 5v14M5 12h14"/></svg>Add Listing</button>
           <button type="button" class="btn btn-ghost" id="cancelEditBtn" style="display:none">Cancel edit</button>
         </div>
@@ -633,7 +633,7 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
 // immediately actionable — no dead-end text pointing them somewhere else
 // on the page.
 function authSlots(){
-  return ['authbar', 'gateAuth', 'partnerAuth'].map(id=>document.getElementById(id)).filter(Boolean);
+  return ['authbar', 'formSubmitAuth', 'partnerAuth'].map(id=>document.getElementById(id)).filter(Boolean);
 }
 
 function renderAuthbar(){
@@ -739,11 +739,11 @@ supabase.auth.onAuthStateChange((_event, session)=>{
 });
 
 async function renderAddPanel(){
-  const gate = document.getElementById('gate');
-  const formcard = document.getElementById('formcard');
+  const authGate = document.getElementById('formAuthGate');
+  const actionsRow = document.getElementById('formActionsRow');
   if(currentUser){
-    gate.style.display = 'none';
-    formcard.style.display = 'block';
+    authGate.style.display = 'none';
+    actionsRow.style.display = 'flex';
     await loadMyPets();
     renderMine();
 
@@ -757,8 +757,9 @@ async function renderAddPanel(){
       document.getElementById('listedByOwner').checked = true;
     }
   } else {
-    gate.style.display = 'block';
-    formcard.style.display = 'none';
+    authGate.style.display = 'block';
+    actionsRow.style.display = 'none';
+    document.getElementById('mineWrap').style.display = 'none';
   }
 }
 
