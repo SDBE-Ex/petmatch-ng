@@ -1,5 +1,8 @@
 const SUPABASE_URL = 'https://pnawdtpavemfjzdsevey.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_CHwFvmImO-SxEMDO52uWeA_WUuU1k2l';
+// owner_email is withheld from anon via a column-level GRANT — select=*
+// fails outright against a partial grant, so this lists columns explicitly.
+const PETS_PUBLIC_COLUMNS = 'id,owner_id,owner_name,whatsapp,pet_name,species,breed,gender,age,state,notes,breeder,photo_url,created_at,available_for_mating,lat,lng,accepts_whatsapp,accepts_calls,accepts_text,is_partner,partner_business_name';
 const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1558821078-8b2696bae783?w=1200&h=630&fit=crop&q=80&auto=format';
 
 function escapeHtml(str) {
@@ -120,7 +123,7 @@ module.exports = async (req, res) => {
   let pet;
   try {
     const resp = await fetch(
-      `${SUPABASE_URL}/rest/v1/pets?id=eq.${encodeURIComponent(id)}&select=*`,
+      `${SUPABASE_URL}/rest/v1/pets?id=eq.${encodeURIComponent(id)}&select=${PETS_PUBLIC_COLUMNS}`,
       { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } }
     );
     const rows = await resp.json();

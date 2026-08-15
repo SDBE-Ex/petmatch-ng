@@ -147,6 +147,7 @@
       <input id="listSearch" type="text" placeholder="Search name, owner, or breed…" style="min-width:220px">
       <select id="listSpecies"><option value="">All species</option><option value="Dog">Dogs</option><option value="Cat">Cats</option></select>
       <label class="checkline"><input type="checkbox" id="listPartnerOnly">Partners only</label>
+      <label class="checkline"><input type="checkbox" id="listUnclaimedOnly">Unclaimed only</label>
     </div>
     <p class="count-line" id="listCount"></p>
     <div class="table-wrap"><table>
@@ -157,6 +158,10 @@
 
   <!-- USERS -->
   <section id="panel-users" class="panel">
+    <div class="toolbar">
+      <label class="checkline"><input type="checkbox" id="userNeverListedOnly">Never completed a listing</label>
+      <button class="btn btn-ghost btn-sm" id="copyNeverListedBtn" type="button">Copy emails</button>
+    </div>
     <p class="count-line" id="userCount"></p>
     <div class="table-wrap"><table>
       <thead><tr><th>Email</th><th>Joined</th><th>Listings</th><th></th></tr></thead>
@@ -547,7 +552,7 @@ async function renderInsights(){
 // ---------- data loading ----------
 async function loadAll(){
   const [petsRes, usersRes, partnersRes, reportsRes, subscribersRes, postsRes, commentsRes] = await Promise.all([
-    supabase.from('pets').select('*').order('created_at', { ascending:false }),
+    supabase.rpc('admin_list_pets'),
     supabase.rpc('admin_list_users'),
     supabase.from('partner_applications').select('*').order('created_at', { ascending:false }),
     supabase.from('reports').select('*, pets(pet_name, species, breed, owner_name, is_partner)').order('created_at', { ascending:false }),
@@ -570,10 +575,12 @@ function renderListings(){
   const search = document.getElementById('listSearch').value.trim().toLowerCase();
   const species = document.getElementById('listSpecies').value;
   const partnerOnly = document.getElementById('listPartnerOnly').checked;
+  const unclaimedOnly = document.getElementById('listUnclaimedOnly').checked;
 
   const list = pets.filter(p=>{
     if(species && p.species !== species) return false;
     if(partnerOnly && !p.is_partner) return false;
+    if(unclaimedOnly && p.owner_id) return false;
     if(search){
       const hay = `${p.pet_name} ${p.owner_name} ${p.breed}`.toLowerCase();
       if(!hay.includes(search)) return false;
@@ -589,7 +596,7 @@ function renderListings(){
   }
   body.innerHTML = list.map(p=>`
     <tr>
-      <td><strong>${escapeHtml(p.pet_name)}</strong>${p.is_partner ? '<br><span class="badge partner">Partner</span>' : ''}</td>
+      <td><strong>${escapeHtml(p.pet_name)}</strong>${p.is_partner ? '<br><span class="badge partner">Partner</span>' : ''}${!p.owner_id ? '<br><span class="badge pending">Unclaimed</span>' : ''}</td>
       <td class="nowrap">${p.species} · ${p.gender}</td>
       <td>${escapeHtml(p.breed)}</td>
       <td>${escapeHtml(p.owner_name)}<br><span class="muted nowrap">${escapeHtml(p.whatsapp)}</span><br><a class="wa-link" target="_blank" rel="noopener" href="${waLink(p.whatsapp, p.pet_name)}">WhatsApp</a></td>
@@ -611,26 +618,46 @@ function renderListings(){
 }
 ['listSearch','listSpecies'].forEach(id=> document.getElementById(id).addEventListener('input', renderListings));
 document.getElementById('listPartnerOnly').addEventListener('change', renderListings);
+document.getElementById('listUnclaimedOnly').addEventListener('change', renderListings);
 
 // ---------- users ----------
+function neverListedUsers(){
+  return users.filter(u=> pets.filter(p=> p.owner_id === u.id).length === 0);
+}
+
 function renderUsers(){
-  document.getElementById('userCount').textContent = `${users.length} user${users.length===1?'':'s'}`;
+  const neverListedOnly = document.getElementById('userNeverListedOnly').checked;
+  const list = neverListedOnly ? neverListedUsers() : users;
+  document.getElementById('userCount').textContent = `${list.length} user${list.length===1?'':'s'} · ${users.length} total`;
   const body = document.getElementById('userBody');
-  if(users.length === 0){
-    body.innerHTML = `<tr><td colspan="4"><div class="empty"><h3>No users yet</h3></div></td></tr>`;
+  if(list.length === 0){
+    body.innerHTML = `<tr><td colspan="4"><div class="empty"><h3>No users match</h3></div></td></tr>`;
     return;
   }
-  body.innerHTML = users.map(u=>{
+  body.innerHTML = list.map(u=>{
     const count = pets.filter(p=> p.owner_id === u.id).length;
     const adminBadge = adminEmails.has((u.email||'').toLowerCase()) ? '<span class="badge admin">Admin</span>' : '';
+    const neverListedBadge = count === 0 ? '<span class="badge pending">Never listed</span>' : '';
     return `<tr>
       <td>${escapeHtml(u.email)} ${adminBadge}</td>
       <td class="muted nowrap">${fmtDateTime(u.created_at)}</td>
       <td>${count}</td>
-      <td></td>
+      <td>${neverListedBadge}</td>
     </tr>`;
   }).join('');
 }
+document.getElementById('userNeverListedOnly').addEventListener('change', renderUsers);
+document.getElementById('copyNeverListedBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('copyNeverListedBtn');
+  const emails = neverListedUsers().map(u=> u.email);
+  if(emails.length === 0){
+    btn.textContent = 'No emails to copy';
+  } else {
+    await navigator.clipboard.writeText(emails.join('\n'));
+    btn.textContent = `Copied ${emails.length}`;
+  }
+  setTimeout(()=> btn.textContent = 'Copy emails', 1800);
+});
 
 // ---------- partners ----------
 // No geocoding service exists to auto-fill partner lat/lng, so this gives

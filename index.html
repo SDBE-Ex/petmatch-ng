@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-22NDCVE8MB"></script>
+<!-- Cloudflare Turnstile: bot-check on the anonymous "list your pet" submit -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -317,6 +319,13 @@
           <div class="field"><label for="ownerName">Your name</label><input id="ownerName" required placeholder="e.g. Jordan Lee"></div>
           <div class="field"><label for="whatsapp">WhatsApp number</label><input id="whatsapp" required placeholder="e.g. +234 801 234 5678"></div>
         </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="ownerEmail">Your email</label>
+            <input id="ownerEmail" type="email" required placeholder="e.g. jordan@email.com">
+            <span style="font-size:11.5px; color:#5b5142">Used to verify you and manage this listing later — never shown publicly.</span>
+          </div>
+        </div>
         <p class="form-section">About your pet</p>
         <div class="field-row">
           <div class="field"><label for="petName">Pet's name</label><input id="petName" required placeholder="e.g. Simba"></div>
@@ -367,13 +376,11 @@
           <div class="checkline"><input type="radio" name="listedBy" id="listedByBusiness" value="business"><label for="listedByBusiness" id="listedByBusinessLabel">Pet Business</label></div>
         </div>
 
-        <div class="share-prompt" id="formAuthGate" style="display:none">
-          <p style="font-weight:600; color:var(--forest-dark)">One last step — sign in to publish this listing.</p>
-          <p>We ask for an email just to keep listings spam-free. It won't be shown publicly. Everything above is saved — this only takes a few seconds.</p>
-          <div class="authbar" id="formSubmitAuth"><!-- filled by JS --></div>
+        <div class="field" id="turnstileWrap">
+          <div id="turnstileWidget"><!-- explicitly rendered by JS via turnstile.render(), see renderAddPanel --></div>
         </div>
 
-        <div class="row" id="formActionsRow" style="display:none">
+        <div class="row" id="formActionsRow">
           <button type="submit" class="btn btn-forest" id="submitBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path id="submitBtnIcon" d="M12 5v14M5 12h14"/></svg>Add Listing</button>
           <button type="button" class="btn btn-ghost" id="cancelEditBtn" style="display:none">Cancel edit</button>
         </div>
@@ -486,7 +493,20 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 // =====================================================================
 const SUPABASE_URL = 'https://pnawdtpavemfjzdsevey.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_CHwFvmImO-SxEMDO52uWeA_WUuU1k2l';
+// Public site key, same trust level as the anon key above — safe to
+// ship in client code. This is Cloudflare's published "always passes"
+// test key; replace with the real Turnstile site key before launch.
+const TURNSTILE_SITE_KEY = '1x00000000000000000000AA';
 // =====================================================================
+
+// Every public-read query against pets must list columns explicitly.
+// owner_email is intentionally withheld from anon/authenticated via a
+// column-level GRANT (see migration 20260815163000) — select('*') was
+// tried first and fails outright (Postgres requires privilege on the
+// full column set to expand *), it does not gracefully omit the one
+// withheld column. A signed-in user reading their own owner_email goes
+// through the get_my_pets() RPC instead (see loadMyPets below).
+const PETS_PUBLIC_COLUMNS = 'id,owner_id,owner_name,whatsapp,pet_name,species,breed,gender,age,state,notes,breeder,photo_url,created_at,available_for_mating,lat,lng,accepts_whatsapp,accepts_calls,accepts_text,is_partner,partner_business_name';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -502,6 +522,8 @@ let myPets = [];           // current user's own listings, always fetched in ful
 let currentUser = null;
 let myCoords = null;      // { lat, lng } from "Search near me"
 let formCoords = null;    // { lat, lng } captured on the listing form
+let turnstileWidgetId = null; // id returned by turnstile.render(), for reset() after submit
+let turnstileToken = null;    // set by the widget's callback, single-use
 let partnerFormCoords = null; // { lat, lng } captured on the partner application form
 let partnerCandidates = [];   // approved partners with lat/lng, for suggested meeting locations
 const PARTNER_SUGGESTION_RADIUS_KM = 100; // same cap as the #fDistance "Within 100 km" tier
@@ -633,7 +655,7 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
 // immediately actionable — no dead-end text pointing them somewhere else
 // on the page.
 function authSlots(){
-  return ['authbar', 'formSubmitAuth', 'partnerAuth'].map(id=>document.getElementById(id)).filter(Boolean);
+  return ['authbar', 'partnerAuth'].map(id=>document.getElementById(id)).filter(Boolean);
 }
 
 function renderAuthbar(){
@@ -731,19 +753,25 @@ async function verifyCode(email, code){
   // on success, onAuthStateChange re-renders the authbar as signed in
 }
 
-supabase.auth.onAuthStateChange((_event, session)=>{
+supabase.auth.onAuthStateChange(async (_event, session)=>{
   currentUser = session?.user ?? null;
   partnerApp = undefined;
+  if(currentUser){
+    // Attach any listing(s) this visitor published anonymously before
+    // signing in — matched server-side by their now-verified email.
+    await supabase.rpc('claim_unclaimed_pets');
+  }
   renderAuthbar();
   renderAddPanel();
 });
 
 async function renderAddPanel(){
-  const authGate = document.getElementById('formAuthGate');
-  const actionsRow = document.getElementById('formActionsRow');
+  const ownerEmailInput = document.getElementById('ownerEmail');
+  const turnstileWrap = document.getElementById('turnstileWrap');
   if(currentUser){
-    authGate.style.display = 'none';
-    actionsRow.style.display = 'flex';
+    ownerEmailInput.value = currentUser.email;
+    ownerEmailInput.disabled = true;
+    turnstileWrap.style.display = 'none';
     await loadMyPets();
     renderMine();
 
@@ -757,9 +785,28 @@ async function renderAddPanel(){
       document.getElementById('listedByOwner').checked = true;
     }
   } else {
-    authGate.style.display = 'block';
-    actionsRow.style.display = 'none';
+    ownerEmailInput.disabled = false;
+    turnstileWrap.style.display = 'block';
+    renderTurnstileWidget();
     document.getElementById('mineWrap').style.display = 'none';
+  }
+  await suggestLocationIfEmpty();
+}
+
+// Renders the widget once; on later calls (e.g. re-showing the Add
+// panel after a sign-out) just resets it for a fresh token, since a
+// previously-issued one may have expired. The script tag loads async,
+// so `window.turnstile` may not exist yet on the very first call —
+// retries shortly if so.
+function renderTurnstileWidget(){
+  if(typeof turnstile === 'undefined'){ setTimeout(renderTurnstileWidget, 300); return; }
+  if(turnstileWidgetId === null){
+    turnstileWidgetId = turnstile.render('#turnstileWidget', {
+      sitekey: TURNSTILE_SITE_KEY,
+      callback: (token)=>{ turnstileToken = token; }
+    });
+  } else {
+    turnstile.reset(turnstileWidgetId);
   }
 }
 
@@ -824,7 +871,7 @@ document.getElementById('partnerForm').addEventListener('submit', async (e)=>{
 // table grows, instead of pulling every listing on every visit.
 async function loadPets(){
   const { data, error, count } = await supabase
-    .from('pets').select('*', { count:'exact' })
+    .from('pets').select(PETS_PUBLIC_COLUMNS, { count:'exact' })
     .order('created_at', { ascending:false })
     .range(0, PAGE_SIZE - 1);
   pets = error ? [] : data;
@@ -840,7 +887,7 @@ async function loadMorePets(){
   updateLoadMoreBtn();
   const from = pets.length;
   const { data, error } = await supabase
-    .from('pets').select('*')
+    .from('pets').select(PETS_PUBLIC_COLUMNS)
     .order('created_at', { ascending:false })
     .range(from, from + PAGE_SIZE - 1);
   if(!error && data){
@@ -875,8 +922,12 @@ async function loadPartnerCandidates(){
 // the first loaded page.
 async function loadMyPets(){
   if(!currentUser){ myPets = []; return; }
+  // Own rows include owner_email, which the column-level grant withholds
+  // from a plain select — this RPC bypasses that (as its own owner) but
+  // only ever returns rows matching auth.uid(), so it can't be used to
+  // read anyone else's email.
   const { data, error } = await supabase
-    .from('pets').select('*').eq('owner_id', currentUser.id)
+    .rpc('get_my_pets')
     .order('created_at', { ascending:false });
   myPets = error ? [] : data;
 }
@@ -1182,6 +1233,7 @@ function startEditPet(id){
   editingPhotoUrl = p.photo_url || null;
   editingCoords = (p.lat != null && p.lng != null) ? { lat: p.lat, lng: p.lng } : null;
 
+  document.getElementById('ownerEmail').value = p.owner_email;
   document.getElementById('ownerName').value = p.owner_name;
   document.getElementById('whatsapp').value = p.whatsapp;
   document.getElementById('petName').value = p.pet_name;
@@ -1298,11 +1350,23 @@ document.getElementById('clearPhotoBtn').addEventListener('click', ()=>{
 });
 
 // ---------- add pet form ----------
+function resetTurnstileForRetry(){
+  if(!currentUser && turnstileWidgetId !== null){
+    turnstile.reset(turnstileWidgetId);
+    turnstileToken = null;
+  }
+}
+
 document.getElementById('petForm').addEventListener('submit', async (e)=>{
   e.preventDefault();
-  if(!currentUser) return;
   const msg = document.getElementById('formMsg');
   const submitBtn = document.getElementById('submitBtn');
+
+  if(!currentUser && !turnstileToken){
+    msg.textContent = 'Please complete the verification check above.';
+    return;
+  }
+
   submitBtn.disabled = true;
   msg.textContent = 'Saving…';
   document.querySelector('.share-prompt')?.remove();
@@ -1313,7 +1377,7 @@ document.getElementById('petForm').addEventListener('submit', async (e)=>{
     msg.textContent = 'Optimizing photo…';
     const compressed = await compressImage(file);
     msg.textContent = 'Saving…';
-    const path = `${currentUser.id}/${Date.now()}-${compressed.name}`;
+    const path = `${currentUser?.id ?? 'unclaimed'}/${Date.now()}-${compressed.name}`;
     const { error: upErr } = await supabase.storage.from('pet-photos').upload(path, compressed);
     if(upErr){
       msg.textContent = 'Photo upload failed. Saving listing without photo.';
@@ -1332,7 +1396,7 @@ document.getElementById('petForm').addEventListener('submit', async (e)=>{
   }
 
   let is_partner = false, partner_business_name = null;
-  if(document.getElementById('listedByBusiness').checked){
+  if(currentUser && document.getElementById('listedByBusiness').checked){
     const app = await getPartnerApplication();
     if(app && app.status === 'approved'){
       is_partner = true;
@@ -1341,7 +1405,8 @@ document.getElementById('petForm').addEventListener('submit', async (e)=>{
   }
 
   const newPet = {
-    owner_id: currentUser.id,
+    owner_id: currentUser?.id ?? null,
+    owner_email: document.getElementById('ownerEmail').value.trim().toLowerCase(),
     owner_name: document.getElementById('ownerName').value.trim(),
     whatsapp: document.getElementById('whatsapp').value.trim(),
     pet_name: document.getElementById('petName').value.trim(),
@@ -1363,13 +1428,41 @@ document.getElementById('petForm').addEventListener('submit', async (e)=>{
     photo_url
   };
 
-  const { data: insertedRows, error } = editingPetId
-    ? await supabase.from('pets').update(newPet).eq('id', editingPetId)
-    : await supabase.from('pets').insert(newPet).select('id');
+  let insertedRows, error;
+  if(currentUser){
+    ({ data: insertedRows, error } = editingPetId
+      ? await supabase.from('pets').update(newPet).eq('id', editingPetId)
+      : await supabase.from('pets').insert(newPet).select('id'));
+  } else {
+    // Anonymous submit: goes through a server endpoint that verifies the
+    // Turnstile token and inserts with the service-role key — see
+    // api/pets/create.js. There is no direct anonymous insert policy.
+    const resp = await fetch('/api/pets/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...newPet, turnstileToken })
+    });
+    const respBody = await resp.json().catch(()=>({}));
+    if(resp.ok){
+      insertedRows = [{ id: respBody.id }];
+      error = null;
+    } else {
+      insertedRows = null;
+      error = { message: respBody.error || "That didn't go through." };
+    }
+  }
   submitBtn.disabled = false;
+  resetTurnstileForRetry();
   if(error){
     msg.textContent = "That didn't go through: " + error.message;
     return;
+  }
+  if(!currentUser){
+    // Non-blocking: kicks off the claim/manage-later flow without
+    // delaying the success UI below. supabase-js auth methods (unlike
+    // its lazy PostgREST query builders) send their request immediately
+    // whether or not the returned promise is awaited.
+    supabase.auth.signInWithOtp({ email: newPet.owner_email });
   }
   const wasEditing = !!editingPetId;
   await loadMyPets();
@@ -1402,23 +1495,52 @@ document.getElementById('petForm').addEventListener('submit', async (e)=>{
   formCoords = null;
   document.getElementById('locationStatus').textContent = '';
   setSelectedPhoto(null);
+  if(currentUser){
+    // form.reset() clears every input including disabled ones —
+    // renderAddPanel() isn't re-invoked post-submit, so re-lock manually.
+    const ownerEmailInput = document.getElementById('ownerEmail');
+    ownerEmailInput.value = currentUser.email;
+    ownerEmailInput.disabled = true;
+  }
 });
 
-// ---------- capture geolocation on the listing form ----------
-document.getElementById('useLocationBtn').addEventListener('click', ()=>{
-  const status = document.getElementById('locationStatus');
-  if(!navigator.geolocation){
-    status.textContent = "Your browser doesn't support this, but you can still type your location above.";
-    return;
+// ---------- location: IP-geolocation via Vercel's edge headers ----------
+// No permission prompt (unlike navigator.geolocation) — fits the
+// zero-friction goal. Coarser than GPS (city-level), an accepted
+// tradeoff for skipping the browser permission dialog entirely.
+async function fetchGeo(){
+  try{
+    const resp = await fetch('/api/geo');
+    if(!resp.ok) return null;
+    return await resp.json();
+  } catch(e){
+    return null;
   }
+}
+
+// Called once when the Add panel is shown, so most visitors get the
+// field prefilled with zero clicks; never overwrites something typed.
+async function suggestLocationIfEmpty(){
+  const stateInput = document.getElementById('state');
+  if(stateInput.value.trim()) return;
+  const geo = await fetchGeo();
+  if(geo && geo.city){
+    stateInput.value = geo.region ? `${geo.city}, ${geo.region}` : geo.city;
+    if(geo.lat != null && geo.lng != null) formCoords = { lat: geo.lat, lng: geo.lng };
+  }
+}
+
+document.getElementById('useLocationBtn').addEventListener('click', async ()=>{
+  const status = document.getElementById('locationStatus');
   status.textContent = 'Locating…';
-  navigator.geolocation.getCurrentPosition(
-    (pos)=>{
-      formCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-      status.textContent = '📍 Location captured. Helps nearby owners find you';
-    },
-    ()=>{ status.textContent = "We couldn't find your location. Check your browser's location permissions and try again."; }
-  );
+  const geo = await fetchGeo();
+  if(geo && geo.city){
+    document.getElementById('state').value = geo.region ? `${geo.city}, ${geo.region}` : geo.city;
+    if(geo.lat != null && geo.lng != null) formCoords = { lat: geo.lat, lng: geo.lng };
+    status.textContent = '📍 Location captured. Helps nearby owners find you';
+  } else {
+    status.textContent = "We couldn't detect your location automatically — just type it above.";
+  }
 });
 
 document.getElementById('bizUseLocationBtn').addEventListener('click', ()=>{
@@ -1441,16 +1563,26 @@ document.getElementById('bizUseLocationBtn').addEventListener('click', ()=>{
 // Was a blanket loadPets() on any change; with pagination that would silently
 // reset anyone's "Load more" progress back to page one every time a stranger
 // added or removed a listing. Merge the specific row instead.
+// Realtime's postgres_changes payload comes from WAL replication, not a
+// PostgREST select — it isn't subject to the column-level GRANT that
+// withholds owner_email from a plain query, so it's stripped explicitly
+// here before entering client-side state (defense in depth: even if it
+// were never rendered, it'd otherwise sit readable in devtools).
+function omitOwnerEmail(row){
+  const { owner_email, ...rest } = row;
+  return rest;
+}
+
 supabase.channel('pets-changes')
   .on('postgres_changes', { event:'INSERT', schema:'public', table:'pets' }, (payload)=>{
     if(pets.some(p=> p.id === payload.new.id)) return;
-    pets = [payload.new, ...pets];
+    pets = [omitOwnerEmail(payload.new), ...pets];
     totalCount += 1;
     renderStatLine();
     render();
   })
   .on('postgres_changes', { event:'UPDATE', schema:'public', table:'pets' }, (payload)=>{
-    pets = pets.map(p=> p.id === payload.new.id ? payload.new : p);
+    pets = pets.map(p=> p.id === payload.new.id ? omitOwnerEmail(payload.new) : p);
     render();
   })
   .on('postgres_changes', { event:'DELETE', schema:'public', table:'pets' }, (payload)=>{
