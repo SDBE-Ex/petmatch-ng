@@ -494,9 +494,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const SUPABASE_URL = 'https://pnawdtpavemfjzdsevey.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_CHwFvmImO-SxEMDO52uWeA_WUuU1k2l';
 // Public site key, same trust level as the anon key above — safe to
-// ship in client code. This is Cloudflare's published "always passes"
-// test key; replace with the real Turnstile site key before launch.
-const TURNSTILE_SITE_KEY = '1x00000000000000000000AA';
+// ship in client code. Real Turnstile widget, registered for petmatch.fit.
+const TURNSTILE_SITE_KEY = '0x4AAAAAAEQ7j0pz0DNAvKma';
 // =====================================================================
 
 // Every public-read query against pets must list columns explicitly.
