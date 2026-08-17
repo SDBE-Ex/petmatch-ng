@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PetMatch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+  @page { size: A4; margin: 0; }
+  *{box-sizing:border-box;}
+  html,body{margin:0; padding:0;}
+  body{
+    background:#FBF6EA; color:#14241C;
+    font-family:'Work Sans',sans-serif;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+
+  .page{
+    width:210mm; height:297mm;
+    display:flex; flex-direction:column;
+    break-after:page; page-break-after:always;
+  }
+  .page:last-child{ break-after:auto; page-break-after:auto; }
+
+  .band{
+    background:#1F4732; color:#FBF6EA;
+    padding:18mm 18mm 12mm;
+    text-align:center;
+    position:relative;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.16em;
+    text-transform:uppercase; color:#E8A33D; margin-bottom:10px;
+  }
+  .wordmark{
+    font-family:'Fraunces',serif; font-weight:700; font-size:46px;
+    margin:0 0 10px; letter-spacing:-.01em;
+  }
+  .tagline{
+    font-size:14px; line-height:1.5; max-width:130mm; margin:0 auto;
+    color:#F1F6F0; font-weight:500;
+  }
+  .seam{
+    width:36px; height:3px; margin:14px auto 0; border-radius:2px;
+  }
+  .seam.owner{ background:#E8A33D; }
+  .seam.partner{ background:#A64B2A; }
+
+  .body{
+    flex:1; padding:11mm 18mm 6mm;
+    display:flex; flex-direction:column; gap:8mm;
+  }
+
+  .section-label{
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.12em;
+    text-transform:uppercase; margin:0 0 6px;
+  }
+  .section-label.owner{ color:#8A3D22; }
+  .section-label.partner{ color:#1F4732; }
+  .section h2{
+    font-family:'Fraunces',serif; font-weight:600; font-size:17px;
+    color:#132E20; margin:0 0 6px;
+  }
+  .section p{
+    font-size:12.5px; line-height:1.55; margin:0; color:#3a3527; max-width:150mm;
+  }
+
+  .steps{
+    display:grid; grid-template-columns:1fr 1fr; gap:6mm 10mm;
+  }
+  .step{
+    background:#fff; border:1px solid #D8CBA8; border-radius:8px;
+    padding:9px 11px;
+  }
+  .step .n{
+    font-family:'IBM Plex Mono',monospace; font-size:10px;
+    font-weight:600; display:block; margin-bottom:3px;
+  }
+  .step.owner .n{ color:#E8A33D; }
+  .step.partner .n{ color:#A64B2A; }
+  .step p{ font-size:11.5px; line-height:1.4; margin:0; color:#2b2718; }
+
+  .highlights{
+    display:grid; grid-template-columns:1fr 1fr; gap:6px 12px;
+  }
+  .highlight{
+    display:flex; align-items:flex-start; gap:8px; font-size:12px; line-height:1.4;
+  }
+  .highlight .dot{
+    width:6px; height:6px; border-radius:999px; margin-top:6px; flex:none;
+  }
+  .highlight.owner .dot{ background:#1F4732; }
+  .highlight.partner .dot{ background:#A64B2A; }
+
+  .cta{
+    border-radius:12px; padding:14px 18px;
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+  }
+  .cta.owner{ background:#E8A33D; color:#132E20; }
+  .cta.partner{ background:#A64B2A; color:#FBF6EA; }
+  .cta-text{ font-family:'Fraunces',serif; font-weight:600; font-size:14.5px; }
+  .cta-url{
+    font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:18px;
+    letter-spacing:.01em; white-space:nowrap;
+  }
+
+  footer{
+    padding:0 18mm 12mm; text-align:center;
+  }
+  footer p{
+    font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:#8a7f65;
+    line-height:1.6; margin:0 auto; max-width:150mm;
+  }
+  footer .contact.owner{ color:#8A3D22; }
+  footer .contact.partner{ color:#1F4732; }
+</style>
+</head>
+<body>
+
+  <!-- PAGE 1: pet owners -->
+  <div class="page">
+
+    <div class="band">
+      <div class="eyebrow">Dogs &amp; Cats · Near You</div>
+      <h1 class="wordmark">PetMatch</h1>
+      <p class="tagline">List your dog or cat to find their match nearby: a playmate, a mate, or a fellow owner to learn from.</p>
+      <div class="seam owner"></div>
+    </div>
+
+    <div class="body">
+
+      <div class="section">
+        <p class="section-label owner">What it is</p>
+        <h2>A free directory for pet owners, not a marketplace</h2>
+        <p>PetMatch is a free directory that helps dog and cat owners connect with nearby owners, for mating, playdates, or just advice from someone who gets it. No agents, no fees, no middleman. Every listing includes a way to reach the owner directly, usually WhatsApp, and you arrange everything between yourselves.</p>
+      </div>
+
+      <div class="section">
+        <p class="section-label owner">How it works</p>
+        <div class="steps">
+          <div class="step owner"><span class="n">01</span><p>Sign in with your email or Google. Takes under a minute, no password needed.</p></div>
+          <div class="step owner"><span class="n">02</span><p>Add your pet's details and a photo. Species, breed, sex, age, and how to reach you.</p></div>
+          <div class="step owner"><span class="n">03</span><p>Get discovered by nearby owners looking for a match, and browse listings yourself.</p></div>
+          <div class="step owner"><span class="n">04</span><p>Talk directly on WhatsApp, at your own pace, and decide together what happens next.</p></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <p class="section-label owner">Why owners trust it</p>
+        <div class="highlights">
+          <div class="highlight owner"><span class="dot"></span><span>Free for everyone, always. No fees, no commissions, ever.</span></div>
+          <div class="highlight owner"><span class="dot"></span><span>No buying or selling. PetMatch only makes introductions.</span></div>
+          <div class="highlight owner"><span class="dot"></span><span>You talk directly on WhatsApp, no in-app messaging to manage.</span></div>
+          <div class="highlight owner"><span class="dot"></span><span>Suggested neutral meeting points at reviewed partner vets and pet stores.</span></div>
+        </div>
+      </div>
+
+      <div class="cta owner">
+        <div class="cta-text">List your pet or find a match today</div>
+        <div class="cta-url">petmatch.fit</div>
+      </div>
+
+    </div>
+
+    <footer>
+      <p>PetMatch is not a marketplace and never handles payments. Anything you and another owner arrange is directly between you. Questions or concerns: <span class="contact owner">hello@petmatch.fit</span></p>
+    </footer>
+
+  </div>
+
+  <!-- PAGE 2: pet businesses / partners -->
+  <div class="page">
+
+    <div class="band">
+      <div class="eyebrow">For Vets, Kennels &amp; Pet Stores</div>
+      <h1 class="wordmark">PetMatch</h1>
+      <p class="tagline">Get your business in front of pet owners who are already looking for exactly what you offer, for free, always.</p>
+      <div class="seam partner"></div>
+    </div>
+
+    <div class="body">
+
+      <div class="section">
+        <p class="section-label partner">What it is</p>
+        <h2>Free discovery for vets, kennels, pet stores &amp; breeders</h2>
+        <p>If you run a vet clinic, kennel, pet store, grooming business, or breeding program, PetMatch puts you in front of pet owners who are already looking for exactly what you offer, for free, always. No ads to buy, no listing fees, ever.</p>
+      </div>
+
+      <div class="section">
+        <p class="section-label partner">How it works</p>
+        <div class="steps">
+          <div class="step partner"><span class="n">01</span><p>Sign in with your email and apply. Takes a few minutes.</p></div>
+          <div class="step partner"><span class="n">02</span><p>A real person reviews your application, usually quickly.</p></div>
+          <div class="step partner"><span class="n">03</span><p>Once approved, list your eligible pets. They show up with a Partner badge.</p></div>
+          <div class="step partner"><span class="n">04</span><p>Nearby owners discover your business while browsing for a match.</p></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <p class="section-label partner">Why businesses partner with PetMatch</p>
+        <div class="highlights">
+          <div class="highlight partner"><span class="dot"></span><span>Free customer discovery. Nearby owners see you while browsing.</span></div>
+          <div class="highlight partner"><span class="dot"></span><span>A Partner badge so owners recognize a real, reviewed business.</span></div>
+          <div class="highlight partner"><span class="dot"></span><span>Listed as a suggested neutral meeting point for other owners.</span></div>
+          <div class="highlight partner"><span class="dot"></span><span>No fees, ever. No listing, referral, or commission charges.</span></div>
+        </div>
+      </div>
+
+      <div class="cta partner">
+        <div class="cta-text">Apply to become a Partner, it's free</div>
+        <div class="cta-url">petmatch.fit/partners</div>
+      </div>
+
+    </div>
+
+    <footer>
+      <p>Vet clinics, kennels, pet stores, groomers, and breeding programs: any pet business that wants nearby owners to discover it. Questions: <span class="contact partner">hello@petmatch.fit</span></p>
+    </footer>
+
+  </div>
+
+</body>
+</html>
