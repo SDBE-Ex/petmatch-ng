@@ -14,19 +14,19 @@
 </script>
 <title>Updates | PetMatch</title>
 <link rel="icon" type="image/png" href="/petmatch-mark-512.png">
-<meta name="description" content="News and updates from PetMatch — the free directory helping dog and cat owners find nearby mates and connect directly.">
+<meta name="description" content="News and updates from PetMatch, the free directory helping dog and cat owners find nearby mates and connect directly.">
 <link rel="canonical" href="https://petmatch.fit/updates">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="PetMatch">
 <meta property="og:title" content="Updates | PetMatch">
-<meta property="og:description" content="News and updates from PetMatch — the free directory helping dog and cat owners find nearby mates and connect directly.">
+<meta property="og:description" content="News and updates from PetMatch, the free directory helping dog and cat owners find nearby mates and connect directly.">
 <meta property="og:url" content="https://petmatch.fit/updates">
 <meta property="og:image" content="https://images.unsplash.com/photo-1558821078-8b2696bae783?w=1200&h=630&fit=crop&q=80&auto=format">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Updates | PetMatch">
-<meta name="twitter:description" content="News and updates from PetMatch — the free directory helping dog and cat owners find nearby mates and connect directly.">
+<meta name="twitter:description" content="News and updates from PetMatch, the free directory helping dog and cat owners find nearby mates and connect directly.">
 <meta name="twitter:image" content="https://images.unsplash.com/photo-1558821078-8b2696bae783?w=1200&h=630&fit=crop&q=80&auto=format">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -107,7 +107,7 @@
 </main>
 
 <div style="display:flex; justify-content:center; padding:12px 16px 0; text-align:center;">
-<p style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#B9CBBD; max-width:640px; line-height:1.7; margin:0 auto;"><span style="color:var(--marigold)">🌐</span> Prefer another language? Your browser can translate this page — check the translate icon in your address bar. · Kana son wani harshe? Mai binciken ka zai iya fassara wannan shafin — duba alamar fassara a cikin akwatin adireshi. · You wan use another language? Your browser fit translate dis page — check di translate icon for your address bar. · Vous préférez une autre langue ? Votre navigateur peut traduire cette page — cherchez l'icône de traduction dans la barre d'adresse.</p>
+<p style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#B9CBBD; max-width:640px; line-height:1.7; margin:0 auto;"><span style="color:var(--marigold)">🌐</span> Prefer another language? Your browser can translate this page: check the translate icon in your address bar. · Kana son wani harshe? Mai binciken ka zai iya fassara wannan shafin: duba alamar fassara a cikin akwatin adireshi. · You wan use another language? Your browser fit translate dis page: check di translate icon for your address bar. · Vous préférez une autre langue ? Votre navigateur peut traduire cette page : cherchez l'icône de traduction dans la barre d'adresse.</p>
 </div>
 
 <footer>PETMATCH · A simple directory, not a broker. Meet safely, and check health and vaccination records before any pairing.<br>Contact: <a href="mailto:hello@petmatch.fit">hello@petmatch.fit</a> · <a href="/">Home</a> · <a href="/about">About</a> · <a href="/safety">Trust &amp; Safety</a> · <a href="/partners">For Pet Businesses</a></footer>
@@ -168,7 +168,7 @@ async function loadPosts(){
 
   wrap.innerHTML = data.map(p => {
     const permalink = `https://petmatch.fit/updates/${p.id}`;
-    const shareText = encodeURIComponent(`🐾 ${p.title} — PetMatch update: ${permalink}`);
+    const shareText = encodeURIComponent(`🐾 ${p.title} on PetMatch: ${permalink}`);
     const count = commentCounts[p.id] || 0;
     return `
     <article class="post-card">
