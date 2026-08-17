@@ -76,6 +76,11 @@
   .authbar .btn{border-radius:999px;}
   .authbar .who{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--marigold);}
   .authbar .who button{background:none; border:none; color:#DCE7DD; text-decoration:underline; cursor:pointer; font-family:'Work Sans',sans-serif; font-size:12px;}
+  .authbar .auth-or{font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:#DCE7DD; opacity:.65;}
+  /* .btn-ghost's default forest-on-forest reads as near-invisible on the
+     header's own forest background — swap to marigold for contrast here. */
+  .authbar .btn-ghost{border-color:var(--marigold); color:var(--marigold);}
+  .authbar .btn-ghost:hover{background:var(--marigold); color:var(--forest-dark);}
 
   .optin-line{display:flex; align-items:center; justify-content:center; gap:7px; margin:10px auto 0; max-width:460px; font-size:12px; color:#CFE0D2; cursor:pointer;}
   .optin-line input{width:auto; margin:0;}
@@ -121,6 +126,9 @@
   .btn-clay{background:var(--clay); color:#fff;} .btn-clay:hover{background:var(--clay-dark);}
   .btn-forest{background:var(--forest); color:#fff;} .btn-forest:hover{background:var(--forest-dark);}
   .btn-ghost{background:transparent; border:1.5px solid var(--forest); color:var(--forest);}
+  .btn-google{background:#fff; color:#3c4043; border:1px solid #dadce0;}
+  .btn-google:hover{background:#f8f9fa;}
+  .btn-google svg{width:16px; height:16px;}
   .btn:hover:not(:disabled){transform:translateY(-1px);}
   .btn:active:not(:disabled){transform:scale(.95);}
   .btn:disabled{opacity:.5; cursor:not-allowed;}
@@ -225,6 +233,9 @@
   .gate .authbar input{background:#fff; border:1px solid var(--line); color:var(--ink);}
   .gate .authbar .who{color:var(--clay-dark);}
   .gate .authbar .who button{color:var(--forest); text-decoration:underline;}
+  .gate .authbar .auth-or{color:var(--ink); opacity:.5;}
+  .gate .authbar .btn-ghost{border-color:var(--forest); color:var(--forest);}
+  .gate .authbar .btn-ghost:hover{background:var(--forest); color:#fff;}
 
   .mine{margin-top:34px; padding-top:22px; border-top:2px dashed var(--line);}
   .mine h3{font-family:'Fraunces',serif; color:var(--forest-dark); font-size:17px; margin:0 0 12px;}
@@ -675,14 +686,20 @@ function renderAuthbar(){
 }
 
 // Real SMS/WhatsApp OTP needs a paid provider (e.g. Twilio Verify) wired
-// into Supabase Auth, which isn't set up — so sign-in is email-only for now.
+// into Supabase Auth, which isn't set up — so email code + Google are the
+// two sign-in options.
+const GOOGLE_ICON = `<svg viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>`;
+
 function renderIdentifierStep(){
   authSlots().forEach(bar=>{
     bar.innerHTML = `
+      <button type="button" class="btn btn-google auth-google" style="padding:9px 16px">${GOOGLE_ICON}Continue with Google</button>
+      <span class="auth-or">or</span>
       <input type="email" class="auth-identifier" placeholder="Email address">
       <button class="btn btn-clay auth-send" style="padding:9px 16px">Get started — it's free</button>`;
     const input = bar.querySelector('.auth-identifier');
     const btn = bar.querySelector('.auth-send');
+    bar.querySelector('.auth-google').addEventListener('click', signInWithGoogle);
     const submit = ()=>{
       const raw = input.value.trim();
       if(!raw) return;
@@ -699,6 +716,24 @@ function renderIdentifierStep(){
     btn.addEventListener('click', submit);
     input.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') submit(); });
   });
+}
+
+// Full-page redirect to Google and back — safe to do mid-flow because
+// listing publish (petForm submit) never waits on sign-in: anonymous
+// submissions go through /api/pets/create and are claimed by email after
+// the fact (see claim_unclaimed_pets in onAuthStateChange below), so
+// there's no in-progress form state this redirect could lose.
+async function signInWithGoogle(){
+  const buttons = authSlots().map(b=>b.querySelector('.auth-google')).filter(Boolean);
+  buttons.forEach(b=>{ b.disabled = true; });
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin + window.location.pathname }
+  });
+  if(error){
+    buttons.forEach(b=>{ b.disabled = false; b.textContent = "Couldn't reach Google, try again"; });
+    setTimeout(renderIdentifierStep, 2200);
+  }
 }
 
 async function sendEmailLink(email){
@@ -802,6 +837,12 @@ function renderTurnstileWidget(){
   if(turnstileWidgetId === null){
     turnstileWidgetId = turnstile.render('#turnstileWidget', {
       sitekey: TURNSTILE_SITE_KEY,
+      // interaction-only: stays invisible and passes silently for the vast
+      // majority of visitors (no checkbox in front of the submit button);
+      // Cloudflare only surfaces a visible challenge when its risk signals
+      // actually call for one. Same token/callback either way, so nothing
+      // else in the submit flow changes.
+      appearance: 'interaction-only',
       callback: (token)=>{ turnstileToken = token; }
     });
   } else {
