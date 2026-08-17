@@ -50,7 +50,13 @@
     --line:#D8CBA8; --male:#3C6E9C; --female:#B5507A; --radius:14px;
   }
   *{box-sizing:border-box;}
-  body{margin:0; background:var(--forest); color:var(--ink); font-family:'Work Sans', sans-serif; -webkit-font-smoothing:antialiased;}
+  body{
+    margin:0; color:var(--ink); font-family:'Work Sans', sans-serif; -webkit-font-smoothing:antialiased;
+    background-color:var(--forest);
+    background-image:radial-gradient(ellipse 900px 480px at 50% 0%, rgba(232,163,61,0.07), transparent 60%),
+                      linear-gradient(180deg, var(--forest) 0%, var(--forest-dark) 100%);
+    background-repeat:no-repeat;
+  }
   ::selection{background:var(--marigold); color:var(--forest-dark);}
 
   header.top{
