@@ -1,6 +1,6 @@
 const SUPABASE_URL = 'https://pnawdtpavemfjzdsevey.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_CHwFvmImO-SxEMDO52uWeA_WUuU1k2l';
-const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1558821078-8b2696bae783?w=1200&h=630&fit=crop&q=80&auto=format';
+const DEFAULT_IMAGE = 'https://petmatch.fit/petmatch-og.jpg';
 
 function escapeHtml(str) {
   return String(str ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
@@ -48,7 +48,7 @@ ${fontLinks()}
     <div class="cta-row"><a class="btn btn-clay" href="/updates">See all updates</a></div>
   </article>
   <div style="display:flex; justify-content:center; padding:12px 16px 0; text-align:center;">
-  <p style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#B9CBBD; max-width:640px; line-height:1.7; margin:0 auto;"><span style="color:var(--marigold)">🌐</span> Prefer another language? Your browser can translate this page — check the translate icon in your address bar. · Kana son wani harshe? Mai binciken ka zai iya fassara wannan shafin — duba alamar fassara a cikin akwatin adireshi. · You wan use another language? Your browser fit translate dis page — check di translate icon for your address bar. · Vous préférez une autre langue ? Votre navigateur peut traduire cette page — cherchez l'icône de traduction dans la barre d'adresse.</p>
+  <p style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#B9CBBD; max-width:640px; line-height:1.7; margin:0 auto;"><span style="color:var(--marigold)">🌐</span> Prefer another language? Your browser can translate this page: check the translate icon in your address bar. · Kana son wani harshe? Mai binciken ka zai iya fassara wannan shafin: duba alamar fassara a cikin akwatin adireshi. · You wan use another language? Your browser fit translate dis page: check di translate icon for your address bar. · Vous préférez une autre langue ? Votre navigateur peut traduire cette page : cherchez l'icône de traduction dans la barre d'adresse.</p>
   </div>
 </main>
 </body>
@@ -136,7 +136,7 @@ module.exports = async (req, res) => {
   const image = p.image_url || DEFAULT_IMAGE;
   const plainBody = String(p.body ?? '').replace(/\s+/g, ' ').trim();
   const description = plainBody.slice(0, 300);
-  const shareText = encodeURIComponent(`🐾 ${p.title} — PetMatch update: ${canonicalUrl}`);
+  const shareText = encodeURIComponent(`🐾 ${p.title} on PetMatch: ${canonicalUrl}`);
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -201,7 +201,7 @@ ${fontLinks()}
 </main>
 
 <div style="display:flex; justify-content:center; padding:12px 16px 0; text-align:center;">
-<p style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#B9CBBD; max-width:640px; line-height:1.7; margin:0 auto;"><span style="color:var(--marigold)">🌐</span> Prefer another language? Your browser can translate this page — check the translate icon in your address bar. · Kana son wani harshe? Mai binciken ka zai iya fassara wannan shafin — duba alamar fassara a cikin akwatin adireshi. · You wan use another language? Your browser fit translate dis page — check di translate icon for your address bar. · Vous préférez une autre langue ? Votre navigateur peut traduire cette page — cherchez l'icône de traduction dans la barre d'adresse.</p>
+<p style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#B9CBBD; max-width:640px; line-height:1.7; margin:0 auto;"><span style="color:var(--marigold)">🌐</span> Prefer another language? Your browser can translate this page: check the translate icon in your address bar. · Kana son wani harshe? Mai binciken ka zai iya fassara wannan shafin: duba alamar fassara a cikin akwatin adireshi. · You wan use another language? Your browser fit translate dis page: check di translate icon for your address bar. · Vous préférez une autre langue ? Votre navigateur peut traduire cette page : cherchez l'icône de traduction dans la barre d'adresse.</p>
 </div>
 
 <footer>PETMATCH · A simple directory, not a broker. Meet safely, and check health and vaccination records before any pairing.<br>Contact: <a href="mailto:hello@petmatch.fit">hello@petmatch.fit</a> · <a href="/">Home</a> · <a href="/about">About</a> · <a href="/safety">Trust &amp; Safety</a></footer>
@@ -231,7 +231,7 @@ async function loadComments(){
     return;
   }
   if(!data || data.length === 0){
-    wrap.innerHTML = '<p class="comment-empty">No comments yet — be the first to say something.</p>';
+    wrap.innerHTML = '<p class="comment-empty">No comments yet. Be the first to say something.</p>';
     return;
   }
   wrap.innerHTML = data.map(c => \`

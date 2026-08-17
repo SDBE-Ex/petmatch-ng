@@ -3,7 +3,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_CHwFvmImO-SxEMDO52uWeA_WUuU1k2l';
 // owner_email is withheld from anon via a column-level GRANT — select=*
 // fails outright against a partial grant, so this lists columns explicitly.
 const PETS_PUBLIC_COLUMNS = 'id,owner_id,owner_name,whatsapp,pet_name,species,breed,gender,age,state,notes,breeder,photo_url,created_at,available_for_mating,lat,lng,accepts_whatsapp,accepts_calls,accepts_text,is_partner,partner_business_name';
-const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1558821078-8b2696bae783?w=1200&h=630&fit=crop&q=80&auto=format';
+const DEFAULT_IMAGE = 'https://petmatch.fit/petmatch-og.jpg';
 
 function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
@@ -66,7 +66,7 @@ ${fontLinks()}
     <div class="cta-row"><a class="btn btn-clay" href="/">Find a Match</a></div>
   </article>
   <div style="display:flex; justify-content:center; padding:12px 16px 0; text-align:center;">
-  <p style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#B9CBBD; max-width:640px; line-height:1.7; margin:0 auto;"><span style="color:var(--marigold)">🌐</span> Prefer another language? Your browser can translate this page — check the translate icon in your address bar. · Kana son wani harshe? Mai binciken ka zai iya fassara wannan shafin — duba alamar fassara a cikin akwatin adireshi. · You wan use another language? Your browser fit translate dis page — check di translate icon for your address bar. · Vous préférez une autre langue ? Votre navigateur peut traduire cette page — cherchez l'icône de traduction dans la barre d'adresse.</p>
+  <p style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#B9CBBD; max-width:640px; line-height:1.7; margin:0 auto;"><span style="color:var(--marigold)">🌐</span> Prefer another language? Your browser can translate this page: check the translate icon in your address bar. · Kana son wani harshe? Mai binciken ka zai iya fassara wannan shafin: duba alamar fassara a cikin akwatin adireshi. · You wan use another language? Your browser fit translate dis page: check di translate icon for your address bar. · Vous préférez une autre langue ? Votre navigateur peut traduire cette page : cherchez l'icône de traduction dans la barre d'adresse.</p>
   </div>
 </main>
 </body>
@@ -202,18 +202,18 @@ ${fontLinks()}
     <p class="owner-line">${p.is_partner ? `Listed by PetMatch Partner: ${escapeHtml(p.partner_business_name || p.owner_name)}` : `Listed by ${escapeHtml(p.owner_name)}`}</p>
     <div class="connect-row">${connectButtonsHtml(p)}</div>
     <div class="connect-row" style="margin-top:8px">
-      <a class="btn btn-ghost" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(`🐾 Check out ${p.pet_name} on PetMatch — a ${breed} ${p.species.toLowerCase()} in ${state} looking for a mate: ${canonicalUrl}`)}">Share ${name}'s profile</a>
+      <a class="btn btn-ghost" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(`🐾 Check out ${p.pet_name} on PetMatch, a ${breed} ${p.species.toLowerCase()} in ${state}: ${canonicalUrl}`)}">Share ${name}'s profile</a>
     </div>
   </article>
 
   <article class="formcard" style="margin-top:20px; text-align:center">
     <h2 style="font-family:'Fraunces',serif; font-size:19px; margin:0 0 8px; color:var(--forest-dark)">Have a dog or cat of your own?</h2>
-    <p style="font-size:14.5px; color:#3c3628; line-height:1.6; margin:0 0 16px">List them free and find matches like ${name} nearby — takes under a minute, no fees ever.</p>
+    <p style="font-size:14.5px; color:#3c3628; line-height:1.6; margin:0 0 16px">List them free and find matches like ${name} nearby. Takes under a minute, no fees ever.</p>
     <div class="cta-row"><a class="btn btn-clay" href="/">List Your Pet</a></div>
     <div class="cta-row" style="margin-top:10px"><a class="back-link" href="/">&larr; See more pets on PetMatch</a></div>
   </article>
   <div style="display:flex; justify-content:center; padding:12px 16px 0; text-align:center;">
-  <p style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#B9CBBD; max-width:640px; line-height:1.7; margin:0 auto;"><span style="color:var(--marigold)">🌐</span> Prefer another language? Your browser can translate this page — check the translate icon in your address bar. · Kana son wani harshe? Mai binciken ka zai iya fassara wannan shafin — duba alamar fassara a cikin akwatin adireshi. · You wan use another language? Your browser fit translate dis page — check di translate icon for your address bar. · Vous préférez une autre langue ? Votre navigateur peut traduire cette page — cherchez l'icône de traduction dans la barre d'adresse.</p>
+  <p style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#B9CBBD; max-width:640px; line-height:1.7; margin:0 auto;"><span style="color:var(--marigold)">🌐</span> Prefer another language? Your browser can translate this page: check the translate icon in your address bar. · Kana son wani harshe? Mai binciken ka zai iya fassara wannan shafin: duba alamar fassara a cikin akwatin adireshi. · You wan use another language? Your browser fit translate dis page: check di translate icon for your address bar. · Vous préférez une autre langue ? Votre navigateur peut traduire cette page : cherchez l'icône de traduction dans la barre d'adresse.</p>
   </div>
 </main>
 </body>
