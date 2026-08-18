@@ -138,7 +138,7 @@
   .row select{flex:1; min-width:140px;}
   .btn{font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; letter-spacing:.03em; text-transform:uppercase; border:none; border-radius:9px; padding:11px 20px; cursor:pointer; transition:.15s ease; display:inline-flex; align-items:center; justify-content:center; gap:6px;}
   .btn svg{width:15px; height:15px; flex:none;}
-  .btn-clay{background:var(--clay); color:#fff;} .btn-clay:hover{background:var(--clay-dark);}
+  .btn-clay{background:var(--marigold); color:var(--forest-dark);} .btn-clay:hover{background:var(--clay);}
   .btn-forest{background:var(--forest); color:#fff;} .btn-forest:hover{background:var(--forest-dark);}
   .btn-ghost{background:transparent; border:1.5px solid var(--forest); color:var(--forest);}
   .btn-google{background:#fff; color:#3c4043; border:1px solid #dadce0;}
@@ -409,7 +409,7 @@
         </div>
 
         <div class="row" id="formActionsRow">
-          <button type="submit" class="btn btn-forest" id="submitBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path id="submitBtnIcon" d="M12 5v14M5 12h14"/></svg>Add Listing</button>
+          <button type="submit" class="btn btn-clay" id="submitBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path id="submitBtnIcon" d="M12 5v14M5 12h14"/></svg>Add Listing</button>
           <button type="button" class="btn btn-ghost" id="cancelEditBtn" style="display:none">Cancel edit</button>
         </div>
         <div id="formMsg"></div>
@@ -483,7 +483,7 @@
           </div>
         </div>
         <div class="field"><label for="bizWebsite">Website / social media (optional)</label><input id="bizWebsite" placeholder="e.g. instagram.com/lekkipetclinic"></div>
-        <button type="submit" class="btn btn-forest" id="partnerSubmitBtn">Become a PetMatch Partner</button>
+        <button type="submit" class="btn btn-clay" id="partnerSubmitBtn">Become a PetMatch Partner</button>
         <div id="partnerFormMsg"></div>
       </form>
     </div>
