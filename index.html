@@ -48,30 +48,16 @@
     --ink:#14241C; --paper:#FBF6EA; --forest:#1F4732; --forest-dark:#132E20;
     --marigold:#E8A33D; --clay:#A64B2A; --clay-dark:#8A3D22;
     --line:#D8CBA8; --male:#3C6E9C; --female:#B5507A; --radius:14px;
+    --muted:#5b5142;
   }
   *{box-sizing:border-box;}
   body{
     margin:0; color:var(--ink); font-family:'Work Sans', sans-serif; -webkit-font-smoothing:antialiased;
-    background-color:var(--forest);
-    background-image:radial-gradient(ellipse 900px 480px at 50% 0%, rgba(232,163,61,0.07), transparent 60%),
-                      linear-gradient(180deg, var(--forest) 0%, var(--forest-dark) 100%);
-    background-repeat:no-repeat;
+    background:var(--paper);
   }
   ::selection{background:var(--marigold); color:var(--forest-dark);}
 
-  header.top{
-    background:var(--forest);
-    background-image:radial-gradient(circle at 8% 20%, rgba(255,255,255,0.04) 0, transparent 40%),
-                      radial-gradient(circle at 92% 80%, rgba(255,255,255,0.03) 0, transparent 45%);
-    color:var(--paper); padding:30px 20px 22px; text-align:center;
-  }
-  header.top .eyebrow{font-family:'IBM Plex Mono',monospace; letter-spacing:.14em; text-transform:uppercase; font-size:11.5px; color:var(--marigold); margin-bottom:10px;}
-  header.top h1{font-family:'Fraunces',serif; font-weight:600; font-size:clamp(26px,5vw,40px); margin:0 0 8px; letter-spacing:-0.01em;}
-  header.top h1 a{color:inherit; text-decoration:none;}
-  header.top h1 a:hover{opacity:.85;}
-  header.top p{margin:0 auto 18px; max-width:480px; color:#F1F6F0; font-size:16.5px; font-weight:500; line-height:1.5;}
-
-  .stat-line{font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.03em; color:var(--marigold); margin:0 0 16px; display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap;}
+  .stat-line{font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.03em; color:var(--clay-dark); margin:0 0 16px; display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap;}
   .stat-line .dot{width:4px; height:4px; border-radius:999px; background:var(--marigold); display:inline-block; flex:none;}
 
   .authbar{
@@ -88,58 +74,108 @@
   .authbar .btn-ghost{border-color:var(--marigold); color:var(--marigold);}
   .authbar .btn-ghost:hover{background:var(--marigold); color:var(--forest-dark);}
 
-  .optin-line{display:flex; align-items:center; justify-content:center; gap:7px; margin:10px auto 0; max-width:460px; font-size:12px; color:#CFE0D2; cursor:pointer;}
+  .optin-line{display:flex; align-items:center; justify-content:center; gap:7px; margin:10px auto 0; max-width:460px; font-size:12px; color:var(--muted); cursor:pointer;}
   .optin-line input{width:auto; margin:0;}
 
-  .hero-image{width:calc(100% - 32px); max-width:900px; margin:20px auto; height:260px; border-radius:var(--radius); overflow:hidden; display:flex; position:relative; cursor:pointer; touch-action:pan-y; box-shadow:0 12px 30px rgba(0,0,0,0.28);}
-  @media (max-width:600px){ .hero-image{height:220px; margin:14px auto; border-radius:10px;} }
+  .nav-bar{background:var(--forest); padding:20px 28px; display:flex; align-items:center; justify-content:space-between; gap:22px; flex-wrap:wrap;}
+  .nav-brand{display:flex; align-items:center; gap:11px; font-family:'Fraunces',serif; font-weight:600; font-size:26px; color:#fff; text-decoration:none; letter-spacing:-0.01em; flex:none;}
+  .nav-brand:hover{opacity:.85;}
+  .nav-logo{width:36px; height:36px; border-radius:9px; display:block; flex:none;}
+  .nav-links{display:flex; align-items:center; gap:26px; flex-wrap:wrap; margin:0 auto;}
+  .nav-links a{font-family:'IBM Plex Mono',monospace; font-size:13.5px; letter-spacing:.03em; text-transform:uppercase; color:#DCE7DD; text-decoration:none; white-space:nowrap;}
+  .nav-links a:hover{color:var(--marigold);}
+  .nav-auth{display:flex; flex-direction:column; align-items:flex-end; gap:6px; flex:none;}
+  .nav-auth .authbar{margin:0; max-width:none; padding:5px 7px; gap:6px;}
+  .nav-auth .authbar input{padding:6px 11px; font-size:12px; min-width:130px;}
+  .nav-auth .authbar .btn{padding:7px 13px; font-size:10.5px;}
+  .nav-auth .authbar .auth-or{font-size:10px;}
+  .nav-auth .authbar .who{font-size:11px;}
+  .nav-auth .optin-line{margin:0; max-width:none; justify-content:flex-end; color:#DCE7DD; font-size:11px;}
+  @media (max-width:820px){
+    .nav-bar{justify-content:center; text-align:center;}
+    .nav-links{order:3; width:100%; justify-content:center; margin:2px 0 0;}
+    .nav-auth{align-items:center;}
+    .nav-auth .optin-line{justify-content:center;}
+  }
 
-  .hero-photo-half{flex:1; overflow:hidden; position:relative;}
-  .hero-photo-half#heroPhotoDog{flex:0 0 50%;}
-  .hero-photo-half img{width:100%; height:100%; object-fit:cover; object-position:50% 35%; display:block; transition:transform .6s ease;}
-  .hero-photo-half::after{content:''; position:absolute; inset:0; pointer-events:none; background:linear-gradient(180deg, rgba(19,46,32,0) 55%, rgba(19,46,32,0.5) 100%);}
-  .hero-image:hover .hero-photo-half img, .hero-image:focus-visible .hero-photo-half img{transform:scale(1.06);}
-  .hero-image.dragging .hero-photo-half img{transform:none !important;}
+  .hero{max-width:1100px; margin:0 auto; padding:44px 20px 12px; display:flex; align-items:center; gap:44px; flex-wrap:wrap;}
+  .hero-content{flex:1 1 420px; min-width:280px; text-align:left;}
+  .hero-content .eyebrow{font-family:'IBM Plex Mono',monospace; letter-spacing:.14em; text-transform:uppercase; font-size:11.5px; color:var(--clay-dark); margin-bottom:10px;}
+  .hero-content h1{font-family:'Fraunces',serif; font-weight:600; font-size:clamp(30px,4.4vw,44px); line-height:1.12; margin:0 0 14px; letter-spacing:-0.01em; color:var(--forest-dark);}
+  .hero-content .hero-sub{margin:0 0 22px; max-width:480px; color:#3c3628; font-size:16px; font-weight:500; line-height:1.55;}
+  .hero-ctas{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:22px;}
+  .hero-ctas .btn{padding:13px 24px; font-size:13.5px;}
+  .hero-content .stat-line{justify-content:flex-start; margin:0 0 18px;}
+  @media (max-width:760px){
+    .hero{padding:32px 16px 6px; text-align:center;}
+    .hero-content{text-align:center;}
+    .hero-content .hero-sub{margin-left:auto; margin-right:auto;}
+    .hero-ctas, .hero-content .stat-line{justify-content:center;}
+  }
 
-  .hero-seam{width:4px; flex:none; background:var(--marigold); z-index:2; position:relative; cursor:col-resize;}
-  .hero-seam::before{content:''; position:absolute; top:0; bottom:0; left:-18px; right:-18px;}
-  .hero-seam-grip{position:absolute; left:50%; top:50%; width:30px; height:30px; margin:-15px 0 0 -15px; border-radius:999px; background:var(--marigold); display:flex; align-items:center; justify-content:center; box-shadow:0 2px 10px rgba(0,0,0,0.4); pointer-events:none; transition:transform .15s ease;}
-  .hero-seam-grip svg{width:14px; height:14px; color:var(--forest-dark);}
-  .hero-image:hover .hero-seam-grip{transform:scale(1.12);}
-  .hero-seam:focus-visible{outline:none;}
-  .hero-seam:focus-visible .hero-seam-grip{box-shadow:0 0 0 3px #fff, 0 0 0 5px var(--marigold);}
+  .hero-photo-col{flex:1 1 380px; min-width:280px;}
+  .hero-duo{width:100%; display:flex; gap:12px;}
+  .hero-photo-tile{flex:1 1 50%; height:360px; border-radius:var(--radius); overflow:hidden; position:relative; cursor:pointer; box-shadow:0 12px 30px rgba(0,0,0,0.18);}
+  @media (max-width:760px){ .hero-photo-tile{height:220px;} }
+  .hero-photo-tile img{width:100%; height:100%; object-fit:cover; object-position:50% 25%; display:block; transition:transform .6s ease;}
+  .hero-photo-tile::after{content:''; position:absolute; inset:0; pointer-events:none; background:linear-gradient(180deg, rgba(19,46,32,0) 60%, rgba(19,46,32,0.42) 100%);}
+  .hero-photo-tile:hover img, .hero-photo-tile:focus-visible img{transform:scale(1.06);}
 
   .hero-heart-pop{position:absolute; left:50%; top:50%; width:52px; height:44px; margin:-30px 0 0 -26px; opacity:0; pointer-events:none; z-index:3; filter:drop-shadow(0 2px 8px rgba(0,0,0,0.3)); transform-origin:50% 100%;}
-  .hero-image.poked .hero-heart-pop{animation:heartPop 1.1s ease-out;}
+  .hero-photo-tile.poked .hero-heart-pop{animation:heartPop 1.1s ease-out;}
   @keyframes heartPop{0%{opacity:0; transform:translateY(0) scale(.5);} 30%{opacity:1; transform:translateY(-14px) scale(1.15);} 100%{opacity:0; transform:translateY(-46px) scale(.9);}}
   @media (prefers-reduced-motion:reduce){
-    .hero-photo-half img{transition:none;}
-    .hero-image.poked .hero-heart-pop{animation:none; opacity:.9;}
+    .hero-photo-tile img{transition:none;}
+    .hero-photo-tile.poked .hero-heart-pop{animation:none; opacity:.9;}
     .card{animation:none;}
     .btn:hover, .btn:active, .tag:hover{transform:none;}
     .burst-piece{animation:none; display:none;}
   }
 
   /* ---------- landing sections: why / how it works / faq ---------- */
-  .section-eyebrow{font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--marigold); margin:0 0 14px; text-align:center;}
+  .section-eyebrow{font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--clay-dark); margin:0 0 14px; text-align:center;}
 
-  .value-band{max-width:900px; margin:40px auto 0; padding:0 16px;}
+  .value-band{max-width:900px; margin:44px auto 0; padding:0 16px;}
   .value-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px;}
-  .value-tile{background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.14); border-radius:12px; padding:16px;}
-  .value-tile .value-icon{font-size:21px; display:block; margin-bottom:8px;}
-  .value-tile h3{font-family:'Fraunces',serif; font-weight:600; font-size:16px; color:#fff; margin:0 0 4px;}
-  .value-tile p{font-size:13px; line-height:1.5; color:#DCE7DD; margin:0;}
+  .value-tile{background:#fff; border:1px solid var(--line); border-radius:12px; padding:18px 16px; box-shadow:0 6px 16px rgba(31,71,50,0.06);}
+  .value-tile .value-icon{font-size:19px; display:flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:999px; background:rgba(31,71,50,0.09); margin-bottom:10px;}
+  .value-tile h3{font-family:'Fraunces',serif; font-weight:600; font-size:16px; color:var(--forest-dark); margin:0 0 4px;}
+  .value-tile p{font-size:13px; line-height:1.5; color:var(--muted); margin:0;}
 
   .landing-card{max-width:900px; margin:40px auto 0; padding:0 16px;}
-  .landing-card .inner{background:var(--paper); border-radius:var(--radius); padding:28px 26px; box-shadow:0 10px 30px rgba(0,0,0,0.18);}
+  .landing-card .inner{background:#fff; border-radius:var(--radius); padding:28px 26px; box-shadow:0 10px 30px rgba(0,0,0,0.18);}
   .landing-card .inner h2{font-family:'Fraunces',serif; font-weight:600; font-size:22px; color:var(--forest-dark); margin:0 0 20px; text-align:center;}
-  .landing-steps{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px;}
-  .landing-step{background:#fff; border:1px solid var(--line); border-radius:10px; padding:12px 14px;}
-  .landing-step .n{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--marigold); font-weight:600; display:block; margin-bottom:4px;}
-  .landing-step p{font-size:13.5px; line-height:1.45; color:#3c3628; margin:0;}
+  .landing-steps{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:20px;}
+  .landing-step{text-align:center;}
+  .landing-step .n{width:42px; height:42px; border-radius:999px; background:var(--forest); color:#fff; display:flex; align-items:center; justify-content:center; margin:0 auto 10px; font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:13px;}
+  .landing-step p{font-size:13.5px; line-height:1.5; color:var(--muted); margin:0;}
+  .video-embed{position:relative; width:100%; padding-top:56.25%; margin-top:26px; border-radius:12px; overflow:hidden; box-shadow:0 10px 24px rgba(0,0,0,0.18);}
+  .video-embed iframe{position:absolute; inset:0; width:100%; height:100%; border:0;}
 
-  .landing-faq-wrap{max-width:480px; margin:40px auto 0; padding:0 16px;}
-  .faq-chat{background:var(--paper); border-radius:var(--radius); box-shadow:0 10px 30px rgba(0,0,0,0.18); display:flex; flex-direction:column; max-height:520px; overflow:hidden;}
+  .mv-band{background:var(--forest); margin-top:44px; padding:48px 20px;}
+  .mv-inner{max-width:900px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr; gap:40px;}
+  .mv-col .section-eyebrow{color:var(--marigold); text-align:left; margin:0 0 12px;}
+  .mv-col p{font-family:'Fraunces',serif; font-size:19px; line-height:1.5; font-weight:500; color:#fff; margin:0;}
+  @media (max-width:700px){ .mv-inner{grid-template-columns:1fr; gap:30px;} }
+
+  .updates-band{max-width:900px; margin:44px auto 0; padding:0 16px;}
+  .updates-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px;}
+  .update-tile{background:#fff; border:1px solid var(--line); border-radius:12px; padding:16px; box-shadow:0 6px 16px rgba(31,71,50,0.06); text-decoration:none; display:block; transition:transform .15s ease, box-shadow .15s ease;}
+  .update-tile:hover{transform:translateY(-3px); box-shadow:0 10px 22px rgba(31,71,50,0.12);}
+  .update-tile .update-date{font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--clay-dark); margin:0 0 6px;}
+  .update-tile h3{font-family:'Fraunces',serif; font-weight:600; font-size:16px; color:var(--forest-dark); margin:0 0 6px; line-height:1.3;}
+  .update-tile p{font-size:13px; line-height:1.5; color:var(--muted); margin:0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+
+  .faq-widget{position:fixed; right:18px; bottom:18px; z-index:200; display:flex; flex-direction:column; align-items:flex-end; gap:12px;}
+  .faq-toggle{height:52px; padding:0 20px 0 16px; border-radius:999px; background:var(--forest); color:#fff; border:none; display:inline-flex; align-items:center; gap:8px; cursor:pointer; box-shadow:0 10px 24px rgba(0,0,0,0.3); transition:.15s ease; flex:none; font-family:'IBM Plex Mono',monospace; font-size:12.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase;}
+  .faq-toggle:hover{background:var(--forest-dark); transform:translateY(-2px);}
+  .faq-toggle svg{width:22px; height:22px; flex:none;}
+  .faq-toggle .faq-toggle-close-icon{display:none;}
+  .faq-widget.open .faq-toggle .faq-toggle-chat-icon{display:none;}
+  .faq-widget.open .faq-toggle .faq-toggle-close-icon{display:block;}
+  .faq-chat{width:min(340px, calc(100vw - 36px)); background:#fff; border-radius:var(--radius); box-shadow:0 20px 50px rgba(0,0,0,0.3); flex-direction:column; max-height:min(460px, calc(100vh - 110px)); overflow:hidden; display:none;}
+  .faq-widget.open .faq-chat{display:flex; animation:faqPop .18s ease;}
+  @keyframes faqPop{from{opacity:0; transform:translateY(8px) scale(.97);} to{opacity:1; transform:none;}}
   .faq-chat-header{background:var(--forest); color:var(--paper); padding:14px 16px; display:flex; align-items:center; gap:10px; flex:none;}
   .faq-chat-avatar{font-size:20px; background:rgba(255,255,255,0.12); width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex:none;}
   .faq-chat-header strong{font-family:'Fraunces',serif; font-size:15px; display:block;}
@@ -148,11 +184,12 @@
   .faq-bubble{max-width:88%; padding:10px 13px; border-radius:14px; font-size:13.5px; line-height:1.5; margin:0;}
   .faq-bubble-bot{background:#fff; border:1px solid var(--line); align-self:flex-start; border-bottom-left-radius:4px; color:#3c3628;}
   .faq-bubble-user{background:var(--clay); color:#fff; align-self:flex-end; border-bottom-right-radius:4px; font-weight:600;}
-  .faq-chat-chips{padding:12px 16px 16px; border-top:1px solid var(--line); display:flex; flex-wrap:wrap; gap:6px; max-height:190px; overflow-y:auto; flex:none;}
+  .faq-chat-chips{padding:12px 16px 16px; border-top:1px solid var(--line); display:flex; flex-wrap:wrap; gap:6px; max-height:150px; overflow-y:auto; flex:none;}
   .faq-chip{font-family:'Work Sans',sans-serif; font-size:12px; padding:6px 11px; border-radius:999px; border:1.5px solid var(--forest); background:transparent; color:var(--forest); cursor:pointer; transition:.15s;}
   .faq-chip:hover{background:var(--forest); color:#fff;}
   .faq-chip.answered{opacity:.5; border-style:dashed;}
   .faq-chip:focus-visible{outline:3px solid var(--marigold); outline-offset:2px;}
+  @media (max-width:480px){ .faq-widget{right:14px; bottom:14px;} .faq-toggle{height:46px; padding:0 16px 0 13px; font-size:11.5px;} .faq-toggle svg{width:19px; height:19px;} }
 
   .tabs{display:flex; justify-content:center; gap:6px; background:var(--forest-dark); padding:10px; position:sticky; top:0; z-index:10; border-bottom:1px solid rgba(255,255,255,0.08);}
   .tab-btn{font-family:'IBM Plex Mono',monospace; font-size:12.5px; letter-spacing:.04em; text-transform:uppercase; font-weight:600; background:rgba(255,255,255,0.09); border:1.5px solid rgba(255,255,255,0.5); color:#F1F6F0; padding:9px 18px; border-radius:999px; cursor:pointer; transition:.15s;}
@@ -163,16 +200,16 @@
   .panel{display:none;} .panel.active{display:block; animation:fade .25s ease;}
   @keyframes fade{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;}}
 
-  .finder{background:var(--paper); border-radius:var(--radius); padding:22px; box-shadow:0 10px 30px rgba(0,0,0,0.18); margin-bottom:26px;}
+  .finder{background:#fff; border-radius:var(--radius); padding:22px; box-shadow:0 10px 30px rgba(0,0,0,0.18); margin-bottom:26px;}
   .finder h2{font-family:'Fraunces',serif; font-size:20px; margin:0 0 4px; color:var(--forest-dark);}
-  .finder .sub{font-size:13px; color:#5b5142; margin:0 0 16px;}
+  .finder .sub{font-size:13px; color:var(--muted); margin:0 0 16px;}
   .row{display:flex; flex-wrap:wrap; gap:10px;}
   select, input, textarea{font-family:'Work Sans',sans-serif; font-size:14.5px; padding:10px 12px; border:1.5px solid var(--line); border-radius:9px; background:#fff; color:var(--ink); outline:none;}
   select:focus, input:focus, textarea:focus{border-color:var(--forest); box-shadow:0 0 0 3px rgba(31,71,50,0.12);}
   .row select{flex:1; min-width:140px;}
-  .btn{font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; letter-spacing:.03em; text-transform:uppercase; border:none; border-radius:9px; padding:11px 20px; cursor:pointer; transition:.15s ease; display:inline-flex; align-items:center; justify-content:center; gap:6px;}
+  .btn{font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; letter-spacing:.03em; text-transform:uppercase; text-decoration:none; border:none; border-radius:9px; padding:11px 20px; cursor:pointer; transition:.15s ease; display:inline-flex; align-items:center; justify-content:center; gap:6px;}
   .btn svg{width:15px; height:15px; flex:none;}
-  .btn-clay{background:var(--marigold); color:var(--forest-dark);} .btn-clay:hover{background:var(--clay);}
+  .btn-clay{background:var(--marigold); color:var(--forest-dark); border:none;} .btn-clay:hover{background:var(--clay);}
   .btn-forest{background:var(--forest); color:#fff;} .btn-forest:hover{background:var(--forest-dark);}
   .btn-ghost{background:transparent; border:1.5px solid var(--forest); color:var(--forest);}
   .btn-google{background:#fff; color:#3c4043; border:1px solid #dadce0;}
@@ -185,16 +222,16 @@
 
   .filters{display:flex; flex-wrap:wrap; gap:10px; margin-bottom:18px;}
   .filters input, .filters select{flex:1; min-width:130px;}
-  .count-line{font-family:'IBM Plex Mono',monospace; font-size:12px; color:#DCE7DD; margin:0 0 14px 2px; letter-spacing:.03em;}
+  .count-line{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--muted); margin:0 0 14px 2px; letter-spacing:.03em;}
 
   .grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:16px;}
   @keyframes cardIn{from{opacity:0; transform:translateY(12px) scale(.96);} to{opacity:1; transform:none;}}
-  .card{position:relative; background:var(--paper); border-radius:var(--radius); padding:0 18px 16px 26px; box-shadow:0 8px 20px rgba(0,0,0,0.16); overflow:hidden; animation:cardIn .5s cubic-bezier(.22,1,.36,1) backwards; transition:transform .2s ease, box-shadow .2s ease;}
+  .card{position:relative; background:#fff; border-radius:var(--radius); padding:0 18px 16px 26px; box-shadow:0 8px 20px rgba(0,0,0,0.16); overflow:hidden; animation:cardIn .5s cubic-bezier(.22,1,.36,1) backwards; transition:transform .2s ease, box-shadow .2s ease;}
   .card:hover{transform:translateY(-4px); box-shadow:0 14px 28px rgba(0,0,0,0.22);}
   .card::before{content:''; position:absolute; left:8px; top:0; bottom:0; width:1px; background-image:linear-gradient(var(--line) 60%, transparent 0%); background-size:1px 8px; background-repeat:repeat-y;}
   .card .photo{width:calc(100% + 18px); margin-left:-18px; height:150px; object-fit:cover; display:block; margin-bottom:12px;}
   .card .photo-ph{width:calc(100% + 18px); margin-left:-18px; height:60px;}
-  .stamp{position:absolute; top:12px; right:12px; font-family:'IBM Plex Mono',monospace; font-size:10.5px; font-weight:600; color:var(--forest); background:var(--paper); border:1.5px solid var(--forest); border-radius:6px; padding:2px 7px; transform:rotate(4deg); opacity:.85;}
+  .stamp{position:absolute; top:12px; right:12px; font-family:'IBM Plex Mono',monospace; font-size:10.5px; font-weight:600; color:var(--forest); background:#fff; border:1.5px solid var(--forest); border-radius:6px; padding:2px 7px; transform:rotate(4deg); opacity:.85;}
   .card h3{font-family:'Fraunces',serif; font-size:19px; margin:0 6px 2px 0; color:var(--forest-dark); padding-right:60px; padding-top:16px;}
   .card.has-photo h3{padding-top:0;}
   .tagrow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0 10px;}
@@ -217,17 +254,17 @@
   .near-row select{display:none; flex:none; min-width:auto;}
   .near-row select.shown{display:block;}
   .near-row .checkline{margin:0;}
-  .near-row .checkline label{color:#DCE7DD; font-size:12.5px;}
-  .near-row .btn-ghost{border-color:var(--marigold); color:var(--marigold);}
-  .near-row .btn-ghost:hover{background:var(--marigold); color:var(--forest-dark);}
-  .near-status{font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:#DCE7DD;}
+  .near-row .checkline label{color:var(--muted); font-size:12.5px;}
+  .near-row .btn-ghost{border-color:var(--forest); color:var(--forest);}
+  .near-row .btn-ghost:hover{background:var(--forest); color:#fff;}
+  .near-status{font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--muted);}
 
   .empty{background:rgba(251,246,234,0.9); border-radius:var(--radius); padding:40px 24px; text-align:center; color:var(--forest-dark);}
-  .empty h3{font-family:'Fraunces',serif; margin:0 0 6px; font-size:20px;} .empty p{margin:0; font-size:14px; color:#5b5142;}
+  .empty h3{font-family:'Fraunces',serif; margin:0 0 6px; font-size:20px;} .empty p{margin:0; font-size:14px; color:var(--muted);}
 
   .modal-backdrop{display:none; position:fixed; inset:0; background:rgba(19,46,32,0.7); z-index:100; align-items:center; justify-content:center; padding:20px;}
   .modal-backdrop.open{display:flex;}
-  .modal{background:var(--paper); border-radius:var(--radius); max-width:480px; width:100%; max-height:88vh; overflow-y:auto; padding:0 0 22px; position:relative; box-shadow:0 20px 50px rgba(0,0,0,0.35);}
+  .modal{background:#fff; border-radius:var(--radius); max-width:480px; width:100%; max-height:88vh; overflow-y:auto; padding:0 0 22px; position:relative; box-shadow:0 20px 50px rgba(0,0,0,0.35);}
   .modal .photo{width:100%; height:220px; object-fit:cover; display:block;}
   .modal-body{padding:20px 22px 0;}
   .modal h2{font-family:'Fraunces',serif; font-size:24px; margin:0 0 4px; color:var(--forest-dark); padding-right:34px;}
@@ -235,7 +272,7 @@
   .modal-close:hover{background:var(--forest-dark);}
   .modal .connect-row{display:flex; gap:8px; flex-wrap:wrap; margin-top:18px;}
   .modal .connect-row a, .modal .connect-row button{flex:1; min-width:110px; text-align:center; text-decoration:none;}
-  .modal .owner-line{font-size:13px; color:#5b5142; margin:10px 0 0;}
+  .modal .owner-line{font-size:13px; color:var(--muted); margin:10px 0 0;}
   .suggested-locations{margin-top:18px; padding-top:14px; border-top:1px solid var(--line);}
   .suggested-locations-label{font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:600; color:var(--forest-dark); margin:0 0 4px; display:flex; align-items:center; gap:6px;}
   .suggested-locations-note{font-size:12px; color:#7a7261; line-height:1.5; margin:0 0 10px;}
@@ -248,12 +285,12 @@
   .report-form{margin-top:12px;}
   .report-form select, .report-form textarea{width:100%;}
 
-  .formcard{background:var(--paper); border-radius:var(--radius); padding:26px; box-shadow:0 10px 30px rgba(0,0,0,0.18);}
+  .formcard{background:#fff; border-radius:var(--radius); padding:26px; box-shadow:0 10px 30px rgba(0,0,0,0.18);}
   .formcard h2{font-family:'Fraunces',serif; font-size:22px; margin:0 0 4px; color:var(--forest-dark);}
-  .formcard .sub{font-size:13px; color:#5b5142; margin:0 0 20px;}
+  .formcard .sub{font-size:13px; color:var(--muted); margin:0 0 20px;}
   .field{margin-bottom:14px; display:flex; flex-direction:column; gap:6px;}
   .field label{font-size:12.5px; font-weight:600; color:var(--forest-dark); letter-spacing:.02em;}
-  .form-section{font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--marigold); margin:20px 0 10px; padding-top:14px; border-top:1px solid var(--line);}
+  .form-section{font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--clay-dark); margin:20px 0 10px; padding-top:14px; border-top:1px solid var(--line);}
   .form-section:first-of-type{margin-top:0; padding-top:0; border-top:none;}
   .field-row{display:flex; gap:12px; flex-wrap:wrap;} .field-row .field{flex:1; min-width:160px;}
   .checkline{display:flex; align-items:center; gap:8px; margin:4px 0 18px;} .checkline input{width:auto;} .checkline label{font-size:13px; color:#4a4437;}
@@ -275,9 +312,9 @@
     100%{opacity:0; transform:translate(calc(-50% + var(--dx,0px)), -54px) scale(1) rotate(var(--rot,0deg));}
   }
 
-  .gate{background:var(--paper); border-radius:var(--radius); padding:34px 26px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.18);}
-  .gate h2{font-family:'Fraunces',serif; color:var(--forest-dark); margin:0 0 8px;}
-  .gate p{color:#5b5142; font-size:14px; margin:0 0 18px;}
+  .gate{background:#fff; border-radius:var(--radius); padding:34px 26px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.18);}
+  .gate h2{font-family:'Fraunces',serif; font-size:22px; color:var(--forest-dark); margin:0 0 8px;}
+  .gate p{color:var(--muted); font-size:14px; margin:0 0 18px;}
   .gate .authbar{background:rgba(31,71,50,0.06); border:1px solid var(--line); max-width:420px;}
   .gate .authbar input{background:#fff; border:1px solid var(--line); color:var(--ink);}
   .gate .authbar .who{color:var(--clay-dark);}
@@ -295,39 +332,56 @@
   .mine-row [data-edit]{border-color:var(--forest); color:var(--forest);}
   .mine-row [data-edit]:hover{background:var(--forest); color:#fff;}
 
+  .bottom-band{background:var(--forest); margin-top:44px;}
   footer{text-align:center; color:#B9CBBD; font-size:12px; padding:24px 16px 40px; font-family:'IBM Plex Mono',monospace;}
 </style>
 </head>
 <body>
 
-<header class="top">
-  <div class="eyebrow">Dogs &amp; Cats · Near You</div>
-  <h1><a href="/" title="Back to the PetMatch homepage">PetMatch</a></h1>
-  <p>List your dog or cat to find their match nearby: a playmate, a mate, or a fellow owner to learn from.</p>
-  <p style="margin:-8px auto 18px; max-width:480px; color:#B9CBBD; font-size:13px; line-height:1.5;">It's not a marketplace, we don't handle buying or selling.</p>
+<nav class="nav-bar">
+  <a href="/" class="nav-brand" title="Back to the PetMatch homepage"><img src="/petmatch-mark-512.png" alt="" class="nav-logo">PetMatch</a>
+  <div class="nav-links">
+    <a href="#how-it-works">How It Works</a>
+    <a href="/partners">For Business</a>
+    <a href="/updates">Updates</a>
+  </div>
+  <div class="nav-auth">
+    <div class="authbar" id="authbar">
+      <!-- filled by JS -->
+    </div>
+    <label class="optin-line" id="optInWrap" style="display:none">
+      <input type="checkbox" id="marketingOptIn"> Keep me posted about PetMatch news and new features
+    </label>
+  </div>
+</nav>
 
-  <p class="stat-line" id="statLine" aria-live="polite" style="display:none"></p>
+<section class="hero">
+  <div class="hero-content">
+    <div class="eyebrow">Dogs &amp; Cats · Near You</div>
+    <h1>Find your pet's match, nearby.</h1>
+    <p class="hero-sub">A playmate, a mate, or a fellow owner to learn from. Always free, direct on WhatsApp, not a marketplace.</p>
 
-  <div class="authbar" id="authbar">
-    <!-- filled by JS -->
-  </div>
-  <label class="optin-line" id="optInWrap" style="display:none">
-    <input type="checkbox" id="marketingOptIn"> Keep me posted about PetMatch news and new features
-  </label>
-</header>
+    <div class="hero-ctas">
+      <button type="button" class="btn btn-clay" data-tab="add" data-hero-cta="panel-add">List Your Pet</button>
+      <button type="button" class="btn btn-ghost" data-tab="browse" data-hero-cta="panel-browse">Find a Match</button>
+    </div>
 
-<div class="hero-image" id="heroIllustration">
-  <div class="hero-photo-half" id="heroPhotoDog">
-    <img src="https://images.unsplash.com/photo-1558821078-8b2696bae783?w=1600&h=680&fit=crop&q=80&auto=format" alt="A warm-toned puppy with a red collar looking gently at the camera">
+    <p class="stat-line" id="statLine" aria-live="polite" style="display:none"></p>
   </div>
-  <div class="hero-seam" id="heroSeam" role="slider" aria-label="Drag to reveal more dog or more cat" aria-valuemin="20" aria-valuemax="80" aria-valuenow="50" tabindex="0">
-    <span class="hero-seam-grip" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 7-5 5 5 5M15 7l5 5-5 5"/></svg></span>
+
+  <div class="hero-photo-col">
+    <div class="hero-duo" id="heroIllustration">
+      <div class="hero-photo-tile" id="heroPhotoDog">
+        <img src="https://images.unsplash.com/photo-1552053831-71594a27632d?w=800&h=900&fit=crop&q=80&auto=format" alt="A golden puppy sitting outdoors, full body, holding a flower">
+        <svg class="hero-heart-pop" viewBox="0 0 60 50" aria-hidden="true"><path d="M30 12 C26 4 12 6 12 18 C12 28 30 40 30 40 C30 40 48 28 48 18 C48 6 34 4 30 12 Z" fill="#FBF6EA"/></svg>
+      </div>
+      <div class="hero-photo-tile" id="heroPhotoCat">
+        <img src="https://images.unsplash.com/photo-1592194996308-7b43878e84a6?w=800&h=900&fit=crop&q=80&auto=format" alt="A kitten sitting upright, full body, paw raised">
+        <svg class="hero-heart-pop" viewBox="0 0 60 50" aria-hidden="true"><path d="M30 12 C26 4 12 6 12 18 C12 28 30 40 30 40 C30 40 48 28 48 18 C48 6 34 4 30 12 Z" fill="#FBF6EA"/></svg>
+      </div>
+    </div>
   </div>
-  <div class="hero-photo-half">
-    <img src="https://images.unsplash.com/photo-1642332280884-d5b0ef96ed2c?w=1600&h=680&fit=crop&q=80&auto=format" alt="An orange tabby cat with big round eyes looking directly at the camera">
-  </div>
-  <svg class="hero-heart-pop" viewBox="0 0 60 50" aria-hidden="true"><path d="M30 12 C26 4 12 6 12 18 C12 28 30 40 30 40 C30 40 48 28 48 18 C48 6 34 4 30 12 Z" fill="#FBF6EA"/></svg>
-</div>
+</section>
 
 <div class="tabs">
   <button class="tab-btn active" data-tab="add">List Your Pet</button>
@@ -385,7 +439,7 @@
           <div class="field">
             <label for="ownerEmail">Your email</label>
             <input id="ownerEmail" type="email" required placeholder="e.g. jordan@email.com">
-            <span style="font-size:11.5px; color:#5b5142">Used to verify you and manage this listing later. Never shown publicly.</span>
+            <span style="font-size:11.5px; color:var(--muted)">Used to verify you and manage this listing later. Never shown publicly.</span>
           </div>
         </div>
         <p class="form-section">About your pet</p>
@@ -404,7 +458,7 @@
             <label for="state">Location</label>
             <input id="state" required placeholder="e.g. Ibadan, Oyo State">
             <button type="button" class="btn btn-ghost" id="useLocationBtn" style="padding:7px 10px; font-size:11px; align-self:flex-start"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="M12 22s7-7.58 7-13a7 7 0 1 0-14 0c0 5.42 7 13 7 13Z"/><circle cx="12" cy="9" r="2.5"/></svg>Use my current location</button>
-            <span id="locationStatus" style="font-size:11.5px; color:#5b5142"></span>
+            <span id="locationStatus" style="font-size:11.5px; color:var(--muted)"></span>
           </div>
         </div>
         <div class="field"><label for="notes">Notes (optional)</label><textarea id="notes" rows="3" placeholder="Health status, papers/vaccination, what you're looking for…"></textarea></div>
@@ -462,7 +516,7 @@
       <h2>Partner with PetMatch</h2>
       <p class="sub">Help your customers connect with nearby owners, for mating, playdates, or advice. List eligible pets for free, and get discovered by owners who are already looking.</p>
       <p class="sub">Free for everyone, always. No referral fees, no commissions, no earning from who you invite.</p>
-      <p class="sub">PetMatch connects you with nearby matches, it doesn't handle sales, fees, or payments. Anything you arrange with the other owner is between you two.</p>
+      <p class="sub">PetMatch connects you with nearby matches. It doesn't handle sales, fees, or payments. Anything you arrange with the other owner is between you two.</p>
     </div>
 
     <div id="partnerGate" class="gate" style="display:none">
@@ -513,7 +567,7 @@
             <label for="bizLocation">Business location (optional)</label>
             <input id="bizLocation" placeholder="e.g. 12 Admiralty Way, Lekki Phase 1">
             <button type="button" class="btn btn-ghost" id="bizUseLocationBtn" style="padding:7px 10px; font-size:11px; align-self:flex-start"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="M12 22s7-7.58 7-13a7 7 0 1 0-14 0c0 5.42 7 13 7 13Z"/><circle cx="12" cy="9" r="2.5"/></svg>Use my current location</button>
-            <span id="bizLocationStatus" style="font-size:11.5px; color:#5b5142"></span>
+            <span id="bizLocationStatus" style="font-size:11.5px; color:var(--muted)"></span>
           </div>
         </div>
         <div class="field"><label for="bizWebsite">Website / social media (optional)</label><input id="bizWebsite" placeholder="e.g. instagram.com/lekkipetclinic"></div>
@@ -525,7 +579,7 @@
 </main>
 
 <section class="value-band">
-  <p class="section-eyebrow">Why PetMatch</p>
+  <h3 class="section-eyebrow">Why PetMatch</h3>
   <div class="value-grid">
     <div class="value-tile">
       <span class="value-icon" aria-hidden="true">🐾</span>
@@ -550,9 +604,22 @@
   </div>
 </section>
 
-<section class="landing-card">
+<section class="mv-band">
+  <div class="mv-inner">
+    <div class="mv-col">
+      <h3 class="section-eyebrow">Our Mission</h3>
+      <p>To make finding a match for your dog or cat as simple as it should always have been: free, direct, and real. No agents, no fees, no middleman standing between two pet owners who could just talk.</p>
+    </div>
+    <div class="mv-col">
+      <h3 class="section-eyebrow">Our Vision</h3>
+      <p>A world where pet owners are never guessing alone. Every match, whether it's a mate, a playmate, or just advice, connects two owners in the same neighborhood, so responsible pet care spreads because people are learning from each other, not luck.</p>
+    </div>
+  </div>
+</section>
+
+<section class="landing-card" id="how-it-works">
   <div class="inner">
-    <p class="section-eyebrow">How it works</p>
+    <h3 class="section-eyebrow">How it works</h3>
     <h2>From listing to meeting, in four steps</h2>
     <div class="landing-steps">
       <div class="landing-step"><span class="n">01</span><p>Sign in with your email or Google. Takes under a minute, no password needed.</p></div>
@@ -560,16 +627,22 @@
       <div class="landing-step"><span class="n">03</span><p>Get discovered by nearby owners, or browse listings yourself.</p></div>
       <div class="landing-step"><span class="n">04</span><p>Talk on WhatsApp, and meet safely. Suggested partner locations are available.</p></div>
     </div>
+    <div class="video-embed">
+      <iframe src="https://www.youtube.com/embed/N0QNjaZjtNs" title="How PetMatch works" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+    </div>
   </div>
 </section>
 
-<div style="display:flex; justify-content:center; padding:20px 16px 0;">
-<a class="btn btn-clay" href="https://youtu.be/N0QNjaZjtNs" target="_blank" rel="noopener">▶ Watch how PetMatch works</a>
-</div>
+<section class="updates-band" id="updatesTeaser" style="display:none">
+  <h3 class="section-eyebrow">Latest from PetMatch</h3>
+  <div class="updates-grid" id="updatesGrid"></div>
+  <div style="text-align:center; margin-top:18px;">
+    <a class="btn btn-ghost" href="/updates">See all updates</a>
+  </div>
+</section>
 
-<section class="landing-faq-wrap">
-  <p class="section-eyebrow">Frequently asked questions</p>
-  <div class="faq-chat" aria-label="Frequently asked questions, chat format">
+<div class="faq-widget" id="faqWidget">
+  <div class="faq-chat" id="faqChat" role="dialog" aria-label="Frequently asked questions, chat format" aria-hidden="true">
     <div class="faq-chat-header">
       <span class="faq-chat-avatar" aria-hidden="true">🐾</span>
       <div>
@@ -595,9 +668,16 @@
       <p data-answer="4">Listings are self-reported by the person who creates them. Partner applications from pet businesses are reviewed by a real person before approval, but we don't independently verify health records, vaccinations, or business registration. Always meet safely and check health and vaccination records yourself before any pairing.</p>
     </div>
   </div>
-</section>
+  <button type="button" class="faq-toggle" id="faqToggle" aria-expanded="false" aria-controls="faqChat" aria-label="Open frequently asked questions chat">
+    <svg class="faq-toggle-chat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+    <svg class="faq-toggle-close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    <span id="faqToggleLabel">FAQ</span>
+  </button>
+</div>
 
-<div style="display:flex; justify-content:center; padding:14px 16px 0;">
+<div class="bottom-band">
+
+<div style="display:flex; justify-content:center; padding:36px 16px 0;">
 <div style="font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, sans-serif; border: 1px solid rgb(224, 224, 224); border-radius: 8px; padding: 8px; max-width: 220px; width:100%; background: rgb(255, 255, 255); box-shadow: rgba(0, 0, 0, 0.05) 0px 2px 8px;"><div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;"><img alt="PetMatch" src="https://ph-files.imgix.net/7e7bac24-2075-4192-b4cb-6b0316842595.png?auto=compress,format&amp;codec=mozjpeg&amp;cs=strip&amp;fit=crop&amp;h=80&amp;w=80" style="width: 28px; height: 28px; border-radius: 5px; object-fit: cover; flex-shrink: 0;"><div style="flex: 1 1 0%; min-width: 0px;"><h3 style="margin: 0px; font-size: 12px; font-weight: 600; color: rgb(26, 26, 26); line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">PetMatch</h3><p style="margin: 1px 0px 0px; font-size: 10px; color: rgb(102, 102, 102); line-height: 1.3; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical;">List your pet. Find your match. Nearby</p></div></div><a href="https://www.producthunt.com/products/petmatch-2?embed=true&amp;utm_source=embed&amp;utm_medium=post_embed" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; padding: 5px 10px; background: rgb(255, 97, 84); color: rgb(255, 255, 255); text-decoration: none; border-radius: 5px; font-size: 11px; font-weight: 600;">Check it out on Product Hunt →</a></div>
 </div>
 
@@ -610,6 +690,8 @@
 </div>
 
 <footer>PETMATCH · A simple directory, not a broker. Meet safely, and check health and vaccination records before any pairing.<br>Contact: <a href="mailto:hello@petmatch.fit" style="color:inherit">hello@petmatch.fit</a> · <a href="/about" style="color:inherit">About</a> · <a href="/updates" style="color:inherit">Updates</a> · <a href="/safety" style="color:inherit">Trust &amp; Safety</a> · <a href="/partners" style="color:inherit">For Pet Businesses</a></footer>
+
+</div>
 
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal" id="modalContent"></div>
@@ -740,7 +822,52 @@ function fillStatics(){
 }
 fillStatics();
 
-// ---------- landing FAQ: tap a question, get an answer in the thread ----------
+// ---------- homepage updates teaser: latest 3 published posts, hidden entirely if there are none ----------
+(async function loadUpdatesTeaser(){
+  const section = document.getElementById('updatesTeaser');
+  const grid = document.getElementById('updatesGrid');
+  if(!section || !grid) return;
+  const { data, error } = await supabase
+    .from('posts')
+    .select('id,title,body,created_at')
+    .eq('published', true)
+    .order('created_at', { ascending:false })
+    .limit(3);
+  if(error || !data || data.length === 0) return;
+  grid.innerHTML = data.map(p=>{
+    const preview = String(p.body ?? '').split(/\n\s*\n/).map(s=>s.trim()).filter(Boolean)[0] || '';
+    const date = p.created_at ? new Date(p.created_at).toLocaleDateString(undefined, { year:'numeric', month:'long', day:'numeric' }) : '';
+    return `<a class="update-tile" href="/updates/${p.id}">
+      <p class="update-date">${escapeHtml(date)}</p>
+      <h3>${escapeHtml(p.title)}</h3>
+      <p>${escapeHtml(preview)}</p>
+    </a>`;
+  }).join('');
+  section.style.display = '';
+})();
+
+// ---------- landing FAQ: floating chat bubble, tap to open, tap a question for an answer ----------
+(function(){
+  const widget = document.getElementById('faqWidget');
+  const toggle = document.getElementById('faqToggle');
+  const chat = document.getElementById('faqChat');
+  const label = document.getElementById('faqToggleLabel');
+  if(!widget || !toggle || !chat) return;
+  function setOpen(open){
+    widget.classList.toggle('open', open);
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    chat.setAttribute('aria-hidden', open ? 'false' : 'true');
+    toggle.setAttribute('aria-label', open ? 'Close frequently asked questions chat' : 'Open frequently asked questions chat');
+    if(label) label.textContent = open ? 'Close' : 'FAQ';
+  }
+  toggle.addEventListener('click', ()=> setOpen(!widget.classList.contains('open')));
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape' && widget.classList.contains('open')){ setOpen(false); toggle.focus(); }
+  });
+  document.addEventListener('click', (e)=>{
+    if(widget.classList.contains('open') && !widget.contains(e.target)) setOpen(false);
+  });
+})();
 (function(){
   const thread = document.getElementById('landingFaqThread');
   const chips = document.getElementById('landingFaqChips');
@@ -769,73 +896,17 @@ fillStatics();
   });
 })();
 
-// ---------- hero illustration: drag/swipe to reveal more dog or more
-// cat, tap without dragging still pops the heart as before. Dragging
-// works from anywhere on the image, not just the thin seam line, since
-// that's a much easier target on a phone.
-const heroIllustration = document.getElementById('heroIllustration');
-const heroPhotoDog = document.getElementById('heroPhotoDog');
-const heroSeam = document.getElementById('heroSeam');
-let pokeTimer = null;
-
-function popHeart(){
-  heroIllustration.classList.remove('poked');
-  void heroIllustration.offsetWidth; // restart the animation on repeat taps
-  heroIllustration.classList.add('poked');
-  clearTimeout(pokeTimer);
-  pokeTimer = setTimeout(()=> heroIllustration.classList.remove('poked'), 1200);
-}
-
-function setHeroSplit(pct){
-  pct = Math.max(20, Math.min(80, pct));
-  heroPhotoDog.style.flexBasis = pct + '%';
-  heroSeam.setAttribute('aria-valuenow', Math.round(pct));
-}
-
-let heroDragging = false, heroMoved = false, heroStartX = 0;
-function heroPctFromClientX(clientX){
-  const rect = heroIllustration.getBoundingClientRect();
-  return ((clientX - rect.left) / rect.width) * 100;
-}
-heroIllustration.addEventListener('pointerdown', (e)=>{
-  heroDragging = true; heroMoved = false; heroStartX = e.clientX;
-  heroIllustration.classList.add('dragging');
-  heroIllustration.setPointerCapture(e.pointerId);
+// ---------- hero illustration: tap either photo to pop a little heart ----------
+document.querySelectorAll('.hero-photo-tile').forEach(tile=>{
+  let pokeTimer = null;
+  tile.addEventListener('click', ()=>{
+    tile.classList.remove('poked');
+    void tile.offsetWidth; // restart the animation on repeat taps
+    tile.classList.add('poked');
+    clearTimeout(pokeTimer);
+    pokeTimer = setTimeout(()=> tile.classList.remove('poked'), 1200);
+  });
 });
-heroIllustration.addEventListener('pointermove', (e)=>{
-  if(!heroDragging) return;
-  if(Math.abs(e.clientX - heroStartX) > 4) heroMoved = true;
-  if(heroMoved) setHeroSplit(heroPctFromClientX(e.clientX));
-});
-function endHeroDrag(e){
-  if(!heroDragging) return;
-  heroDragging = false;
-  heroIllustration.classList.remove('dragging');
-  heroIllustration.releasePointerCapture?.(e.pointerId);
-  if(!heroMoved) popHeart();
-}
-heroIllustration.addEventListener('pointerup', endHeroDrag);
-heroIllustration.addEventListener('pointercancel', endHeroDrag);
-
-heroSeam.addEventListener('keydown', (e)=>{
-  const cur = parseFloat(heroPhotoDog.style.flexBasis) || 50;
-  if(e.key === 'ArrowLeft'){ setHeroSplit(cur - 5); e.preventDefault(); }
-  if(e.key === 'ArrowRight'){ setHeroSplit(cur + 5); e.preventDefault(); }
-});
-
-// One-time hint so visitors notice it's draggable, skipped entirely for
-// reduced-motion rather than just softened, since it's pure decoration.
-if(!prefersReducedMotion){
-  setTimeout(()=>{
-    heroPhotoDog.style.transition = 'flex-basis .5s ease';
-    setHeroSplit(40);
-    setTimeout(()=> setHeroSplit(60), 550);
-    setTimeout(()=>{
-      setHeroSplit(50);
-      setTimeout(()=>{ heroPhotoDog.style.transition = ''; }, 550);
-    }, 1150);
-  }, 1000);
-}
 
 // ---------- little paw/heart burst, used to celebrate a successful listing ----------
 function burstConfetti(anchorEl){
@@ -866,6 +937,17 @@ function showPanel(tab){
 }
 document.querySelectorAll('.tab-btn').forEach(btn=>{
   btn.addEventListener('click', ()=> showPanel(btn.dataset.tab));
+});
+// Hero CTAs switch the panel and scroll to it, but intentionally don't
+// share the .tab-btn class: that class's .active state would repaint
+// whichever one is active solid marigold, undermining the fixed
+// primary (List Your Pet) / secondary (Find a Match) hierarchy the
+// hero is supposed to hold regardless of which panel is currently open.
+document.querySelectorAll('[data-hero-cta]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    showPanel(btn.dataset.tab);
+    document.getElementById(btn.dataset.heroCta).scrollIntoView({behavior:'smooth', block:'start'});
+  });
 });
 // ---------- auth ----------
 // The sign-in widget is rendered into every slot below (the sticky header
@@ -900,8 +982,12 @@ const GOOGLE_ICON = `<svg viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2
 
 function renderIdentifierStep(){
   authSlots().forEach(bar=>{
+    // The nav's authbar is compact, so Google sign-in is icon-only there
+    // (aria-label carries the label for screen readers); the partner
+    // application gate has room to spell it out.
+    const iconOnly = bar.id === 'authbar';
     bar.innerHTML = `
-      <button type="button" class="btn btn-google auth-google" style="padding:9px 16px">${GOOGLE_ICON}Continue with Google</button>
+      <button type="button" class="btn btn-google auth-google" ${iconOnly ? 'aria-label="Continue with Google" title="Continue with Google" style="padding:9px"' : `style="padding:9px 16px"`}>${GOOGLE_ICON}${iconOnly ? '' : 'Continue with Google'}</button>
       <span class="auth-or">or</span>
       <input type="email" class="auth-identifier" placeholder="Email address">
       <button class="btn btn-clay auth-send" style="padding:9px 16px">Get started, it's free</button>`;
