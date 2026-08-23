@@ -9,6 +9,10 @@ function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
 }
 
+function jsonLd(obj) {
+  return JSON.stringify(obj).replace(/</g, '\\u003c');
+}
+
 function waLink(number, petName) {
   const intl = String(number).replace(/[^0-9]/g, '');
   const msg = encodeURIComponent(`Hi! I found ${petName} on PetMatch and I'm interested in a possible match.`);
@@ -150,6 +154,64 @@ module.exports = async (req, res) => {
 
   const descBase = `${name} is a ${p.age} year old ${p.gender.toLowerCase()} ${breed} ${p.species.toLowerCase()} in ${state}${p.available_for_mating ? ', available for mating now' : ''}.`;
   const description = (p.notes ? `${descBase} ${p.notes}` : descBase).slice(0, 300);
+  const ownerFirstName = escapeHtml(p.owner_name.split(' ')[0]);
+
+  const structuredData = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      name: title,
+      description,
+      url: canonicalUrl,
+      inLanguage: 'en',
+      datePublished: p.created_at,
+      image,
+      isPartOf: { '@type': 'WebSite', name: 'PetMatch', url: 'https://petmatch.fit' },
+      publisher: { '@type': 'Organization', name: 'PetMatch', url: 'https://petmatch.fit' },
+      mainEntity: {
+        '@type': 'Thing',
+        name: p.pet_name,
+        description,
+        additionalProperty: [
+          { '@type': 'PropertyValue', name: 'species', value: p.species },
+          { '@type': 'PropertyValue', name: 'breed', value: p.breed },
+          { '@type': 'PropertyValue', name: 'gender', value: p.gender },
+          { '@type': 'PropertyValue', name: 'age', value: `${p.age} year${p.age == 1 ? '' : 's'}` },
+          { '@type': 'PropertyValue', name: 'location', value: p.state },
+          { '@type': 'PropertyValue', name: 'availableForMating', value: p.available_for_mating ? 'Yes' : 'No' }
+        ]
+      }
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'PetMatch', item: 'https://petmatch.fit/' },
+        { '@type': 'ListItem', position: 2, name: p.pet_name, item: canonicalUrl }
+      ]
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: [
+        {
+          '@type': 'Question',
+          name: `How do I contact ${p.pet_name}'s owner on PetMatch?`,
+          acceptedAnswer: { '@type': 'Answer', text: `Use the contact buttons on this page to reach ${p.owner_name.split(' ')[0]} directly on WhatsApp, call, or text, whichever they've made available. PetMatch doesn't have its own messaging system, so you connect and arrange everything between yourselves.` }
+        },
+        {
+          '@type': 'Question',
+          name: 'Does PetMatch charge a fee to connect with a pet owner?',
+          acceptedAnswer: { '@type': 'Answer', text: 'No. PetMatch is a free directory, not a marketplace. There are no listing fees, no referral fees, and no commissions on anything you arrange with another owner.' }
+        },
+        {
+          '@type': 'Question',
+          name: `Should I check ${p.pet_name}'s vaccination and health records before meeting?`,
+          acceptedAnswer: { '@type': 'Answer', text: `Yes. Listings on PetMatch are self-reported, so PetMatch does not independently verify health or vaccination records. Ask to see proof of vaccination and general health before any pairing; the WSAVA vaccination guidelines are a useful reference for what's normal for a ${p.species.toLowerCase()}.` }
+        }
+      ]
+    }
+  ];
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -177,6 +239,7 @@ module.exports = async (req, res) => {
 <meta name="twitter:title" content="${escapeHtml(title)}">
 <meta name="twitter:description" content="${escapeHtml(description)}">
 <meta name="twitter:image" content="${escapeHtml(image)}">
+<script type="application/ld+json">${jsonLd(structuredData)}</script>
 ${fontLinks()}
 <style>${sharedStyles()}</style>
 </head>
@@ -212,6 +275,17 @@ ${fontLinks()}
     <div class="cta-row"><a class="btn btn-clay" href="/">List Your Pet</a></div>
     <div class="cta-row" style="margin-top:10px"><a class="back-link" href="/">&larr; See more pets on PetMatch</a></div>
   </article>
+
+  <article class="formcard" style="margin-top:20px">
+    <h2 style="font-family:'Fraunces',serif; font-size:19px; margin:0 0 14px; color:var(--forest-dark)">Questions about ${name}'s listing</h2>
+    <h3 style="font-family:'Work Sans',sans-serif; font-weight:600; font-size:14.5px; color:var(--forest-dark); margin:0 0 4px">How do I contact ${name}'s owner?</h3>
+    <p style="font-size:14px; color:#3c3628; line-height:1.6; margin:0 0 14px">Use the buttons above to reach ${ownerFirstName} directly on WhatsApp, call, or text, whichever they've made available. PetMatch doesn't have its own messaging, so you connect and arrange everything between yourselves.</p>
+    <h3 style="font-family:'Work Sans',sans-serif; font-weight:600; font-size:14.5px; color:var(--forest-dark); margin:0 0 4px">Does PetMatch charge a fee to connect?</h3>
+    <p style="font-size:14px; color:#3c3628; line-height:1.6; margin:0 0 14px">No. PetMatch is a free directory, not a marketplace. No listing fees, no referral fees, no commissions on anything you arrange with another owner.</p>
+    <h3 style="font-family:'Work Sans',sans-serif; font-weight:600; font-size:14.5px; color:var(--forest-dark); margin:0 0 4px">Should I check ${name}'s vaccination and health records first?</h3>
+    <p style="font-size:14px; color:#3c3628; line-height:1.6; margin:0">Yes. Listings are self-reported, so PetMatch doesn't independently verify health or vaccination records. Ask to see proof before any pairing &mdash; <a href="https://www.wsava.org/" target="_blank" rel="noopener">WSAVA's vaccination guidelines</a> are a useful reference for what's normal.</p>
+  </article>
+
   <div style="display:flex; justify-content:center; padding:12px 16px 0; text-align:center;">
   <p style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#B9CBBD; max-width:640px; line-height:1.7; margin:0 auto;"><span style="color:var(--marigold)">🌐</span> Prefer another language? Your browser can translate this page: check the translate icon in your address bar. · Kana son wani harshe? Mai binciken ka zai iya fassara wannan shafin: duba alamar fassara a cikin akwatin adireshi. · You wan use another language? Your browser fit translate dis page: check di translate icon for your address bar. · Vous préférez une autre langue ? Votre navigateur peut traduire cette page : cherchez l'icône de traduction dans la barre d'adresse.</p>
   </div>

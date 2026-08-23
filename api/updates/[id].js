@@ -6,6 +6,10 @@ function escapeHtml(str) {
   return String(str ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
 }
 
+function jsonLd(obj) {
+  return JSON.stringify(obj).replace(/</g, '\\u003c');
+}
+
 const URL_RE = /(https?:\/\/[^\s<]+)/g;
 function renderBody(body) {
   return String(body ?? '')
@@ -138,6 +142,26 @@ module.exports = async (req, res) => {
   const description = plainBody.slice(0, 300);
   const shareText = encodeURIComponent(`🐾 ${p.title} on PetMatch: ${canonicalUrl}`);
 
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: p.title,
+    description,
+    image,
+    datePublished: p.created_at,
+    dateModified: p.updated_at || p.created_at,
+    url: canonicalUrl,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': canonicalUrl },
+    isPartOf: { '@type': 'WebSite', name: 'PetMatch', url: 'https://petmatch.fit' },
+    author: { '@type': 'Organization', name: 'PetMatch', url: 'https://petmatch.fit' },
+    publisher: {
+      '@type': 'Organization',
+      name: 'PetMatch',
+      url: 'https://petmatch.fit',
+      logo: { '@type': 'ImageObject', url: 'https://petmatch.fit/petmatch-mark-512.png' }
+    }
+  };
+
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -164,6 +188,7 @@ module.exports = async (req, res) => {
 <meta name="twitter:title" content="${title} | PetMatch Updates">
 <meta name="twitter:description" content="${escapeHtml(description)}">
 <meta name="twitter:image" content="${escapeHtml(image)}">
+<script type="application/ld+json">${jsonLd(structuredData)}</script>
 ${fontLinks()}
 <style>${sharedStyles()}</style>
 </head>

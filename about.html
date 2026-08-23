@@ -86,6 +86,21 @@
       "@type": "Question",
       "name": "How does PetMatch help pet stores, kennels, and vet clinics?",
       "acceptedAnswer": { "@type": "Answer", "text": "PetMatch Partners get their eligible pets shown with a Partner badge, so nearby owners discover their business while browsing for a match. It's a free way to get in front of pet owners who are already looking for what you offer." }
+    },
+    {
+      "@type": "Question",
+      "name": "How is PetMatch different from a Facebook group or classifieds site?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Facebook groups and classifieds mix pet listings in with everything else, with no way to filter by species, breed, or distance, and no consistent way to reach the owner. PetMatch is built only for dog and cat owners: filter by species, breed, sex, and location, and every listing has a direct way to contact the owner, usually WhatsApp. No fees either way, but PetMatch is built for this one purpose." }
+    },
+    {
+      "@type": "Question",
+      "name": "What should I know before choosing PetMatch over other options?",
+      "acceptedAnswer": { "@type": "Answer", "text": "PetMatch is free, self-reported, and direct: no agents, no commissions, and no messaging system of its own, you talk to the other owner on WhatsApp. Because listings are self-reported, always meet safely and check health and vaccination records yourself before any pairing. See the Trust & Safety page for the full picture." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I check health and vaccination records before a pairing?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Ask the other owner to show proof of recent vaccination and general health before you meet, and don't proceed if they can't provide it. The WSAVA vaccination guidelines are a useful reference for what's normal for dogs and cats. PetMatch doesn't independently verify these records itself." }
     }
   ]
 }
@@ -236,6 +251,9 @@
       <button class="faq-chip" type="button" data-faq="6">Can I edit my listing?</button>
       <button class="faq-chip" type="button" data-faq="7">Do you verify listings?</button>
       <button class="faq-chip" type="button" data-faq="8">How do pet businesses benefit?</button>
+      <button class="faq-chip" type="button" data-faq="9">How is it different from Facebook groups?</button>
+      <button class="faq-chip" type="button" data-faq="10">What should I know before choosing PetMatch?</button>
+      <button class="faq-chip" type="button" data-faq="11">How do I check vaccination records?</button>
     </div>
     <div id="faqAnswers" hidden>
       <p data-answer="0">No. PetMatch is a directory, not a marketplace. We don't handle buying, selling, or payments of any kind. We simply help owners find each other. Anything you arrange with another owner is between the two of you.</p>
@@ -247,6 +265,9 @@
       <p data-answer="6">Yes. Sign in with the email you listed under and you can edit or take down your listing anytime from the home page.</p>
       <p data-answer="7">Listings are self-reported by the person who creates them. Partner applications from pet businesses are reviewed by a real person before approval, but we don't independently verify health records, vaccinations, or business registration. Always meet safely and check health and vaccination records yourself before any pairing.</p>
       <p data-answer="8">PetMatch Partners get their eligible pets shown with a Partner badge, so nearby owners discover their business while browsing for a match. A free way to get in front of people who are already looking for what you offer.</p>
+      <p data-answer="9">Facebook groups and classifieds mix pet listings in with everything else, with no way to filter by species, breed, or distance, and no consistent way to reach the owner. PetMatch is built only for dog and cat owners, with direct contact on every listing.</p>
+      <p data-answer="10">PetMatch is free, self-reported, and direct: no agents, no commissions, no messaging system of its own. Because listings are self-reported, always meet safely and check health and vaccination records yourself before any pairing.</p>
+      <p data-answer="11">Ask the other owner to show proof of recent vaccination and general health before you meet, and don't proceed if they can't provide it. <a href="https://www.wsava.org/" target="_blank" rel="noopener">WSAVA's vaccination guidelines</a> are a useful reference for what's normal. PetMatch doesn't independently verify these records itself.</p>
     </div>
   </aside>
 </main>
@@ -285,10 +306,10 @@
     question.textContent = chip.textContent;
     thread.appendChild(question);
 
-    var answerText = document.querySelector('#faqAnswers [data-answer="' + idx + '"]').textContent;
+    var answerHtml = document.querySelector('#faqAnswers [data-answer="' + idx + '"]').innerHTML;
     var answer = document.createElement('p');
     answer.className = 'faq-bubble faq-bubble-bot';
-    answer.textContent = answerText;
+    answer.innerHTML = answerHtml;
     thread.appendChild(answer);
 
     thread.scrollTop = thread.scrollHeight;
