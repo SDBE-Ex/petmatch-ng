@@ -73,6 +73,7 @@ ${fontLinks()}
   <p style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#B9CBBD; max-width:640px; line-height:1.7; margin:0 auto;"><span style="color:var(--marigold)">🌐</span> Prefer another language? Your browser can translate this page: check the translate icon in your address bar. · Kana son wani harshe? Mai binciken ka zai iya fassara wannan shafin: duba alamar fassara a cikin akwatin adireshi. · You wan use another language? Your browser fit translate dis page: check di translate icon for your address bar. · Vous préférez une autre langue ? Votre navigateur peut traduire cette page : cherchez l'icône de traduction dans la barre d'adresse.</p>
   </div>
 </main>
+<footer style="text-align:center; color:#B9CBBD; font-size:12px; padding:24px 16px 40px; font-family:'IBM Plex Mono',monospace;">PETMATCH · A simple directory, not a broker. Meet safely, and check health and vaccination records before any pairing.<br>Contact: <a style="color:inherit" href="mailto:hello@petmatch.fit">hello@petmatch.fit</a> · <a style="color:inherit" href="/">Home</a> · <a style="color:inherit" href="/about">About</a> · <a style="color:inherit" href="/faq">FAQ</a> · <a style="color:inherit" href="/compare">Compare</a> · <a style="color:inherit" href="/safety">Trust &amp; Safety</a></footer>
 </body>
 </html>`;
   res.status(404).setHeader('Content-Type', 'text/html; charset=utf-8').send(html);
@@ -283,13 +284,15 @@ ${fontLinks()}
     <h3 style="font-family:'Work Sans',sans-serif; font-weight:600; font-size:14.5px; color:var(--forest-dark); margin:0 0 4px">Does PetMatch charge a fee to connect?</h3>
     <p style="font-size:14px; color:#3c3628; line-height:1.6; margin:0 0 14px">No. PetMatch is a free directory, not a marketplace. No listing fees, no referral fees, no commissions on anything you arrange with another owner.</p>
     <h3 style="font-family:'Work Sans',sans-serif; font-weight:600; font-size:14.5px; color:var(--forest-dark); margin:0 0 4px">Should I check ${name}'s vaccination and health records first?</h3>
-    <p style="font-size:14px; color:#3c3628; line-height:1.6; margin:0">Yes. Listings are self-reported, so PetMatch doesn't independently verify health or vaccination records. Ask to see proof before any pairing &mdash; <a href="https://www.wsava.org/" target="_blank" rel="noopener">WSAVA's vaccination guidelines</a> are a useful reference for what's normal.</p>
+    <p style="font-size:14px; color:#3c3628; line-height:1.6; margin:0 0 14px">Yes. Listings are self-reported, so PetMatch doesn't independently verify health or vaccination records. Ask to see proof before any pairing &mdash; <a href="https://www.wsava.org/" target="_blank" rel="noopener">WSAVA's vaccination guidelines</a> are a useful reference for what's normal.</p>
+    <p style="font-size:13px; color:#7a7261; margin:0"><a href="/faq" style="color:var(--clay-dark); font-weight:600">Read the full FAQ</a> or <a href="/compare" style="color:var(--clay-dark); font-weight:600">see how PetMatch compares</a> to other ways to find a match.</p>
   </article>
 
   <div style="display:flex; justify-content:center; padding:12px 16px 0; text-align:center;">
   <p style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#B9CBBD; max-width:640px; line-height:1.7; margin:0 auto;"><span style="color:var(--marigold)">🌐</span> Prefer another language? Your browser can translate this page: check the translate icon in your address bar. · Kana son wani harshe? Mai binciken ka zai iya fassara wannan shafin: duba alamar fassara a cikin akwatin adireshi. · You wan use another language? Your browser fit translate dis page: check di translate icon for your address bar. · Vous préférez une autre langue ? Votre navigateur peut traduire cette page : cherchez l'icône de traduction dans la barre d'adresse.</p>
   </div>
 </main>
+<footer style="text-align:center; color:#B9CBBD; font-size:12px; padding:24px 16px 40px; font-family:'IBM Plex Mono',monospace;">PETMATCH · A simple directory, not a broker. Meet safely, and check health and vaccination records before any pairing.<br>Contact: <a style="color:inherit" href="mailto:hello@petmatch.fit">hello@petmatch.fit</a> · <a style="color:inherit" href="/">Home</a> · <a style="color:inherit" href="/about">About</a> · <a style="color:inherit" href="/faq">FAQ</a> · <a style="color:inherit" href="/compare">Compare</a> · <a style="color:inherit" href="/safety">Trust &amp; Safety</a></footer>
 </body>
 </html>`;
 

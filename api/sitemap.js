@@ -6,6 +6,8 @@ const STATIC_URLS = [
   { loc: 'https://petmatch.fit/about', changefreq: 'monthly' },
   { loc: 'https://petmatch.fit/updates', changefreq: 'weekly' },
   { loc: 'https://petmatch.fit/safety', changefreq: 'monthly' },
+  { loc: 'https://petmatch.fit/faq', changefreq: 'monthly' },
+  { loc: 'https://petmatch.fit/compare', changefreq: 'monthly' },
   { loc: 'https://petmatch.fit/partners', changefreq: 'monthly' },
 ];
 
