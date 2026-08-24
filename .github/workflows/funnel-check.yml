@@ -1,0 +1,135 @@
+name: Weekly funnel data pull
+
+# Pulls aggregate-only funnel numbers from Supabase (no PII — counts and
+# non-identifying breakdowns only) and commits a snapshot report to
+# reports/funnel/. That commit is the trigger for the "PetMatch Funnel
+# Optimizer" cloud routine (webhook on pushes under reports/funnel/**),
+# which reads the report and proposes changes as a PR — this workflow
+# does not make any product/copy decisions itself, just collects data.
+
+on:
+  schedule:
+    - cron: "0 8 * * 1" # Monday 08:00 UTC
+  workflow_dispatch: {}
+
+jobs:
+  funnel-report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link Supabase project
+        run: supabase link --project-ref "$SUPABASE_PROJECT_ID"
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_ID: pnawdtpavemfjzdsevey
+
+      - name: Pull funnel numbers and write report
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p reports/funnel
+          DATE=$(date -u +%Y-%m-%d)
+          OUT="reports/funnel/$DATE.md"
+
+          {
+            echo "# Funnel report — $DATE"
+            echo
+            echo "Aggregate counts only, no individual rows or PII. Generated automatically by .github/workflows/funnel-check.yml."
+            echo
+            echo "## Top-line"
+            echo
+            echo '```json'
+          } > "$OUT"
+
+          supabase db query --linked "
+            select
+              (select count(*) from auth.users) as total_signed_up_users,
+              (select count(distinct owner_id) from public.pets where owner_id is not null) as users_with_at_least_one_listing,
+              (select count(*) from public.pets) as total_listings,
+              (select count(*) from public.pets where owner_id is null) as anonymous_unclaimed_listings,
+              (select count(*) from public.page_views) as total_page_views,
+              (select count(distinct session_id) from public.page_views) as total_unique_sessions;
+          " >> "$OUT"
+
+          {
+            echo '```'
+            echo
+            echo "## Sessions by day (last 30 days)"
+            echo
+            echo '```json'
+          } >> "$OUT"
+
+          supabase db query --linked "
+            select date_trunc('day', created_at)::date as day, count(distinct session_id) as sessions
+            from public.page_views
+            where created_at > now() - interval '30 days'
+            group by day
+            order by day;
+          " >> "$OUT"
+
+          {
+            echo '```'
+            echo
+            echo "## Sessions by path"
+            echo
+            echo '```json'
+          } >> "$OUT"
+
+          supabase db query --linked "
+            select path, count(*) as views, count(distinct session_id) as unique_sessions
+            from public.page_views
+            group by path
+            order by views desc
+            limit 20;
+          " >> "$OUT"
+
+          {
+            echo '```'
+            echo
+            echo "## Sessions by referrer bucket"
+            echo
+            echo '```json'
+          } >> "$OUT"
+
+          supabase db query --linked "
+            select
+              case
+                when referrer is null or referrer = '' then '(direct/none)'
+                when referrer like '%producthunt%' then 'Product Hunt'
+                when referrer like '%viberank%' then 'Viberank'
+                when referrer like '%google%' then 'Google'
+                when referrer like '%facebook%' then 'Facebook'
+                when referrer like '%whatsapp%' then 'WhatsApp'
+                when referrer like 'https://petmatch.fit%' then 'Internal (petmatch.fit)'
+                else 'Other external'
+              end as source,
+              count(distinct session_id) as sessions
+            from public.page_views
+            group by source
+            order by sessions desc;
+          " >> "$OUT"
+
+          echo '```' >> "$OUT"
+
+          echo "Wrote $OUT"
+          cat "$OUT"
+
+      - name: Commit report
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add reports/funnel/
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            DATE=$(date -u +%Y-%m-%d)
+            git commit -m "Weekly funnel report: $DATE"
+            git push
+          fi
