@@ -517,7 +517,7 @@
   <section id="panel-add" class="panel active">
     <div class="formcard" id="formcard">
       <h2 id="formTitle">List your pet</h2>
-      <p class="sub">Your listing is public to everyone using PetMatch so owners can reach you directly on WhatsApp. Only share details you're comfortable making public.</p>
+      <p class="sub">Add your pet's details so nearby owners can find you when they're looking for a match. Your listing is visible to everyone on PetMatch, so people can reach you directly on WhatsApp; just share what you're comfortable making public.</p>
 
       <form id="petForm">
         <p class="form-section">About you</p>
@@ -587,7 +587,7 @@
         </div>
 
         <div class="row" id="formActionsRow">
-          <button type="submit" class="btn btn-clay" id="submitBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path id="submitBtnIcon" d="M12 5v14M5 12h14"/></svg>Add Listing</button>
+          <button type="submit" class="btn btn-clay" id="submitBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path id="submitBtnIcon" d="M12 5v14M5 12h14"/></svg>List My Pet</button>
           <button type="button" class="btn btn-ghost" id="cancelEditBtn" style="display:none">Cancel edit</button>
         </div>
         <div id="formMsg"></div>
@@ -1821,7 +1821,7 @@ function cancelEditPet(){
   document.getElementById('petForm').reset();
   setSelectedPhoto(null);
   document.getElementById('formTitle').textContent = 'List your pet';
-  document.getElementById('submitBtn').lastChild.textContent = 'Add Listing';
+  document.getElementById('submitBtn').lastChild.textContent = 'List My Pet';
   document.getElementById('submitBtnIcon').setAttribute('d', 'M12 5v14M5 12h14');
   document.getElementById('cancelEditBtn').style.display = 'none';
   document.getElementById('formMsg').textContent = '';
@@ -2028,8 +2028,8 @@ document.getElementById('petForm').addEventListener('submit', async (e)=>{
   await loadMyPets();
   renderMine();
   msg.textContent = wasEditing
-    ? `✓ ${newPet.pet_name} has been updated.`
-    : `✓ ${newPet.pet_name} is now listed. Switch to "Find a Match" to see it.`;
+    ? `✓ ${newPet.pet_name}'s listing has been updated.`
+    : `🎉 ${newPet.pet_name}'s listing is live! Peek at "Find a Match" to see how it looks to nearby owners.`;
   if(!wasEditing){
     gtag('event', 'list_pet', { species: newPet.species, breed: newPet.breed, is_partner });
     const newPetId = insertedRows?.[0]?.id;
@@ -2047,7 +2047,7 @@ document.getElementById('petForm').addEventListener('submit', async (e)=>{
   editingCoords = null;
   if(wasEditing){
     document.getElementById('formTitle').textContent = 'List your pet';
-    document.getElementById('submitBtn').lastChild.textContent = 'Add Listing';
+    document.getElementById('submitBtn').lastChild.textContent = 'List My Pet';
     document.getElementById('submitBtnIcon').setAttribute('d', 'M12 5v14M5 12h14');
     document.getElementById('cancelEditBtn').style.display = 'none';
   }
