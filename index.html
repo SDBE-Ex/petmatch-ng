@@ -1055,7 +1055,10 @@ function showPanel(tab){
   if(tab === 'partners') renderPartnersPanel();
 }
 document.querySelectorAll('.tab-btn').forEach(btn=>{
-  btn.addEventListener('click', ()=> showPanel(btn.dataset.tab));
+  btn.addEventListener('click', ()=>{
+    if(btn.dataset.tab === 'add') gtag('event', 'cta_list_pet_click', { source: 'tab' });
+    showPanel(btn.dataset.tab);
+  });
 });
 // Hero CTAs switch the panel and scroll to it, but intentionally don't
 // share the .tab-btn class: that class's .active state would repaint
@@ -1064,6 +1067,7 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
 // hero is supposed to hold regardless of which panel is currently open.
 document.querySelectorAll('[data-hero-cta]').forEach(btn=>{
   btn.addEventListener('click', ()=>{
+    if(btn.dataset.tab === 'add') gtag('event', 'cta_list_pet_click', { source: 'hero' });
     showPanel(btn.dataset.tab);
     document.getElementById(btn.dataset.heroCta).scrollIntoView({behavior:'smooth', block:'start'});
   });
@@ -1137,6 +1141,7 @@ function renderIdentifierStep(){
 // the fact (see claim_unclaimed_pets in onAuthStateChange below), so
 // there's no in-progress form state this redirect could lose.
 async function signInWithGoogle(){
+  gtag('event', 'sign_in_attempt', { method: 'google' });
   const buttons = authSlots().map(b=>b.querySelector('.auth-google')).filter(Boolean);
   buttons.forEach(b=>{ b.disabled = true; });
   const { error } = await supabase.auth.signInWithOAuth({
@@ -1150,6 +1155,7 @@ async function signInWithGoogle(){
 }
 
 async function sendEmailLink(email){
+  gtag('event', 'sign_in_attempt', { method: 'email' });
   const wantsUpdates = document.getElementById('marketingOptIn').checked;
   const buttons = authSlots().map(b=>b.querySelector('.auth-send')).filter(Boolean);
   buttons.forEach(b=>{ b.disabled = true; b.textContent = 'Sending…'; });
@@ -1160,6 +1166,7 @@ async function sendEmailLink(email){
   if(error){
     buttons.forEach(b=>{ b.textContent = 'Try again'; b.disabled = false; });
   } else {
+    gtag('event', 'sign_in_otp_sent');
     renderCodeStep(email);
   }
 }
@@ -1204,6 +1211,9 @@ supabase.auth.onAuthStateChange(async (_event, session)=>{
   currentUser = session?.user ?? null;
   partnerApp = undefined;
   if(currentUser){
+    // Only a real sign-in should count toward the funnel — INITIAL_SESSION
+    // fires on every page load for an already-signed-in visitor too.
+    if(_event === 'SIGNED_IN') gtag('event', 'sign_in_complete');
     // Attach any listing(s) this visitor published anonymously before
     // signing in — matched server-side by their now-verified email.
     await supabase.rpc('claim_unclaimed_pets');
@@ -1851,12 +1861,21 @@ function resetTurnstileForRetry(){
   }
 }
 
+// Fires once per pageload on the first real interaction with the listing
+// form, so the funnel can tell "opened the tab" apart from "actually
+// started filling it in".
+document.getElementById('petForm').addEventListener('input', ()=>{
+  gtag('event', 'list_pet_form_start');
+}, { once: true });
+
 document.getElementById('petForm').addEventListener('submit', async (e)=>{
   e.preventDefault();
+  gtag('event', 'list_pet_submit_attempt');
   const msg = document.getElementById('formMsg');
   const submitBtn = document.getElementById('submitBtn');
 
   if(!currentUser && !turnstileToken){
+    gtag('event', 'list_pet_submit_blocked', { reason: 'missing_verification' });
     msg.textContent = 'Please complete the verification check above.';
     return;
   }
@@ -1884,6 +1903,7 @@ document.getElementById('petForm').addEventListener('submit', async (e)=>{
   const acceptsText = document.getElementById('acceptsText').checked;
   const acceptsCalls = document.getElementById('acceptsCalls').checked;
   if(!acceptsWhatsapp && !acceptsText && !acceptsCalls){
+    gtag('event', 'list_pet_submit_blocked', { reason: 'no_contact_method' });
     msg.textContent = 'Choose at least one way for owners to reach you (WhatsApp, text, or calls).';
     submitBtn.disabled = false;
     return;
@@ -1948,6 +1968,7 @@ document.getElementById('petForm').addEventListener('submit', async (e)=>{
   submitBtn.disabled = false;
   resetTurnstileForRetry();
   if(error){
+    gtag('event', 'list_pet_submit_error', { reason: String(error.message).slice(0, 100) });
     msg.textContent = "That didn't go through: " + error.message;
     return;
   }
