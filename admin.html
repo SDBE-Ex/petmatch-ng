@@ -136,6 +136,7 @@
   <button class="tab-btn" data-tab="subscribers">Subscribers</button>
   <button class="tab-btn" data-tab="posts">Posts</button>
   <button class="tab-btn" data-tab="insights">Insights</button>
+  <button class="tab-btn" data-tab="sitehealth">Site Health</button>
 </div>
 
 <main>
@@ -301,6 +302,17 @@
       <div id="languageBreakdown"></div>
     </div>
   </section>
+
+  <!-- SITE HEALTH -->
+  <section id="panel-sitehealth" class="panel">
+    <p class="section-title">Automated monitoring</p>
+    <p class="density-note">Results from the recurring production/SEO/GEO check loop for petmatch.fit. It fixes and pushes safe, mechanical issues on its own; anything ambiguous or that would require fabricating content shows up as a recommendation here instead.</p>
+    <div class="stat-grid" id="siteHealthStats"></div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Checked</th><th>Status</th><th>Breakage</th><th>SEO/GEO</th><th>Fixes applied</th><th>Recommendations</th></tr></thead>
+      <tbody id="siteHealthBody"></tbody>
+    </table></div>
+  </section>
 </main>
 
 <script type="module">
@@ -324,6 +336,7 @@ let reports = [];
 let subscribers = [];
 let posts = [];
 let comments = [];
+let siteHealthChecks = [];
 
 function escapeHtml(str){
   return String(str ?? '').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
@@ -397,6 +410,7 @@ function showTab(tab){
   if(tab === 'subscribers') renderSubscribers();
   if(tab === 'posts') renderPosts();
   if(tab === 'insights'){ renderDensity(); renderInsights(); }
+  if(tab === 'sitehealth') renderSiteHealth();
 }
 
 // ---------- insights (listing density) ----------
@@ -551,14 +565,15 @@ async function renderInsights(){
 
 // ---------- data loading ----------
 async function loadAll(){
-  const [petsRes, usersRes, partnersRes, reportsRes, subscribersRes, postsRes, commentsRes] = await Promise.all([
+  const [petsRes, usersRes, partnersRes, reportsRes, subscribersRes, postsRes, commentsRes, siteHealthRes] = await Promise.all([
     supabase.rpc('admin_list_pets'),
     supabase.rpc('admin_list_users'),
     supabase.from('partner_applications').select('*').order('created_at', { ascending:false }),
     supabase.from('reports').select('*, pets(pet_name, species, breed, owner_name, is_partner)').order('created_at', { ascending:false }),
     supabase.from('subscribers').select('*').order('created_at', { ascending:false }),
     supabase.from('posts').select('*').order('created_at', { ascending:false }),
-    supabase.from('comments').select('*, posts(title)').order('created_at', { ascending:false })
+    supabase.from('comments').select('*, posts(title)').order('created_at', { ascending:false }),
+    supabase.from('site_health_checks').select('*').order('created_at', { ascending:false }).limit(30)
   ]);
   pets = petsRes.data || [];
   users = usersRes.data || [];
@@ -567,6 +582,7 @@ async function loadAll(){
   subscribers = subscribersRes.data || [];
   posts = postsRes.data || [];
   comments = commentsRes.data || [];
+  siteHealthChecks = siteHealthRes.data || [];
   showTab(document.querySelector('.tab-btn.active')?.dataset.tab || 'listings');
 }
 
@@ -796,6 +812,35 @@ function renderReports(){
   });
 }
 document.getElementById('reportStatusFilter').addEventListener('change', renderReports);
+
+// ---------- site health ----------
+function renderSiteHealth(){
+  const latest = siteHealthChecks[0];
+  const statsWrap = document.getElementById('siteHealthStats');
+  if(!latest){
+    statsWrap.innerHTML = `<div class="stat-card"><div class="num">&mdash;</div><div class="label">No checks yet</div></div>`;
+  } else {
+    const issuesCount = siteHealthChecks.filter(c=> c.status === 'issues_found').length;
+    statsWrap.innerHTML = `
+      <div class="stat-card"><div class="num">${latest.status === 'ok' ? 'OK' : 'Issues found'}</div><div class="label">Latest status</div></div>
+      <div class="stat-card"><div class="num">${fmtDateTime(latest.created_at)}</div><div class="label">Last checked</div></div>
+      <div class="stat-card"><div class="num">${issuesCount}</div><div class="label">Checks with issues, last ${siteHealthChecks.length}</div></div>`;
+  }
+
+  const body = document.getElementById('siteHealthBody');
+  if(siteHealthChecks.length === 0){
+    body.innerHTML = `<tr><td colspan="6"><div class="empty"><h3>No checks yet</h3><p>The monitoring loop hasn't reported in.</p></div></td></tr>`;
+    return;
+  }
+  body.innerHTML = siteHealthChecks.map(c=> `<tr>
+    <td class="muted nowrap">${fmtDateTime(c.created_at)}</td>
+    <td><span class="badge ${c.status === 'ok' ? 'resolved' : 'open'}">${c.status === 'ok' ? 'OK' : 'Issues found'}</span></td>
+    <td>${escapeHtml(c.breakage_summary) || '<span class="muted">&mdash;</span>'}</td>
+    <td>${escapeHtml(c.seo_geo_summary) || '<span class="muted">&mdash;</span>'}</td>
+    <td>${escapeHtml(c.fixes_applied) || '<span class="muted">None</span>'}</td>
+    <td>${escapeHtml(c.recommendations) || '<span class="muted">None</span>'}</td>
+  </tr>`).join('');
+}
 
 // ---------- comments ----------
 function renderComments(){
@@ -1093,6 +1138,7 @@ supabase.channel('admin-changes')
   .on('postgres_changes', { event:'*', schema:'public', table:'subscribers' }, ()=>{ if(isAdmin) loadAll(); })
   .on('postgres_changes', { event:'*', schema:'public', table:'posts' }, ()=>{ if(isAdmin) loadAll(); })
   .on('postgres_changes', { event:'*', schema:'public', table:'comments' }, ()=>{ if(isAdmin) loadAll(); })
+  .on('postgres_changes', { event:'*', schema:'public', table:'site_health_checks' }, ()=>{ if(isAdmin) loadAll(); })
   .subscribe();
 
 // ---------- init ----------
