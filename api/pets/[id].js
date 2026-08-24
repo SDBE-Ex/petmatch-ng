@@ -62,6 +62,16 @@ ${fontLinks()}
 <header class="top">
   <div class="eyebrow">Dogs &amp; Cats · Near You</div>
   <p class="brand-mark"><a href="/" title="Back to the PetMatch homepage">PetMatch</a></p>
+  <button type="button" class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="siteNav">Menu &#9662;</button>
+  <nav class="site-nav" id="siteNav" aria-label="Site navigation">
+    <a href="/">Home</a>
+    <a href="/about">About</a>
+    <a href="/faq">FAQ</a>
+    <a href="/compare">Compare</a>
+    <a href="/safety">Trust &amp; Safety</a>
+    <a href="/updates">Updates</a>
+    <a href="/partners">For Pet Businesses</a>
+  </nav>
 </header>
 <main>
   <article class="formcard" style="text-align:center">
@@ -74,6 +84,17 @@ ${fontLinks()}
   </div>
 </main>
 <footer style="text-align:center; color:#B9CBBD; font-size:12px; padding:24px 16px 40px; font-family:'IBM Plex Mono',monospace;">PETMATCH · A simple directory, not a broker. Meet safely, and check health and vaccination records before any pairing.<br>Contact: <a style="color:inherit" href="mailto:hello@petmatch.fit">hello@petmatch.fit</a> · <a style="color:inherit" href="/">Home</a> · <a style="color:inherit" href="/about">About</a> · <a style="color:inherit" href="/faq">FAQ</a> · <a style="color:inherit" href="/compare">Compare</a> · <a style="color:inherit" href="/safety">Trust &amp; Safety</a></footer>
+<script>
+(function(){
+  var toggle = document.getElementById('navToggle');
+  var nav = document.getElementById('siteNav');
+  if(!toggle || !nav) return;
+  toggle.addEventListener('click', function(){
+    var open = nav.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+})();
+</script>
 </body>
 </html>`;
   res.status(404).setHeader('Content-Type', 'text/html; charset=utf-8').send(html);
@@ -94,6 +115,18 @@ function sharedStyles() {
   header.top .eyebrow{font-family:'IBM Plex Mono',monospace; letter-spacing:.14em; text-transform:uppercase; font-size:11.5px; color:var(--marigold); margin-bottom:10px;}
   header.top .brand-mark{font-family:'Fraunces',serif; font-weight:600; font-size:clamp(26px,5vw,40px); margin:0; letter-spacing:-0.01em;}
   header.top .brand-mark a{color:inherit; text-decoration:none;}
+  header.top .nav-toggle{display:none; margin:14px auto 0; font-family:'IBM Plex Mono',monospace; font-size:11.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--marigold); background:transparent; border:1.5px solid rgba(232,163,61,0.5); border-radius:999px; padding:7px 16px; cursor:pointer;}
+  header.top .nav-toggle:focus-visible{outline:3px solid var(--marigold); outline-offset:2px;}
+  .site-nav{display:flex; flex-wrap:wrap; justify-content:center; gap:16px; margin:16px auto 0; max-width:600px;}
+  .site-nav a{font-family:'IBM Plex Mono',monospace; font-size:11.5px; letter-spacing:.03em; text-transform:uppercase; color:#DCE7DD; text-decoration:none;}
+  .site-nav a:hover{color:var(--marigold);}
+  @media (max-width:640px){
+    header.top .nav-toggle{display:inline-block;}
+    .site-nav{display:none; flex-direction:column; gap:2px; background:rgba(0,0,0,0.15); border-radius:10px; padding:10px; max-width:280px;}
+    .site-nav.open{display:flex;}
+    .site-nav a{padding:9px 14px; border-radius:6px; text-align:center;}
+    .site-nav a:hover{background:rgba(255,255,255,0.08);}
+  }
   main{max-width:700px; margin:0 auto; padding:28px 16px 80px;}
   .formcard{background:var(--paper); border-radius:var(--radius); padding:30px 28px; box-shadow:0 10px 30px rgba(0,0,0,0.18);}
   .formcard h1{font-family:'Fraunces',serif; font-size:26px; margin:0 0 4px; color:var(--forest-dark); padding-right:0;}
@@ -248,6 +281,16 @@ ${fontLinks()}
 <header class="top">
   <div class="eyebrow">Dogs &amp; Cats · Near You</div>
   <p class="brand-mark"><a href="/" title="Back to the PetMatch homepage">PetMatch</a></p>
+  <button type="button" class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="siteNav">Menu &#9662;</button>
+  <nav class="site-nav" id="siteNav" aria-label="Site navigation">
+    <a href="/">Home</a>
+    <a href="/about">About</a>
+    <a href="/faq">FAQ</a>
+    <a href="/compare">Compare</a>
+    <a href="/safety">Trust &amp; Safety</a>
+    <a href="/updates">Updates</a>
+    <a href="/partners">For Pet Businesses</a>
+  </nav>
 </header>
 <main>
   <article class="formcard">
@@ -293,6 +336,17 @@ ${fontLinks()}
   </div>
 </main>
 <footer style="text-align:center; color:#B9CBBD; font-size:12px; padding:24px 16px 40px; font-family:'IBM Plex Mono',monospace;">PETMATCH · A simple directory, not a broker. Meet safely, and check health and vaccination records before any pairing.<br>Contact: <a style="color:inherit" href="mailto:hello@petmatch.fit">hello@petmatch.fit</a> · <a style="color:inherit" href="/">Home</a> · <a style="color:inherit" href="/about">About</a> · <a style="color:inherit" href="/faq">FAQ</a> · <a style="color:inherit" href="/compare">Compare</a> · <a style="color:inherit" href="/safety">Trust &amp; Safety</a></footer>
+<script>
+(function(){
+  var toggle = document.getElementById('navToggle');
+  var nav = document.getElementById('siteNav');
+  if(!toggle || !nav) return;
+  toggle.addEventListener('click', function(){
+    var open = nav.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+})();
+</script>
 </body>
 </html>`;
 
