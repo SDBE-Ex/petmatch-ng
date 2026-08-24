@@ -50,7 +50,7 @@ jobs:
             echo '```json'
           } > "$OUT"
 
-          supabase db query --linked "
+          supabase --output-format json db query --linked "
             select
               (select count(*) from auth.users) as total_signed_up_users,
               (select count(distinct owner_id) from public.pets where owner_id is not null) as users_with_at_least_one_listing,
@@ -68,7 +68,7 @@ jobs:
             echo '```json'
           } >> "$OUT"
 
-          supabase db query --linked "
+          supabase --output-format json db query --linked "
             select date_trunc('day', created_at)::date as day, count(distinct session_id) as sessions
             from public.page_views
             where created_at > now() - interval '30 days'
@@ -84,7 +84,7 @@ jobs:
             echo '```json'
           } >> "$OUT"
 
-          supabase db query --linked "
+          supabase --output-format json db query --linked "
             select path, count(*) as views, count(distinct session_id) as unique_sessions
             from public.page_views
             group by path
@@ -100,7 +100,7 @@ jobs:
             echo '```json'
           } >> "$OUT"
 
-          supabase db query --linked "
+          supabase --output-format json db query --linked "
             select
               case
                 when referrer is null or referrer = '' then '(direct/none)'
