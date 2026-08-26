@@ -1,0 +1,6 @@
+{
+  "title": "[PIPELINE TEST — will be deleted immediately] Content pipeline check",
+  "body": "This is an automated pipeline test post, not real content. It verifies the publish workflow can insert into Supabase and open a notification issue. It will be deleted within minutes of being created.",
+  "link_url": null,
+  "link_label": null
+}
