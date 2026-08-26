@@ -1,20 +1,24 @@
-name: Publish drafted post
+name: Submit drafted post for review
 
-# Publishes whatever is sitting in content/ready/ — normally put there
-# by the "PetMatch Content Writer" cloud routine. This is the only
-# piece of the pipeline with real network access to Supabase — the
-# CCR sandbox can't reach it — so this workflow does the actual
-# insert. Moves published files to content/published/ afterward
-# (audit trail, and stops it re-firing) and opens a GitHub issue as
-# the "a post just went live" notification, since GitHub Actions has
-# no way to send a Claude push notification directly.
+# Takes whatever is sitting in content/ready/ — normally put there by
+# the "PetMatch Content Writer" cloud routine — and inserts it into
+# Supabase as a DRAFT (published=false). This is the only piece of
+# the pipeline with real network access to Supabase — the CCR sandbox
+# can't reach it — so this workflow does the actual insert. It does
+# NOT go live on its own: a human approves it from the admin panel's
+# Posts tab (already wired for realtime + a Publish button, no new
+# code needed there), same as any other manually-added post. Moves
+# submitted files to content/submitted/ afterward (audit trail, stops
+# it re-firing) and opens a GitHub issue as the "a draft is waiting
+# for you" notification, since GitHub Actions has no way to send a
+# Claude push notification directly.
 #
 # Primary trigger is the weekly cron (proven reliable in this repo's
 # other pipelines); the push trigger on content/ready/** is a
-# best-effort bonus for faster turnaround, not something to depend on
-# — it did not fire in testing (2026-08-26), possibly first-run
-# propagation delay or an account/org Actions setting. If it starts
-# working reliably, the cron just becomes a no-op safety net.
+# best-effort bonus for faster turnaround — it didn't fire in initial
+# testing (2026-08-26) but did fire cleanly on a later run the same
+# day, so it may just have needed first-run propagation. Cron stays
+# as the reliable fallback either way.
 
 on:
   schedule:
@@ -45,17 +49,17 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_PROJECT_ID: pnawdtpavemfjzdsevey
 
-      - name: Publish each ready draft
-        id: publish
+      - name: Submit each ready draft
+        id: submit
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
           set -euo pipefail
           shopt -s nullglob
-          PUBLISHED_SUMMARY=""
+          DRAFT_SUMMARY=""
 
           for draft in content/ready/*.json; do
-            echo "Publishing $draft"
+            echo "Submitting $draft"
             SQL_FILE=$(mktemp)
             python3 scripts/build_publish_sql.py "$draft" "$SQL_FILE"
 
@@ -63,21 +67,20 @@ jobs:
             echo "$RESULT"
 
             TITLE=$(python3 -c "import json,sys; print(json.loads(sys.argv[1])[0]['title'])" "$RESULT")
-            POST_ID=$(python3 -c "import json,sys; print(json.loads(sys.argv[1])[0]['id'])" "$RESULT")
 
-            mkdir -p content/published
-            git mv "$draft" "content/published/$(basename "$draft")"
+            mkdir -p content/submitted
+            git mv "$draft" "content/submitted/$(basename "$draft")"
 
-            PUBLISHED_SUMMARY="${PUBLISHED_SUMMARY}- **${TITLE}** — https://petmatch.fit/updates/${POST_ID}\n"
+            DRAFT_SUMMARY="${DRAFT_SUMMARY}- **${TITLE}**\n"
           done
 
           {
             echo "summary<<PMEOF"
-            echo -e "$PUBLISHED_SUMMARY"
+            echo -e "$DRAFT_SUMMARY"
             echo "PMEOF"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Commit move to published/
+      - name: Commit move to submitted/
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
@@ -85,17 +88,17 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Mark post(s) as published"
+            git commit -m "Mark post(s) as submitted for review"
             git push
           fi
 
       - name: Open notification issue
-        if: steps.publish.outputs.summary != ''
+        if: steps.submit.outputs.summary != ''
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           gh issue create \
-            --title "🐾 New PetMatch post published" \
-            --body "$(printf '%s' "${{ steps.publish.outputs.summary }}")" \
+            --title "🐾 PetMatch draft(s) awaiting your approval" \
+            --body "$(printf 'Ready for review in the admin panel (Posts tab — https://petmatch.fit/admin):\n\n%s' "${{ steps.submit.outputs.summary }}")" \
             --repo "${{ github.repository }}"
