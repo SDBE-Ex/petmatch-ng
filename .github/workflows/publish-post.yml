@@ -1,15 +1,24 @@
 name: Publish drafted post
 
-# Triggered when the "PetMatch Content Writer" cloud routine pushes a
-# draft to content/ready/. This is the only piece of the pipeline with
-# real network access to Supabase — the CCR sandbox can't reach it —
-# so this workflow does the actual insert. Moves the file to
-# content/published/ afterward (audit trail, and stops it re-firing)
-# and opens a GitHub issue as the "a post just went live" notification,
-# since GitHub Actions has no way to send a Claude push notification
-# directly.
+# Publishes whatever is sitting in content/ready/ — normally put there
+# by the "PetMatch Content Writer" cloud routine. This is the only
+# piece of the pipeline with real network access to Supabase — the
+# CCR sandbox can't reach it — so this workflow does the actual
+# insert. Moves published files to content/published/ afterward
+# (audit trail, and stops it re-firing) and opens a GitHub issue as
+# the "a post just went live" notification, since GitHub Actions has
+# no way to send a Claude push notification directly.
+#
+# Primary trigger is the weekly cron (proven reliable in this repo's
+# other pipelines); the push trigger on content/ready/** is a
+# best-effort bonus for faster turnaround, not something to depend on
+# — it did not fire in testing (2026-08-26), possibly first-run
+# propagation delay or an account/org Actions setting. If it starts
+# working reliably, the cron just becomes a no-op safety net.
 
 on:
+  schedule:
+    - cron: "0 9 * * 3" # Wednesday 09:00 UTC — 1h after the writer's cron
   push:
     branches: [main]
     paths:
