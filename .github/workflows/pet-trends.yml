@@ -1,0 +1,70 @@
+name: Weekly pet trends digest
+
+# Pulls real, public headlines (Google News RSS — no API key needed) on
+# a small set of pet-related queries relevant to PetMatch's audience,
+# and commits them as a digest. This is real network access the CCR
+# sandbox doesn't have; the paired "PetMatch Content Writer" cloud
+# routine reads this digest as grounding material for its weekly
+# article rather than inventing "trends" from nothing.
+
+on:
+  schedule:
+    - cron: "0 7 * * 3" # Wednesday 07:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  trends-digest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pull headlines and write digest
+        run: |
+          set -euo pipefail
+          mkdir -p content/trends
+          DATE=$(date -u +%Y-%m-%d)
+          OUT="content/trends/$DATE.md"
+
+          {
+            echo "# Pet trends digest — $DATE"
+            echo
+            echo "Real public headlines only (Google News RSS), pulled automatically by .github/workflows/pet-trends.yml. Topic inspiration for the weekly PetMatch article — not source material to summarize or copy from directly."
+            echo
+          } > "$OUT"
+
+          QUERIES=(
+            "pet+care+Nigeria"
+            "dog+adoption+Nigeria"
+            "cat+care+Africa"
+            "responsible+pet+breeding"
+            "pet+safety+scam"
+          )
+
+          for q in "${QUERIES[@]}"; do
+            LABEL=$(echo "$q" | tr '+' ' ')
+            echo "## \"$LABEL\"" >> "$OUT"
+            echo >> "$OUT"
+            curl -s --max-time 20 "https://news.google.com/rss/search?q=${q}&hl=en-NG&gl=NG&ceid=NG:en" \
+              | python3 scripts/parse_rss.py >> "$OUT" || echo "- (fetch failed for this query)" >> "$OUT"
+            echo >> "$OUT"
+          done
+
+          echo "Wrote $OUT"
+          cat "$OUT"
+
+      - name: Commit digest
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add content/trends/
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            DATE=$(date -u +%Y-%m-%d)
+            git commit -m "Weekly pet trends digest: $DATE"
+            git push
+          fi
