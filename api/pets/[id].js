@@ -180,10 +180,10 @@ module.exports = async (req, res) => {
   const image = p.photo_url || DEFAULT_IMAGE;
 
   const title = p.available_for_mating
-    ? `${name}, ${breed} ${p.species}, Available for Mating in ${state} | PetMatch`
-    : `${name}, ${breed} ${p.species} in ${state} | PetMatch`;
+    ? `${p.pet_name}, ${p.breed} ${p.species}, Available for Mating in ${p.state} | PetMatch`
+    : `${p.pet_name}, ${p.breed} ${p.species} in ${p.state} | PetMatch`;
 
-  const descBase = `${name} is a ${p.age} year old ${p.gender.toLowerCase()} ${breed} ${p.species.toLowerCase()} in ${state}${p.available_for_mating ? ', available for mating now' : ''}.`;
+  const descBase = `${p.pet_name} is a ${p.age} year old ${p.gender.toLowerCase()} ${p.breed} ${p.species.toLowerCase()} in ${p.state}${p.available_for_mating ? ', available for mating now' : ''}.`;
   const description = (p.notes ? `${descBase} ${p.notes}` : descBase).slice(0, 300);
   const ownerFirstName = escapeHtml(p.owner_name.split(' ')[0]);
 
