@@ -1,0 +1,45 @@
+{
+  "_comment": "Curated, unbranded, free-to-use (Unsplash License) supportive images for weekly PetMatch articles. Used by the PetMatch Content Writer cloud routine, which is network-blocked and can't browse images itself — it picks the best-fitting entry from this file by topic/species and sets it as the draft's image_url. Hosted in the post-images/library/ Supabase storage folder.",
+  "images": [
+    {
+      "file": "man-and-dog-hug.jpg",
+      "url": "https://pnawdtpavemfjzdsevey.supabase.co/storage/v1/object/public/post-images/library/man-and-dog-hug.jpg",
+      "tags": ["dog", "bonding", "adoption", "general warmth", "male owner"]
+    },
+    {
+      "file": "woman-and-dog-hug.jpg",
+      "url": "https://pnawdtpavemfjzdsevey.supabase.co/storage/v1/object/public/post-images/library/woman-and-dog-hug.jpg",
+      "tags": ["dog", "bonding", "adoption", "general warmth", "female owner"]
+    },
+    {
+      "file": "dog-kissing-owner.jpg",
+      "url": "https://pnawdtpavemfjzdsevey.supabase.co/storage/v1/object/public/post-images/library/dog-kissing-owner.jpg",
+      "tags": ["dog", "affection", "playful", "candid moment"]
+    },
+    {
+      "file": "tabby-cat-portrait.jpg",
+      "url": "https://pnawdtpavemfjzdsevey.supabase.co/storage/v1/object/public/post-images/library/tabby-cat-portrait.jpg",
+      "tags": ["cat", "portrait", "close-up", "general cat content"]
+    },
+    {
+      "file": "gray-kitten-softfocus.jpg",
+      "url": "https://pnawdtpavemfjzdsevey.supabase.co/storage/v1/object/public/post-images/library/gray-kitten-softfocus.jpg",
+      "tags": ["cat", "kitten", "gentle", "adoption", "soft/emotional pieces"]
+    },
+    {
+      "file": "two-puppies-running.jpg",
+      "url": "https://pnawdtpavemfjzdsevey.supabase.co/storage/v1/object/public/post-images/library/two-puppies-running.jpg",
+      "tags": ["dog", "puppy", "playful", "energetic", "matching/mating angle"]
+    },
+    {
+      "file": "two-dogs-playing.jpg",
+      "url": "https://pnawdtpavemfjzdsevey.supabase.co/storage/v1/object/public/post-images/library/two-dogs-playing.jpg",
+      "tags": ["dog", "social", "two pets", "matching/mating angle", "community"]
+    },
+    {
+      "file": "vet-holding-dog.jpg",
+      "url": "https://pnawdtpavemfjzdsevey.supabase.co/storage/v1/object/public/post-images/library/vet-holding-dog.jpg",
+      "tags": ["dog", "health", "vet", "safety", "vaccination", "checkup"]
+    }
+  ]
+}
