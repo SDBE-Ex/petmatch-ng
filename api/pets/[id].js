@@ -66,9 +66,6 @@ ${fontLinks()}
   <nav class="site-nav" id="siteNav" aria-label="Site navigation">
     <a href="/">Home</a>
     <a href="/about">About</a>
-    <a href="/faq">FAQ</a>
-    <a href="/compare">Compare</a>
-    <a href="/safety">Trust &amp; Safety</a>
     <a href="/updates">Updates</a>
     <a href="/partners">For Pet Businesses</a>
   </nav>
@@ -83,7 +80,7 @@ ${fontLinks()}
   <p style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#B9CBBD; max-width:640px; line-height:1.7; margin:0 auto;"><span style="color:var(--marigold)">🌐</span> Prefer another language? Your browser can translate this page: check the translate icon in your address bar. · Kana son wani harshe? Mai binciken ka zai iya fassara wannan shafin: duba alamar fassara a cikin akwatin adireshi. · You wan use another language? Your browser fit translate dis page: check di translate icon for your address bar. · Vous préférez une autre langue ? Votre navigateur peut traduire cette page : cherchez l'icône de traduction dans la barre d'adresse.</p>
   </div>
 </main>
-<footer style="text-align:center; color:#B9CBBD; font-size:12px; padding:24px 16px 40px; font-family:'IBM Plex Mono',monospace;">PETMATCH · A simple directory, not a broker. Meet safely, and check health and vaccination records before any pairing.<br>Contact: <a style="color:inherit" href="mailto:hello@petmatch.fit">hello@petmatch.fit</a> · <a style="color:inherit" href="/">Home</a> · <a style="color:inherit" href="/about">About</a> · <a style="color:inherit" href="/faq">FAQ</a> · <a style="color:inherit" href="/compare">Compare</a> · <a style="color:inherit" href="/safety">Trust &amp; Safety</a></footer>
+<footer style="text-align:center; color:#B9CBBD; font-size:12px; padding:24px 16px 40px; font-family:'IBM Plex Mono',monospace;">PETMATCH · A simple directory, not a broker. Meet safely, and check health and vaccination records before any pairing.<br>Contact: <a style="color:inherit" href="mailto:hello@petmatch.fit">hello@petmatch.fit</a> · <a style="color:inherit" href="/">Home</a> · <a style="color:inherit" href="/about">About</a> · <a style="color:inherit" href="/faq">FAQ</a> · <a style="color:inherit" href="/compare">Compare</a> · <a style="color:inherit" href="/safety">Trust &amp; Safety</a> · <a style="color:inherit" href="/updates">Updates</a> · <a style="color:inherit" href="/partners">For Pet Businesses</a></footer>
 <script>
 (function(){
   var toggle = document.getElementById('navToggle');
@@ -285,9 +282,6 @@ ${fontLinks()}
   <nav class="site-nav" id="siteNav" aria-label="Site navigation">
     <a href="/">Home</a>
     <a href="/about">About</a>
-    <a href="/faq">FAQ</a>
-    <a href="/compare">Compare</a>
-    <a href="/safety">Trust &amp; Safety</a>
     <a href="/updates">Updates</a>
     <a href="/partners">For Pet Businesses</a>
   </nav>
@@ -335,7 +329,7 @@ ${fontLinks()}
   <p style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#B9CBBD; max-width:640px; line-height:1.7; margin:0 auto;"><span style="color:var(--marigold)">🌐</span> Prefer another language? Your browser can translate this page: check the translate icon in your address bar. · Kana son wani harshe? Mai binciken ka zai iya fassara wannan shafin: duba alamar fassara a cikin akwatin adireshi. · You wan use another language? Your browser fit translate dis page: check di translate icon for your address bar. · Vous préférez une autre langue ? Votre navigateur peut traduire cette page : cherchez l'icône de traduction dans la barre d'adresse.</p>
   </div>
 </main>
-<footer style="text-align:center; color:#B9CBBD; font-size:12px; padding:24px 16px 40px; font-family:'IBM Plex Mono',monospace;">PETMATCH · A simple directory, not a broker. Meet safely, and check health and vaccination records before any pairing.<br>Contact: <a style="color:inherit" href="mailto:hello@petmatch.fit">hello@petmatch.fit</a> · <a style="color:inherit" href="/">Home</a> · <a style="color:inherit" href="/about">About</a> · <a style="color:inherit" href="/faq">FAQ</a> · <a style="color:inherit" href="/compare">Compare</a> · <a style="color:inherit" href="/safety">Trust &amp; Safety</a></footer>
+<footer style="text-align:center; color:#B9CBBD; font-size:12px; padding:24px 16px 40px; font-family:'IBM Plex Mono',monospace;">PETMATCH · A simple directory, not a broker. Meet safely, and check health and vaccination records before any pairing.<br>Contact: <a style="color:inherit" href="mailto:hello@petmatch.fit">hello@petmatch.fit</a> · <a style="color:inherit" href="/">Home</a> · <a style="color:inherit" href="/about">About</a> · <a style="color:inherit" href="/faq">FAQ</a> · <a style="color:inherit" href="/compare">Compare</a> · <a style="color:inherit" href="/safety">Trust &amp; Safety</a> · <a style="color:inherit" href="/updates">Updates</a> · <a style="color:inherit" href="/partners">For Pet Businesses</a></footer>
 <script>
 (function(){
   var toggle = document.getElementById('navToggle');
