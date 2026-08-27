@@ -88,6 +88,22 @@
   .stat-card .num{font-family:'Fraunces',serif; font-size:28px; color:var(--forest-dark); line-height:1;}
   .stat-card .label{font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.04em; text-transform:uppercase; color:#8a7f65; margin-top:6px;}
 
+  .calendar-wrap{max-width:520px; margin:0 auto 26px; background:var(--paper); border-radius:var(--radius); padding:18px 20px; box-shadow:0 8px 20px rgba(0,0,0,0.1);}
+  .calendar-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
+  .calendar-header .section-title{margin:0;}
+  .calendar-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:5px;}
+  .calendar-grid .cal-dow{font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.03em; text-transform:uppercase; text-align:center; color:#8a7f65; padding:2px 0 6px;}
+  .calendar-day{position:relative; aspect-ratio:1; display:flex; flex-direction:column; align-items:center; justify-content:center; border-radius:8px; font-size:12px; background:#fff; border:1px solid var(--line);}
+  .calendar-day.cal-empty{background:transparent; border:none;}
+  .calendar-day.cal-today{border-color:var(--forest); border-width:2px; font-weight:600;}
+  .calendar-day.cal-next-expected{background:rgba(232,163,61,0.18); border-color:var(--marigold); border-style:dashed;}
+  .calendar-day .cal-dots{display:flex; gap:2px; margin-top:3px; min-height:6px;}
+  .calendar-day .cal-dot{width:6px; height:6px; border-radius:50%; flex:none;}
+  .cal-dot-post{background:var(--forest);}
+  .cal-dot-next{background:var(--marigold);}
+  .calendar-legend{display:flex; gap:16px; justify-content:center; margin-top:12px; font-size:11px; color:#8a7f65;}
+  .calendar-legend .cal-dot{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px; vertical-align:middle;}
+
   .postform{background:var(--paper); border-radius:var(--radius); padding:22px 20px; margin-bottom:20px; box-shadow:0 8px 20px rgba(0,0,0,0.1);}
   .postform h2{font-family:'Fraunces',serif; margin:0 0 16px; color:var(--forest-dark); font-size:19px;}
   .postform .field{margin-bottom:14px;}
@@ -281,6 +297,19 @@
 
   <!-- CONTENT MONITORING -->
   <section id="panel-content" class="panel">
+    <div class="calendar-wrap">
+      <div class="calendar-header">
+        <button class="btn btn-ghost btn-sm" id="calPrevBtn" type="button">&larr;</button>
+        <p class="section-title" id="calMonthLabel"></p>
+        <button class="btn btn-ghost btn-sm" id="calNextBtn" type="button">&rarr;</button>
+      </div>
+      <div class="calendar-grid" id="calGrid"></div>
+      <div class="calendar-legend">
+        <span><span class="cal-dot cal-dot-post"></span>Post published</span>
+        <span><span class="cal-dot cal-dot-next"></span>Next expected (weekly pipeline)</span>
+      </div>
+    </div>
+
     <p class="count-line" id="contentCount"></p>
     <div class="table-wrap"><table>
       <thead><tr><th>Post</th><th>Status</th><th>Source</th><th>Views (30d)</th><th>Search (28d)</th><th>Created</th></tr></thead>
@@ -432,7 +461,7 @@ function showTab(tab){
   if(tab === 'comments') renderComments();
   if(tab === 'subscribers') renderSubscribers();
   if(tab === 'posts') renderPosts();
-  if(tab === 'content') renderContent();
+  if(tab === 'content'){ renderContent(); renderPostCalendar(); }
   if(tab === 'insights'){ renderDensity(); renderInsights(); }
   if(tab === 'sitehealth') renderSiteHealth();
 }
@@ -1252,6 +1281,81 @@ function renderPosts(){
     });
   });
 }
+
+// ---------- post calendar: real post dates + next expected pipeline run ----------
+// "Next expected" is computed, not stored data — the weekly pipeline
+// (pet-trends.yml -> CCR writer -> publish-post.yml) fires Wednesdays, so
+// this is just "the next Wednesday on/after today," shown in the marigold
+// dashed style, distinct from the real post dots pulled from posts.created_at.
+let calViewYear, calViewMonth;
+const CAL_DOW_LABELS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+function calYmd(date){
+  return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+}
+
+function nextExpectedPipelineDate(){
+  const d = new Date();
+  d.setHours(0,0,0,0);
+  const diff = (3 - d.getDay() + 7) % 7; // 3 = Wednesday; 0 if today is Wednesday
+  d.setDate(d.getDate() + diff);
+  return d;
+}
+
+function renderPostCalendar(){
+  if(calViewYear === undefined){
+    const now = new Date();
+    calViewYear = now.getFullYear();
+    calViewMonth = now.getMonth();
+  }
+  const grid = document.getElementById('calGrid');
+  const label = document.getElementById('calMonthLabel');
+  label.textContent = new Date(calViewYear, calViewMonth, 1).toLocaleDateString(undefined, { month:'long', year:'numeric' });
+
+  const postsByDay = new Map();
+  posts.forEach(p=>{
+    if(!p.created_at) return;
+    const key = calYmd(new Date(p.created_at));
+    postsByDay.set(key, (postsByDay.get(key) || 0) + 1);
+  });
+
+  const todayKey = calYmd(new Date());
+  const nextExpectedKey = calYmd(nextExpectedPipelineDate());
+
+  const daysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate();
+  const startOffset = new Date(calViewYear, calViewMonth, 1).getDay();
+
+  let html = CAL_DOW_LABELS.map(d=> `<div class="cal-dow">${d}</div>`).join('');
+  for(let i=0; i<startOffset; i++) html += `<div class="calendar-day cal-empty"></div>`;
+  for(let day=1; day<=daysInMonth; day++){
+    const key = calYmd(new Date(calViewYear, calViewMonth, day));
+    const count = postsByDay.get(key) || 0;
+    const isNextExpected = key === nextExpectedKey;
+    const classes = ['calendar-day'];
+    if(key === todayKey) classes.push('cal-today');
+    if(isNextExpected) classes.push('cal-next-expected');
+    const dots = count > 0
+      ? `<div class="cal-dots">${'<span class="cal-dot cal-dot-post"></span>'.repeat(Math.min(count, 4))}</div>`
+      : (isNextExpected ? `<div class="cal-dots"><span class="cal-dot cal-dot-next"></span></div>` : `<div class="cal-dots"></div>`);
+    const titleBits = [`${count} post${count===1?'':'s'}`];
+    if(isNextExpected) titleBits.push('Next expected pipeline run');
+    html += `<div class="${classes.join(' ')}" title="${titleBits.join(' · ')}">${day}${dots}</div>`;
+  }
+  grid.innerHTML = html;
+}
+
+document.getElementById('calPrevBtn').addEventListener('click', ()=>{
+  if(calViewMonth === undefined) renderPostCalendar();
+  calViewMonth--;
+  if(calViewMonth < 0){ calViewMonth = 11; calViewYear--; }
+  renderPostCalendar();
+});
+document.getElementById('calNextBtn').addEventListener('click', ()=>{
+  if(calViewMonth === undefined) renderPostCalendar();
+  calViewMonth++;
+  if(calViewMonth > 11){ calViewMonth = 0; calViewYear++; }
+  renderPostCalendar();
+});
 
 // ---------- content monitoring: per-post views + impressions + why it was suggested ----------
 // Views come from admin_visit_by_post (page_views grouped by /updates/{id},
