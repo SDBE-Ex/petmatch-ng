@@ -276,6 +276,8 @@
   .back-to-top svg{width:22px; height:22px;}
   @media (max-width:480px){ .back-to-top{left:14px; bottom:14px; width:46px; height:46px;} .back-to-top svg{width:19px; height:19px;} }
 
+  .hp{position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden;}
+
   .tabs{display:flex; justify-content:center; gap:6px; background:var(--forest-dark); padding:10px; position:sticky; top:0; z-index:10; border-bottom:1px solid rgba(255,255,255,0.08);}
   .tab-btn{font-family:'IBM Plex Mono',monospace; font-size:12.5px; letter-spacing:.04em; text-transform:uppercase; font-weight:600; background:rgba(255,255,255,0.09); border:1.5px solid rgba(255,255,255,0.5); color:#F1F6F0; padding:9px 18px; border-radius:999px; cursor:pointer; transition:.15s;}
   .tab-btn:hover{border-color:var(--marigold); color:var(--marigold); background:rgba(232,163,61,0.14);}
@@ -590,6 +592,7 @@
           <button type="submit" class="btn btn-clay" id="submitBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path id="submitBtnIcon" d="M12 5v14M5 12h14"/></svg>List My Pet</button>
           <button type="button" class="btn btn-ghost" id="cancelEditBtn" style="display:none">Cancel edit</button>
         </div>
+        <p style="font-size:12.5px; color:#8a7f65; margin:10px 0 0; text-align:center"><a href="#waitlist" style="color:var(--clay-dark); font-weight:600">Not ready yet? Join the waitlist instead</a></p>
         <div id="formMsg"></div>
       </form>
 
@@ -781,6 +784,21 @@
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
 </button>
 
+<section class="landing-card" id="waitlist">
+  <div class="inner" style="text-align:center">
+    <h3 class="section-eyebrow">Not ready yet?</h3>
+    <h2>Join the waitlist</h2>
+    <p style="font-size:15px; line-height:1.6; color:#3c3628; margin:0 0 18px; max-width:420px; margin-left:auto; margin-right:auto;">Leave your name and number and we'll follow up when you're ready to list.</p>
+    <form id="waitlistForm" style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; max-width:420px; margin:0 auto;">
+      <input type="text" id="waitlistWebsite" name="website" class="hp" tabindex="-1" autocomplete="off">
+      <input id="waitlistName" type="text" required placeholder="Your name" style="flex:1 1 140px; padding:11px 13px; border:1.5px solid var(--line); border-radius:9px; font-size:15px; font-family:inherit;">
+      <input id="waitlistPhone" type="tel" required placeholder="WhatsApp number" style="flex:1 1 160px; padding:11px 13px; border:1.5px solid var(--line); border-radius:9px; font-size:15px; font-family:inherit;">
+      <button type="submit" class="btn btn-clay" id="waitlistSubmitBtn">Join waitlist</button>
+    </form>
+    <p style="margin:10px 0 0; font-size:13px; color:#5b5142;" id="waitlistMsg"></p>
+  </div>
+</section>
+
 <div class="bottom-band">
 
 <div style="display:flex; justify-content:center; padding:36px 16px 0;">
@@ -795,7 +813,7 @@
 <p style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#B9CBBD; max-width:640px; line-height:1.7; margin:0 auto;"><span style="color:var(--marigold)">🌐</span> Prefer another language? Your browser can translate this page: check the translate icon in your address bar. · Kana son wani harshe? Mai binciken ka zai iya fassara wannan shafin: duba alamar fassara a cikin akwatin adireshi. · You wan use another language? Your browser fit translate dis page: check di translate icon for your address bar. · Vous préférez une autre langue ? Votre navigateur peut traduire cette page : cherchez l'icône de traduction dans la barre d'adresse.</p>
 </div>
 
-<footer>PETMATCH · A simple directory, not a broker. Meet safely, and check health and vaccination records before any pairing.<br>Contact: <a href="mailto:hello@petmatch.fit" style="color:inherit">hello@petmatch.fit</a> · <a href="/about" style="color:inherit">About</a> · <a href="/faq" style="color:inherit">FAQ</a> · <a href="/compare" style="color:inherit">Compare</a> · <a href="/updates" style="color:inherit">Updates</a> · <a href="/safety" style="color:inherit">Trust &amp; Safety</a> · <a href="/partners" style="color:inherit">For Pet Businesses</a></footer>
+<footer>PETMATCH · A simple directory, not a broker. Meet safely, and check health and vaccination records before any pairing.<br>Contact: <a href="mailto:hello@petmatch.fit" style="color:inherit">hello@petmatch.fit</a> · <a href="/about" style="color:inherit">About</a> · <a href="/faq" style="color:inherit">FAQ</a> · <a href="/compare" style="color:inherit">Compare</a> · <a href="/updates" style="color:inherit">Updates</a> · <a href="/safety" style="color:inherit">Trust &amp; Safety</a> · <a href="/partners" style="color:inherit">For Pet Businesses</a> · <a href="/spotted" style="color:inherit">Spotted a Listing?</a></footer>
 
 </div>
 
@@ -2154,6 +2172,44 @@ supabase.channel('pets-changes')
     }
   })
   .subscribe();
+
+// ---------- waitlist capture: not ready to list yet, follow up later ----------
+async function submitWaitlist(name, phone, msgEl, btnEl){
+  if(document.getElementById('waitlistWebsite')?.value.trim()){
+    // Honeypot tripped — pretend success, do nothing.
+    msgEl.textContent = "Thanks — we'll be in touch.";
+    return true;
+  }
+  btnEl.disabled = true;
+  msgEl.textContent = 'Submitting…';
+  const { error } = await supabase.from('leads').insert({
+    capture_source: 'waitlist',
+    name: name.trim(),
+    phone: phone.trim()
+  });
+  btnEl.disabled = false;
+  if(error){
+    msgEl.textContent = 'Something went wrong. Mind trying again?';
+    return false;
+  }
+  msgEl.textContent = "Thanks — we'll be in touch when you're ready.";
+  return true;
+}
+
+const waitlistForm = document.getElementById('waitlistForm');
+if(waitlistForm){
+  waitlistForm.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const msgEl = document.getElementById('waitlistMsg');
+    const btnEl = document.getElementById('waitlistSubmitBtn');
+    const ok = await submitWaitlist(
+      document.getElementById('waitlistName').value,
+      document.getElementById('waitlistPhone').value,
+      msgEl, btnEl
+    );
+    if(ok) waitlistForm.reset();
+  });
+}
 
 // ---------- init ----------
 (async function init(){

@@ -22,6 +22,7 @@
     { "source": "/faq", "destination": "/faq.html" },
     { "source": "/compare", "destination": "/compare.html" },
     { "source": "/partners", "destination": "/partners.html" },
+    { "source": "/spotted", "destination": "/spotted.html" },
     { "source": "/pets/:id", "destination": "/api/pets/:id" },
     { "source": "/sitemap.xml", "destination": "/api/sitemap" }
   ],
