@@ -364,6 +364,21 @@ likeBtn.addEventListener('click', async ()=>{
     likeBtn.disabled = false;
   }
 });
+
+function getVisitorId(){
+  let id = localStorage.getItem('petmatch_visitor_id');
+  if(!id){
+    id = crypto.randomUUID();
+    localStorage.setItem('petmatch_visitor_id', id);
+  }
+  return id;
+}
+supabase.from('page_views').insert({
+  session_id: getVisitorId(),
+  path: '/updates/' + POST_ID,
+  referrer: document.referrer || null,
+  browser_language: navigator.language || null
+}).then(()=>{});
 </script>
 </body>
 </html>`;
