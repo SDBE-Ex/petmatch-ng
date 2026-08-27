@@ -1,0 +1,25 @@
+name: Automated site health check
+
+# Recurring mechanical check (key routes 200 + valid JSON-LD, sitemap
+# valid + non-empty) inserted into public.site_health_checks. Exists
+# because the paired "PetMatch Site Health" cloud routine's sandbox
+# has no network access to petmatch.fit or Supabase (see project
+# memory) — its "last checked" date only moved on the rare run that
+# happened to have access elsewhere, and the sitemap sat broken for
+# days before anyone caught it manually. GitHub Actions runners do
+# have real network access, so this is the actual recurring safety
+# net; the admin panel's "Check now" button covers on-demand checks
+# in between.
+
+on:
+  schedule:
+    - cron: "0 5 * * *" # daily, 05:00 UTC
+  workflow_dispatch: {}
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run site health check
+        run: python3 scripts/site_health_check.py
