@@ -588,6 +588,90 @@ async function downloadIgCard(pet){
   URL.revokeObjectURL(url);
 }
 
+// ---------- partner spotlight card ----------
+// partner_applications has no logo/photo field, so this is always the
+// brand-gradient background — text-forward by design, not a fallback.
+async function buildPartnerCardCanvas(partner){
+  const SIZE = 1080;
+  const canvas = document.createElement('canvas');
+  canvas.width = SIZE; canvas.height = SIZE;
+  const ctx = canvas.getContext('2d');
+  const FOREST = '#1F4732', FOREST_DARK = '#132E20', MARIGOLD = '#E8A33D', PAPER = '#FBF6EA';
+
+  await document.fonts.ready;
+
+  const grad = ctx.createLinearGradient(0, 0, SIZE, SIZE);
+  grad.addColorStop(0, FOREST);
+  grad.addColorStop(1, FOREST_DARK);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, SIZE, SIZE);
+
+  // Top-left status pill.
+  const pillLabel = 'NOW ON PETMATCH';
+  ctx.font = '600 26px "IBM Plex Mono"';
+  const pillTextW = ctx.measureText(pillLabel).width;
+  const pillPad = 22, pillH = 52, pillX = 56, pillY = 56;
+  roundRectPath(ctx, pillX, pillY, pillTextW + pillPad * 2, pillH, pillH / 2);
+  ctx.fillStyle = MARIGOLD;
+  ctx.fill();
+  ctx.fillStyle = FOREST_DARK;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(pillLabel, pillX + pillPad, pillY + pillH / 2 + 2);
+
+  // Large centered paw watermark, same treatment as the no-photo pet card.
+  ctx.font = '700px "Fraunces"';
+  ctx.fillStyle = 'rgba(255,255,255,0.06)';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('🐾', SIZE / 2, SIZE / 2 - 60);
+
+  // Centered business name block — wraps to two lines if long.
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = '#fff';
+  const name = partner.business_name || 'A PetMatch Partner';
+  let nameFontSize = 84;
+  ctx.font = `600 ${nameFontSize}px "Fraunces"`;
+  while(ctx.measureText(name).width > SIZE - 160 && nameFontSize > 44){
+    nameFontSize -= 4;
+    ctx.font = `600 ${nameFontSize}px "Fraunces"`;
+  }
+  ctx.fillText(name, SIZE / 2, SIZE / 2 + 30);
+
+  ctx.font = '500 34px "Work Sans"';
+  ctx.fillStyle = '#DCE7DD';
+  const line2 = [partner.business_type, partner.city].filter(Boolean).join(' · ');
+  ctx.fillText(line2, SIZE / 2, SIZE / 2 + 84);
+
+  // Bottom brand bar.
+  ctx.textAlign = 'left';
+  ctx.font = '600 42px "Fraunces"';
+  ctx.fillStyle = PAPER;
+  ctx.fillText('PetMatch', 56, SIZE - 56);
+  ctx.font = '600 22px "IBM Plex Mono"';
+  ctx.fillStyle = MARIGOLD;
+  ctx.textAlign = 'right';
+  ctx.fillText('petmatch.fit', SIZE - 56, SIZE - 62);
+
+  return canvas;
+}
+
+async function downloadPartnerCard(partner){
+  const canvas = await buildPartnerCardCanvas(partner);
+  const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+  if(!blob) throw new Error('canvas export failed');
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const slug = (partner.business_name || 'partner').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  a.href = url;
+  a.download = `petmatch-partner-${slug || partner.id}.png`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 // ---------- auth bar ----------
 function renderAuthbox(){
   const box = document.getElementById('authbox');
@@ -973,10 +1057,26 @@ function renderPartners(){
       <td>${locationCell}</td>
       <td class="muted nowrap">${fmtDateTime(a.created_at)}</td>
       <td><span class="badge ${a.status}">${a.status}</span></td>
-      <td><div class="row-actions">${actions}</div></td>
+      <td><div class="row-actions">${actions}${a.status === 'approved' ? `<button class="btn btn-ghost btn-sm" data-partner-ig-card="${a.id}">IG Card</button>` : ''}</div></td>
     </tr>`;
   }).join('');
 
+  body.querySelectorAll('[data-partner-ig-card]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const partner = partners.find(x=> x.id === btn.dataset.partnerIgCard);
+      if(!partner) return;
+      btn.disabled = true;
+      const original = btn.textContent;
+      btn.textContent = 'Generating…';
+      try {
+        await downloadPartnerCard(partner);
+      } catch(e){
+        alert('Could not generate the card: ' + e.message);
+      }
+      btn.disabled = false;
+      btn.textContent = original;
+    });
+  });
   body.querySelectorAll('[data-partner-status]').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
       btn.disabled = true;
