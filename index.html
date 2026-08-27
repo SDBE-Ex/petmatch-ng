@@ -234,13 +234,16 @@
   .mv-col p{font-family:'Fraunces',serif; font-size:16px; line-height:1.5; font-weight:500; color:#fff; margin:0;}
   @media (max-width:700px){ .mv-inner{grid-template-columns:1fr; gap:30px;} }
 
-  .updates-band{max-width:900px; margin:44px auto 0; padding:0 16px;}
-  .updates-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px;}
-  .update-tile{background:#fff; border:1px solid var(--line); border-radius:12px; padding:16px; box-shadow:0 6px 16px rgba(31,71,50,0.06); text-decoration:none; display:block; transition:transform .15s ease, box-shadow .15s ease;}
-  .update-tile:hover{transform:translateY(-3px); box-shadow:0 10px 22px rgba(31,71,50,0.12);}
+  .updates-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px;}
+  .update-tile{background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden; box-shadow:0 6px 16px rgba(31,71,50,0.06); text-decoration:none; display:block; transition:transform .15s ease, box-shadow .15s ease;}
+  .update-tile:hover{transform:translateY(-4px); box-shadow:0 14px 28px rgba(31,71,50,0.16);}
+  .update-tile .update-photo{width:100%; height:130px; object-fit:cover; display:block; background:var(--forest);}
+  .update-tile .update-tile-body{padding:16px;}
   .update-tile .update-date{font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--clay-dark); margin:0 0 6px;}
   .update-tile h3{font-family:'Fraunces',serif; font-weight:600; font-size:16px; color:var(--forest-dark); margin:0 0 6px; line-height:1.3;}
-  .update-tile p{font-size:13px; line-height:1.5; color:var(--muted); margin:0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+  .update-tile p.update-preview{font-size:13px; line-height:1.5; color:var(--muted); margin:0 0 10px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+  .update-tile .update-read-more{font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--clay-dark); display:inline-flex; align-items:center; gap:5px;}
+  .update-tile:hover .update-read-more{text-decoration:underline;}
 
   .faq-widget{position:fixed; right:18px; bottom:18px; z-index:200; display:flex; flex-direction:column; align-items:flex-end; gap:12px;}
   .faq-toggle{height:52px; padding:0 20px 0 16px; border-radius:999px; background:var(--forest); color:#fff; border:none; display:inline-flex; align-items:center; gap:8px; cursor:pointer; box-shadow:0 10px 24px rgba(0,0,0,0.3); transition:.15s ease; flex:none; font-family:'IBM Plex Mono',monospace; font-size:12.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase;}
@@ -704,6 +707,17 @@
   </div>
 </section>
 
+<section class="landing-card" id="updatesTeaser" style="display:none">
+  <div class="inner">
+    <h3 class="section-eyebrow">Latest from PetMatch</h3>
+    <h2>What pet owners are sharing right now</h2>
+    <div class="updates-grid" id="updatesGrid"></div>
+    <div style="text-align:center; margin-top:22px;">
+      <a class="btn btn-clay" href="/updates">See all updates →</a>
+    </div>
+  </div>
+</section>
+
 <section class="landing-card" id="how-it-works">
   <div class="inner">
     <h3 class="section-eyebrow">How it works</h3>
@@ -720,29 +734,12 @@
   </div>
 </section>
 
-<section class="updates-band" id="updatesTeaser" style="display:none">
-  <h3 class="section-eyebrow">Latest from PetMatch</h3>
-  <div class="updates-grid" id="updatesGrid"></div>
-  <div style="text-align:center; margin-top:18px;">
-    <a class="btn btn-ghost" href="/updates">See all updates</a>
-  </div>
-</section>
-
 <section class="landing-card" id="faq">
   <div class="inner">
     <h3 class="section-eyebrow">FAQ</h3>
-    <h2>Frequently asked questions</h2>
-    <h3 style="font-family:'Work Sans',sans-serif; font-weight:600; font-size:15.5px; color:var(--forest-dark); margin:0 0 6px">Is PetMatch a marketplace?</h3>
-    <p style="font-size:15px; line-height:1.65; color:#3c3628; margin:0 0 18px">No. PetMatch is a directory, not a marketplace. We don't handle buying, selling, or payments of any kind. We simply help owners find each other. Anything you arrange with another owner is between the two of you.</p>
-    <h3 style="font-family:'Work Sans',sans-serif; font-weight:600; font-size:15.5px; color:var(--forest-dark); margin:0 0 6px">Is it free to use?</h3>
-    <p style="font-size:15px; line-height:1.65; color:#3c3628; margin:0 0 18px">Yes, free for everyone, always. No listing fees, no referral fees, no commissions.</p>
-    <h3 style="font-family:'Work Sans',sans-serif; font-weight:600; font-size:15.5px; color:var(--forest-dark); margin:0 0 6px">Cats too, or just dogs?</h3>
-    <p style="font-size:15px; line-height:1.65; color:#3c3628; margin:0 0 18px">Both. PetMatch is built for dog and cat owners equally. List either species and search nearby, any sex or the opposite sex, depending on what you're looking for.</p>
-    <h3 style="font-family:'Work Sans',sans-serif; font-weight:600; font-size:15.5px; color:var(--forest-dark); margin:0 0 6px">How do I contact a match?</h3>
-    <p style="font-size:15px; line-height:1.65; color:#3c3628; margin:0 0 18px">Every listing includes a way to reach the owner directly, usually WhatsApp. PetMatch doesn't have its own messaging. You connect and arrange everything between yourselves.</p>
-    <h3 style="font-family:'Work Sans',sans-serif; font-weight:600; font-size:15.5px; color:var(--forest-dark); margin:0 0 6px">Do you verify listings?</h3>
-    <p style="font-size:15px; line-height:1.65; color:#3c3628; margin:0">Listings are self-reported by the person who creates them. Partner applications from pet businesses are reviewed by a real person before approval, but we don't independently verify health records, vaccinations, or business registration. Always meet safely and check health and vaccination records yourself before any pairing.</p>
-    <p style="font-size:13px; color:#7a7261; margin:16px 0 0; text-align:center"><a href="/faq" style="color:var(--clay-dark); font-weight:600">Read the full FAQ</a> or <a href="/compare" style="color:var(--clay-dark); font-weight:600">see how PetMatch compares</a> to other ways to find a match.</p>
+    <h2>Quick answers, right here</h2>
+    <p style="font-size:15px; line-height:1.65; color:#3c3628; margin:0 0 14px; text-align:center">Tap the FAQ button in the corner for instant answers, or <a href="/faq" style="color:var(--clay-dark); font-weight:600">read the full FAQ</a>. You can also <a href="/compare" style="color:var(--clay-dark); font-weight:600">see how PetMatch compares</a> to other ways to find a match.</p>
+    <p style="font-size:13px; color:var(--muted); margin:0; text-align:center">Prefer to hear from real owners instead? <a href="https://chat.whatsapp.com/LiqbPTGnnk4FokloFHZ8fh?s=cl&amp;p=a&amp;ilr=1" target="_blank" rel="noopener" style="color:var(--muted); text-decoration:underline">Join our WhatsApp community</a>.</p>
   </div>
 </section>
 
@@ -952,25 +949,30 @@ function observeReveals(root){
 }
 observeReveals();
 
-// ---------- homepage updates teaser: latest 3 published posts, hidden entirely if there are none ----------
+// ---------- homepage updates teaser: latest 6 published posts, hidden entirely if there are none ----------
 (async function loadUpdatesTeaser(){
   const section = document.getElementById('updatesTeaser');
   const grid = document.getElementById('updatesGrid');
   if(!section || !grid) return;
   const { data, error } = await supabase
     .from('posts')
-    .select('id,title,body,created_at')
+    .select('id,title,body,image_url,created_at')
     .eq('published', true)
     .order('created_at', { ascending:false })
-    .limit(3);
+    .limit(6);
   if(error || !data || data.length === 0) return;
   grid.innerHTML = data.map(p=>{
     const preview = String(p.body ?? '').split(/\n\s*\n/).map(s=>s.trim()).filter(Boolean)[0] || '';
     const date = p.created_at ? new Date(p.created_at).toLocaleDateString(undefined, { year:'numeric', month:'long', day:'numeric' }) : '';
+    const photo = p.image_url ? `<img class="update-photo" src="${escapeHtml(p.image_url)}" alt="" loading="lazy">` : '';
     return `<a class="update-tile reveal" href="/updates/${p.id}">
-      <p class="update-date">${escapeHtml(date)}</p>
-      <h3>${escapeHtml(p.title)}</h3>
-      <p>${escapeHtml(preview)}</p>
+      ${photo}
+      <div class="update-tile-body">
+        <p class="update-date">${escapeHtml(date)}</p>
+        <h3>${escapeHtml(p.title)}</h3>
+        <p class="update-preview">${escapeHtml(preview)}</p>
+        <span class="update-read-more">Read more &rarr;</span>
+      </div>
     </a>`;
   }).join('');
   section.style.display = '';
