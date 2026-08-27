@@ -135,6 +135,7 @@
   <button class="tab-btn" data-tab="comments">Comments</button>
   <button class="tab-btn" data-tab="subscribers">Subscribers</button>
   <button class="tab-btn" data-tab="posts">Posts</button>
+  <button class="tab-btn" data-tab="content">Content</button>
   <button class="tab-btn" data-tab="insights">Insights</button>
   <button class="tab-btn" data-tab="sitehealth">Site Health</button>
 </div>
@@ -266,6 +267,15 @@
     <div class="table-wrap"><table>
       <thead><tr><th>Post</th><th>Status</th><th>Posted</th><th></th></tr></thead>
       <tbody id="postsTableBody"></tbody>
+    </table></div>
+  </section>
+
+  <!-- CONTENT MONITORING -->
+  <section id="panel-content" class="panel">
+    <p class="count-line" id="contentCount"></p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Post</th><th>Status</th><th>Source</th><th>Views (30d)</th><th>Created</th></tr></thead>
+      <tbody id="contentTableBody"></tbody>
     </table></div>
   </section>
 
@@ -409,6 +419,7 @@ function showTab(tab){
   if(tab === 'comments') renderComments();
   if(tab === 'subscribers') renderSubscribers();
   if(tab === 'posts') renderPosts();
+  if(tab === 'content') renderContent();
   if(tab === 'insights'){ renderDensity(); renderInsights(); }
   if(tab === 'sitehealth') renderSiteHealth();
 }
@@ -1097,6 +1108,45 @@ function renderPosts(){
       await loadAll();
     });
   });
+}
+
+// ---------- content monitoring: per-post views + why it was suggested ----------
+// Views come from admin_visit_by_post (page_views grouped by /updates/{id},
+// same admin-gated RPC pattern as the Insights tab). "Source" is the trend
+// headline the weekly content pipeline matched the topic to, if the ready
+// JSON included one (source_headline/source_url on posts) — real
+// provenance, not the routine's own reasoning, which isn't captured
+// anywhere today. Impressions/clicks from Search Console are a planned
+// follow-up, not wired in yet.
+async function renderContent(){
+  document.getElementById('contentCount').textContent = `${posts.length} post${posts.length===1?'':'s'}`;
+  const body = document.getElementById('contentTableBody');
+  if(posts.length === 0){
+    body.innerHTML = `<tr><td colspan="5"><div class="empty"><h3>No posts yet</h3><p>Posts show up here once published from the Posts tab.</p></div></td></tr>`;
+    return;
+  }
+  body.innerHTML = `<tr><td colspan="5" class="muted">Loading view counts…</td></tr>`;
+
+  const { data: viewsData, error } = await supabase.rpc('admin_visit_by_post', { days: 30 });
+  if(error) console.error('admin_visit_by_post failed:', error.message);
+  const viewsByPath = new Map((viewsData || []).map(v=> [v.path, { views: Number(v.views), uniques: Number(v.uniques) }]));
+
+  const rows = posts
+    .map(p=> ({ post: p, stats: viewsByPath.get('/updates/' + p.id) || { views: 0, uniques: 0 } }))
+    .sort((a, b)=> b.stats.views - a.stats.views);
+
+  body.innerHTML = rows.map(({ post: p, stats })=> `
+    <tr>
+      <td>${p.image_url ? `<img class="post-thumb" src="${p.image_url}" alt="">` : ''}<strong>${escapeHtml(p.title)}</strong></td>
+      <td><span class="badge ${p.published ? 'approved' : 'pending'}">${p.published ? 'Published' : 'Draft'}</span></td>
+      <td>${p.source_headline
+        ? (p.source_url
+          ? `<a href="${escapeHtml(p.source_url)}" target="_blank" rel="noopener">${escapeHtml(p.source_headline)}</a>`
+          : escapeHtml(p.source_headline))
+        : '<span class="muted">—</span>'}</td>
+      <td>${stats.views} <span class="muted">· ${stats.uniques} unique</span></td>
+      <td class="muted nowrap">${fmtDateTime(p.created_at)}</td>
+    </tr>`).join('');
 }
 
 // ---------- admin badge lookup for the Users tab ----------
