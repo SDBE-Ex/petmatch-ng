@@ -438,6 +438,135 @@ function waLink(number, petName){
   return `https://wa.me/${intl}?text=${msg}`;
 }
 
+// ---------- Instagram share card ----------
+// Rendered entirely client-side with Canvas — no server-side image lib
+// available (no package.json/build step in this repo), and this only
+// ever uses a listing's own already-public photo/details, nothing
+// sourced from anywhere else. Internal tool: an admin downloads the
+// PNG and posts it manually, same posture as any other manual social post.
+function roundRectPath(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function loadImageForCanvas(url){
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = ()=> resolve(img);
+    img.onerror = ()=> reject(new Error('image load failed'));
+    img.src = url;
+  });
+}
+
+async function buildIgCardCanvas(pet){
+  const SIZE = 1080;
+  const canvas = document.createElement('canvas');
+  canvas.width = SIZE; canvas.height = SIZE;
+  const ctx = canvas.getContext('2d');
+  const FOREST = '#1F4732', FOREST_DARK = '#132E20', MARIGOLD = '#E8A33D', PAPER = '#FBF6EA';
+
+  await document.fonts.ready;
+
+  // Background: the pet's own photo (cover-fit), or a brand gradient if
+  // there isn't one or it fails to load (e.g. storage CORS hiccup) — a
+  // card without a photo is still fine, never block on this.
+  let hasPhoto = false;
+  if(pet.photo_url){
+    try {
+      const img = await loadImageForCanvas(pet.photo_url);
+      const scale = Math.max(SIZE / img.width, SIZE / img.height);
+      const w = img.width * scale, h = img.height * scale;
+      ctx.drawImage(img, (SIZE - w) / 2, (SIZE - h) / 2, w, h);
+      hasPhoto = true;
+    } catch { /* fall through to gradient background below */ }
+  }
+  if(!hasPhoto){
+    const grad = ctx.createLinearGradient(0, 0, SIZE, SIZE);
+    grad.addColorStop(0, FOREST);
+    grad.addColorStop(1, FOREST_DARK);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, SIZE, SIZE);
+    ctx.font = '700px "Fraunces"';
+    ctx.fillStyle = 'rgba(255,255,255,0.07)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🐾', SIZE / 2, SIZE / 2 - 30);
+  }
+
+  // Bottom gradient for text legibility over either background.
+  const overlay = ctx.createLinearGradient(0, SIZE * 0.42, 0, SIZE);
+  overlay.addColorStop(0, 'rgba(19,46,32,0)');
+  overlay.addColorStop(1, 'rgba(19,46,32,0.92)');
+  ctx.fillStyle = overlay;
+  ctx.fillRect(0, 0, SIZE, SIZE);
+
+  // Top-left status pill.
+  const pillLabel = pet.available_for_mating ? 'AVAILABLE FOR MATING' : 'LOOKING FOR A MATCH';
+  ctx.font = '600 26px "IBM Plex Mono"';
+  const pillTextW = ctx.measureText(pillLabel).width;
+  const pillPad = 22, pillH = 52, pillX = 56, pillY = 56;
+  roundRectPath(ctx, pillX, pillY, pillTextW + pillPad * 2, pillH, pillH / 2);
+  ctx.fillStyle = MARIGOLD;
+  ctx.fill();
+  ctx.fillStyle = FOREST_DARK;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(pillLabel, pillX + pillPad, pillY + pillH / 2 + 2);
+
+  // Bottom-left text block.
+  let y = SIZE - 210;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = '#fff';
+  ctx.font = '600 78px "Fraunces"';
+  ctx.fillText(pet.pet_name || 'A PetMatch pet', 56, y);
+
+  y += 54;
+  ctx.font = '500 32px "Work Sans"';
+  ctx.fillStyle = '#DCE7DD';
+  const line2 = [pet.breed, pet.species, pet.gender].filter(Boolean).join(' · ');
+  ctx.fillText(line2, 56, y);
+
+  if(pet.state){
+    y += 44;
+    ctx.font = '500 28px "Work Sans"';
+    ctx.fillStyle = '#B9CBBD';
+    ctx.fillText(`📍 ${pet.state}`, 56, y);
+  }
+
+  // Bottom brand bar.
+  ctx.font = '600 42px "Fraunces"';
+  ctx.fillStyle = PAPER;
+  ctx.fillText('PetMatch', 56, SIZE - 56);
+  ctx.font = '600 22px "IBM Plex Mono"';
+  ctx.fillStyle = MARIGOLD;
+  ctx.textAlign = 'right';
+  ctx.fillText('petmatch.fit', SIZE - 56, SIZE - 62);
+
+  return canvas;
+}
+
+async function downloadIgCard(pet){
+  const canvas = await buildIgCardCanvas(pet);
+  const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+  if(!blob) throw new Error('canvas export failed');
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const slug = (pet.pet_name || 'pet').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  a.href = url;
+  a.download = `petmatch-${slug || pet.id}.png`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 // ---------- auth bar ----------
 function renderAuthbox(){
   const box = document.getElementById('authbox');
@@ -703,7 +832,7 @@ function renderListings(){
       <td>${escapeHtml(p.state)}</td>
       <td class="muted nowrap">${fmtDateTime(p.created_at)}</td>
       <td>${p.available_for_mating ? '<span class="badge approved">Available</span>' : '<span class="badge dismissed">Not available</span>'}</td>
-      <td><div class="row-actions"><button class="btn btn-clay btn-sm" data-remove-pet="${p.id}">Remove</button></div></td>
+      <td><div class="row-actions"><button class="btn btn-ghost btn-sm" data-ig-card="${p.id}">IG Card</button><button class="btn btn-clay btn-sm" data-remove-pet="${p.id}">Remove</button></div></td>
     </tr>`).join('');
 
   body.querySelectorAll('[data-remove-pet]').forEach(btn=>{
@@ -713,6 +842,22 @@ function renderListings(){
       const { error } = await supabase.from('pets').delete().eq('id', btn.dataset.removePet);
       if(error){ alert('Something went wrong: ' + error.message); btn.disabled = false; return; }
       await loadAll();
+    });
+  });
+  body.querySelectorAll('[data-ig-card]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const p = pets.find(x=> x.id === btn.dataset.igCard);
+      if(!p) return;
+      btn.disabled = true;
+      const original = btn.textContent;
+      btn.textContent = 'Generating…';
+      try {
+        await downloadIgCard(p);
+      } catch(e){
+        alert('Could not generate the card: ' + e.message);
+      }
+      btn.disabled = false;
+      btn.textContent = original;
     });
   });
 }
