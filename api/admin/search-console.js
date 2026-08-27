@@ -93,6 +93,31 @@ module.exports = async (req, res) => {
   try {
     const accessToken = await getAccessToken(sa);
 
+    // ?inspect=<full URL> — real-time index status for one URL via the
+    // URL Inspection API, same read-only scope as the query below. Used
+    // to verify actual indexing, not just technical indexability
+    // (noindex/canonical/sitemap, which are checked separately and don't
+    // prove Google has actually crawled+indexed the page).
+    if (req.query && req.query.inspect) {
+      const inspResp = await fetch('https://searchconsole.googleapis.com/v1/urlInspection/index:inspect', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inspectionUrl: req.query.inspect, siteUrl: SITE_URL }),
+      });
+      const inspData = await inspResp.json();
+      if (!inspResp.ok) {
+        return res.status(200).json({ configured: true, error: inspData.error?.message || 'Inspection failed' });
+      }
+      const result = inspData.inspectionResult?.indexStatusResult;
+      return res.status(200).json({
+        configured: true,
+        verdict: result?.verdict,
+        coverageState: result?.coverageState,
+        lastCrawlTime: result?.lastCrawlTime,
+        indexingState: result?.indexingState,
+      });
+    }
+
     // Search Console data lags a couple of days; end 3 days ago, 28-day window.
     const end = new Date();
     end.setDate(end.getDate() - 3);

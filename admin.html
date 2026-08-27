@@ -316,7 +316,11 @@
   <!-- SITE HEALTH -->
   <section id="panel-sitehealth" class="panel">
     <p class="section-title">Automated monitoring</p>
-    <p class="density-note">Results from the recurring production/SEO/GEO check loop for petmatch.fit. It fixes and pushes safe, mechanical issues on its own; anything ambiguous or that would require fabricating content shows up as a recommendation here instead.</p>
+    <p class="density-note">Results from the recurring production/SEO/GEO check loop for petmatch.fit. It fixes and pushes safe, mechanical issues on its own; anything ambiguous or that would require fabricating content shows up as a recommendation here instead. The loop runs from a sandbox with no network access to petmatch.fit or Supabase, so "Check now" runs a lighter check from your own browser instead, which does have real access.</p>
+    <div class="toolbar">
+      <button class="btn btn-forest btn-sm" id="siteHealthCheckNowBtn" type="button">Check now</button>
+      <span class="msg" id="siteHealthCheckMsg"></span>
+    </div>
     <div class="stat-grid" id="siteHealthStats"></div>
     <div class="table-wrap"><table>
       <thead><tr><th>Checked</th><th>Status</th><th>Breakage</th><th>SEO/GEO</th><th>Fixes applied</th><th>Recommendations</th></tr></thead>
@@ -852,6 +856,88 @@ function renderSiteHealth(){
     <td>${escapeHtml(c.recommendations) || '<span class="muted">None</span>'}</td>
   </tr>`).join('');
 }
+
+// ---------- manual site health check ----------
+// The automated loop runs from a sandbox that can't reach petmatch.fit or
+// Supabase (network egress is blocked there — see project memory), so its
+// "last checked" date only moves when it happens to run somewhere that
+// does have access. This button runs a real, lighter check from the
+// admin's own browser (which does have full network access) and inserts
+// a row the same way the automated loop does, so "last checked" reflects
+// what you actually asked for, on demand.
+const SITE_HEALTH_ROUTES = ['/', '/about', '/faq', '/compare', '/safety', '/partners', '/updates'];
+
+async function checkRouteHealth(path){
+  try {
+    const resp = await fetch(`https://petmatch.fit${path}`, { cache: 'no-store' });
+    if(!resp.ok) return { path, ok: false, note: `HTTP ${resp.status}` };
+    const html = await resp.text();
+    const ldBlocks = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)];
+    for(const [, block] of ldBlocks){
+      try { JSON.parse(block); }
+      catch(e){ return { path, ok: false, note: `Invalid JSON-LD (${e.message})` }; }
+    }
+    return { path, ok: true };
+  } catch(e){
+    return { path, ok: false, note: e.message };
+  }
+}
+
+async function checkSitemapHealth(){
+  try {
+    const resp = await fetch('https://petmatch.fit/sitemap.xml', { cache: 'no-store' });
+    if(!resp.ok) return { ok: false, note: `HTTP ${resp.status}` };
+    const xml = await resp.text();
+    const doc = new DOMParser().parseFromString(xml, 'application/xml');
+    if(doc.querySelector('parsererror')) return { ok: false, note: 'Does not parse as valid XML' };
+    const count = doc.querySelectorAll('url').length;
+    return { ok: count > 0, note: `${count} URLs`, count };
+  } catch(e){
+    return { ok: false, note: e.message };
+  }
+}
+
+async function runManualSiteHealthCheck(){
+  const btn = document.getElementById('siteHealthCheckNowBtn');
+  const msg = document.getElementById('siteHealthCheckMsg');
+  btn.disabled = true;
+  msg.textContent = 'Checking…';
+
+  const routeResults = await Promise.all(SITE_HEALTH_ROUTES.map(checkRouteHealth));
+  const sitemapResult = await checkSitemapHealth();
+
+  const brokenRoutes = routeResults.filter(r=> !r.ok);
+  const issues = [];
+  brokenRoutes.forEach(r=> issues.push(`${r.path}: ${r.note}`));
+  if(!sitemapResult.ok) issues.push(`sitemap.xml: ${sitemapResult.note}`);
+
+  const breakage_summary = issues.length
+    ? issues.join('; ')
+    : `All ${SITE_HEALTH_ROUTES.length} key routes returned 200 with valid JSON-LD.`;
+  const seo_geo_summary = sitemapResult.ok
+    ? `sitemap.xml valid, ${sitemapResult.note}.`
+    : `sitemap.xml issue: ${sitemapResult.note}.`;
+  const status = issues.length ? 'issues_found' : 'ok';
+
+  const { error } = await supabase.from('site_health_checks').insert({
+    status,
+    breakage_summary,
+    seo_geo_summary,
+    fixes_applied: 'Manual check from admin panel — read-only, no automated fixes applied.',
+    recommendations: issues.length ? 'Review the routes/sitemap listed under Breakage above.' : 'No issues found.'
+  });
+
+  btn.disabled = false;
+  if(error){
+    msg.textContent = 'Check failed to save: ' + error.message;
+    return;
+  }
+  msg.textContent = 'Done.';
+  setTimeout(()=> { msg.textContent = ''; }, 4000);
+  await loadAll();
+}
+
+document.getElementById('siteHealthCheckNowBtn').addEventListener('click', runManualSiteHealthCheck);
 
 // ---------- comments ----------
 function renderComments(){
