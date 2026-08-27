@@ -223,6 +223,15 @@
 
   <!-- POSTS -->
   <section id="panel-posts" class="panel">
+    <div id="pendingApprovalWrap" style="display:none; margin-bottom:22px;">
+      <p class="section-title">Pending approval</p>
+      <p class="density-note">Drafts from the automated weekly content pipeline, waiting for you to publish or discard.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Post</th><th>Source</th><th>Drafted</th><th></th></tr></thead>
+        <tbody id="pendingApprovalBody"></tbody>
+      </table></div>
+    </div>
+
     <div class="postform">
       <h2 id="postFormTitle">New post</h2>
       <form id="postForm">
@@ -1129,7 +1138,55 @@ document.getElementById('postForm').addEventListener('submit', async (e)=>{
   await loadAll();
 });
 
+function renderPendingApproval(){
+  const wrap = document.getElementById('pendingApprovalWrap');
+  const body = document.getElementById('pendingApprovalBody');
+  const drafts = posts.filter(p=> !p.published);
+  if(drafts.length === 0){
+    wrap.style.display = 'none';
+    return;
+  }
+  wrap.style.display = '';
+  body.innerHTML = drafts.map(p=> `
+    <tr>
+      <td>${p.image_url ? `<img class="post-thumb" src="${p.image_url}" alt="">` : ''}<strong>${escapeHtml(p.title)}</strong></td>
+      <td>${p.source_headline
+        ? (p.source_url
+          ? `<a href="${escapeHtml(p.source_url)}" target="_blank" rel="noopener">${escapeHtml(p.source_headline)}</a>`
+          : escapeHtml(p.source_headline))
+        : '<span class="muted">Manually added, no source recorded</span>'}</td>
+      <td class="muted nowrap">${fmtDateTime(p.created_at)}</td>
+      <td><div class="row-actions">
+        <button class="btn btn-forest btn-sm" data-approve-post="${p.id}">Publish</button>
+        <button class="btn btn-ghost btn-sm" data-edit-post="${p.id}">Edit first</button>
+        <button class="btn btn-clay btn-sm" data-discard-post="${p.id}">Discard</button>
+      </div></td>
+    </tr>`).join('');
+
+  body.querySelectorAll('[data-approve-post]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      btn.disabled = true;
+      const { error } = await supabase.from('posts').update({ published: true }).eq('id', btn.dataset.approvePost);
+      if(error){ alert('Something went wrong: ' + error.message); btn.disabled = false; return; }
+      await loadAll();
+    });
+  });
+  body.querySelectorAll('[data-edit-post]').forEach(btn=>{
+    btn.addEventListener('click', ()=> startEditPost(btn.dataset.editPost));
+  });
+  body.querySelectorAll('[data-discard-post]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      if(!confirm('Discard this draft? This cannot be undone.')) return;
+      btn.disabled = true;
+      const { error } = await supabase.from('posts').delete().eq('id', btn.dataset.discardPost);
+      if(error){ alert('Something went wrong: ' + error.message); btn.disabled = false; return; }
+      await loadAll();
+    });
+  });
+}
+
 function renderPosts(){
+  renderPendingApproval();
   document.getElementById('postCount').textContent = `${posts.length} post${posts.length===1?'':'s'}`;
   const body = document.getElementById('postsTableBody');
   if(posts.length === 0){
