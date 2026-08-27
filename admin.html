@@ -274,7 +274,7 @@
   <section id="panel-content" class="panel">
     <p class="count-line" id="contentCount"></p>
     <div class="table-wrap"><table>
-      <thead><tr><th>Post</th><th>Status</th><th>Source</th><th>Views (30d)</th><th>Created</th></tr></thead>
+      <thead><tr><th>Post</th><th>Status</th><th>Source</th><th>Views (30d)</th><th>Search (28d)</th><th>Created</th></tr></thead>
       <tbody id="contentTableBody"></tbody>
     </table></div>
   </section>
@@ -1110,32 +1110,53 @@ function renderPosts(){
   });
 }
 
-// ---------- content monitoring: per-post views + why it was suggested ----------
+// ---------- content monitoring: per-post views + impressions + why it was suggested ----------
 // Views come from admin_visit_by_post (page_views grouped by /updates/{id},
-// same admin-gated RPC pattern as the Insights tab). "Source" is the trend
-// headline the weekly content pipeline matched the topic to, if the ready
-// JSON included one (source_headline/source_url on posts) — real
+// same admin-gated RPC pattern as the Insights tab). Impressions/clicks/
+// position come from Search Console via api/admin/search-console.js (a
+// service account with read-only access — see .env.example). "Source" is
+// the trend headline the weekly content pipeline matched the topic to, if
+// the ready JSON included one (source_headline/source_url on posts) — real
 // provenance, not the routine's own reasoning, which isn't captured
-// anywhere today. Impressions/clicks from Search Console are a planned
-// follow-up, not wired in yet.
+// anywhere today.
 async function renderContent(){
   document.getElementById('contentCount').textContent = `${posts.length} post${posts.length===1?'':'s'}`;
   const body = document.getElementById('contentTableBody');
   if(posts.length === 0){
-    body.innerHTML = `<tr><td colspan="5"><div class="empty"><h3>No posts yet</h3><p>Posts show up here once published from the Posts tab.</p></div></td></tr>`;
+    body.innerHTML = `<tr><td colspan="6"><div class="empty"><h3>No posts yet</h3><p>Posts show up here once published from the Posts tab.</p></div></td></tr>`;
     return;
   }
-  body.innerHTML = `<tr><td colspan="5" class="muted">Loading view counts…</td></tr>`;
+  body.innerHTML = `<tr><td colspan="6" class="muted">Loading view counts…</td></tr>`;
 
-  const { data: viewsData, error } = await supabase.rpc('admin_visit_by_post', { days: 30 });
-  if(error) console.error('admin_visit_by_post failed:', error.message);
-  const viewsByPath = new Map((viewsData || []).map(v=> [v.path, { views: Number(v.views), uniques: Number(v.uniques) }]));
+  const [visitRes, gscRes] = await Promise.all([
+    supabase.rpc('admin_visit_by_post', { days: 30 }),
+    (async ()=>{
+      try {
+        const { data:{ session } } = await supabase.auth.getSession();
+        const resp = await fetch('/api/admin/search-console', {
+          headers: { Authorization: `Bearer ${session?.access_token || ''}` }
+        });
+        return await resp.json();
+      } catch(e) {
+        return { configured: false, rows: [], error: e.message };
+      }
+    })()
+  ]);
+  if(visitRes.error) console.error('admin_visit_by_post failed:', visitRes.error.message);
+  if(gscRes.error) console.warn('Search Console fetch:', gscRes.error);
+
+  const viewsByPath = new Map((visitRes.data || []).map(v=> [v.path, { views: Number(v.views), uniques: Number(v.uniques) }]));
+  const gscByPath = new Map((gscRes.rows || []).map(r=> [r.path, r]));
 
   const rows = posts
-    .map(p=> ({ post: p, stats: viewsByPath.get('/updates/' + p.id) || { views: 0, uniques: 0 } }))
+    .map(p=> ({
+      post: p,
+      stats: viewsByPath.get('/updates/' + p.id) || { views: 0, uniques: 0 },
+      gsc: gscByPath.get('/updates/' + p.id) || null
+    }))
     .sort((a, b)=> b.stats.views - a.stats.views);
 
-  body.innerHTML = rows.map(({ post: p, stats })=> `
+  body.innerHTML = rows.map(({ post: p, stats, gsc })=> `
     <tr>
       <td>${p.image_url ? `<img class="post-thumb" src="${p.image_url}" alt="">` : ''}<strong>${escapeHtml(p.title)}</strong></td>
       <td><span class="badge ${p.published ? 'approved' : 'pending'}">${p.published ? 'Published' : 'Draft'}</span></td>
@@ -1145,8 +1166,15 @@ async function renderContent(){
           : escapeHtml(p.source_headline))
         : '<span class="muted">—</span>'}</td>
       <td>${stats.views} <span class="muted">· ${stats.uniques} unique</span></td>
+      <td>${gsc ? `${gsc.impressions} impr · ${gsc.clicks} clicks` : '<span class="muted">—</span>'}</td>
       <td class="muted nowrap">${fmtDateTime(p.created_at)}</td>
     </tr>`).join('');
+
+  if(gscRes.configured === false){
+    body.insertAdjacentHTML('beforeend', `<tr><td colspan="6" class="muted">Search Console isn't wired up yet — impressions will appear once GSC_SERVICE_ACCOUNT_JSON is set.</td></tr>`);
+  } else if(gscRes.error){
+    body.insertAdjacentHTML('beforeend', `<tr><td colspan="6" class="muted">Search Console: ${escapeHtml(gscRes.error)}</td></tr>`);
+  }
 }
 
 // ---------- admin badge lookup for the Users tab ----------
