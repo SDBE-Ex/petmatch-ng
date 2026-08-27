@@ -2058,7 +2058,14 @@ document.getElementById('petForm').addEventListener('submit', async (e)=>{
     supabase.auth.signInWithOtp({ email: newPet.owner_email });
   }
   const wasEditing = !!editingPetId;
-  if(!wasEditing) sessionStorage.setItem('petmatch_listed_this_session', '1');
+  if(!wasEditing){
+    sessionStorage.setItem('petmatch_listed_this_session', '1');
+    // Closes the waitlist-lead feedback loop: if this listing's WhatsApp
+    // number matches an open waitlist lead, mark it converted. Fire-
+    // and-forget, never blocks the success UI on this.
+    const newPetId = insertedRows?.[0]?.id;
+    if(newPetId) supabase.rpc('link_lead_by_phone', { pet_id: newPetId, pet_phone: newPet.whatsapp }).then(()=>{});
+  }
   await loadMyPets();
   renderMine();
   msg.textContent = wasEditing
