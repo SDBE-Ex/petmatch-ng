@@ -153,6 +153,7 @@
   <button class="tab-btn" data-tab="partners">Partners</button>
   <button class="tab-btn" data-tab="reports">Reports</button>
   <button class="tab-btn" data-tab="leads">Leads</button>
+  <button class="tab-btn" data-tab="testimonials">Testimonials</button>
   <button class="tab-btn" data-tab="comments">Comments</button>
   <button class="tab-btn" data-tab="subscribers">Subscribers</button>
   <button class="tab-btn" data-tab="posts">Posts</button>
@@ -240,6 +241,22 @@
     <div class="table-wrap"><table>
       <thead><tr><th>Source</th><th>Details</th><th>Received</th><th>Status</th><th></th></tr></thead>
       <tbody id="leadBody"></tbody>
+    </table></div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section id="panel-testimonials" class="panel">
+    <div class="toolbar">
+      <select id="testimonialStatusFilter">
+        <option value="pending">Pending</option>
+        <option value="approved">Approved</option>
+        <option value="">All</option>
+      </select>
+    </div>
+    <p class="count-line" id="testimonialCount"></p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Quote</th><th>Rating</th><th>From</th><th>Received</th><th>Status</th><th></th></tr></thead>
+      <tbody id="testimonialBody"></tbody>
     </table></div>
   </section>
 
@@ -416,6 +433,7 @@ let users = [];
 let partners = [];
 let reports = [];
 let leads = [];
+let testimonials = [];
 let subscribers = [];
 let posts = [];
 let comments = [];
@@ -619,6 +637,7 @@ function showTab(tab){
   if(tab === 'partners') renderPartners();
   if(tab === 'reports') renderReports();
   if(tab === 'leads') renderLeads();
+  if(tab === 'testimonials') renderTestimonials();
   if(tab === 'comments') renderComments();
   if(tab === 'subscribers') renderSubscribers();
   if(tab === 'posts') renderPosts();
@@ -779,12 +798,13 @@ async function renderInsights(){
 
 // ---------- data loading ----------
 async function loadAll(){
-  const [petsRes, usersRes, partnersRes, reportsRes, leadsRes, subscribersRes, postsRes, commentsRes, siteHealthRes] = await Promise.all([
+  const [petsRes, usersRes, partnersRes, reportsRes, leadsRes, testimonialsRes, subscribersRes, postsRes, commentsRes, siteHealthRes] = await Promise.all([
     supabase.rpc('admin_list_pets'),
     supabase.rpc('admin_list_users'),
     supabase.from('partner_applications').select('*').order('created_at', { ascending:false }),
     supabase.from('reports').select('*, pets(pet_name, species, breed, owner_name, is_partner)').order('created_at', { ascending:false }),
     supabase.from('leads').select('*').order('created_at', { ascending:false }),
+    supabase.from('testimonials').select('*').order('created_at', { ascending:false }),
     supabase.from('subscribers').select('*').order('created_at', { ascending:false }),
     supabase.from('posts').select('*').order('created_at', { ascending:false }),
     supabase.from('comments').select('*, posts(title)').order('created_at', { ascending:false }),
@@ -795,6 +815,7 @@ async function loadAll(){
   partners = partnersRes.data || [];
   reports = reportsRes.data || [];
   leads = leadsRes.data || [];
+  testimonials = testimonialsRes.data || [];
   subscribers = subscribersRes.data || [];
   posts = postsRes.data || [];
   comments = commentsRes.data || [];
@@ -1126,6 +1147,57 @@ function renderLeads(){
 }
 document.getElementById('leadSourceFilter').addEventListener('change', renderLeads);
 document.getElementById('leadStatusFilter').addEventListener('change', renderLeads);
+
+// ---------- testimonials: approve real submitted stories, never write our own ----------
+function renderTestimonials(){
+  const statusFilter = document.getElementById('testimonialStatusFilter').value;
+  const list = testimonials.filter(t=>
+    statusFilter === 'pending' ? !t.approved :
+    statusFilter === 'approved' ? t.approved :
+    true
+  );
+  document.getElementById('testimonialCount').textContent = `${list.length} testimonial${list.length===1?'':'s'} · ${testimonials.length} total`;
+  const body = document.getElementById('testimonialBody');
+  if(list.length === 0){
+    body.innerHTML = `<tr><td colspan="6"><div class="empty"><h3>Nothing here</h3><p>No testimonials match this filter.</p></div></td></tr>`;
+    return;
+  }
+  body.innerHTML = list.map(t=>{
+    const stars = t.rating ? '★'.repeat(t.rating) + '☆'.repeat(5 - t.rating) : '<span class="muted">—</span>';
+    const from = [t.name, t.pet_name, t.city].filter(Boolean).join(' · ') || '<span class="muted">Anonymous</span>';
+    const actions = t.approved
+      ? `<button class="btn btn-ghost btn-sm" data-testimonial-approve="${t.id}" data-value="false">Unpublish</button>`
+      : `<button class="btn btn-forest btn-sm" data-testimonial-approve="${t.id}" data-value="true">Approve</button>`;
+    return `<tr>
+      <td style="max-width:320px">${escapeHtml(t.quote)}</td>
+      <td class="nowrap">${stars}</td>
+      <td>${from}</td>
+      <td class="muted nowrap">${fmtDateTime(t.created_at)}</td>
+      <td><span class="badge ${t.approved ? 'approved' : 'pending'}">${t.approved ? 'Approved' : 'Pending'}</span></td>
+      <td><div class="row-actions">${actions}<button class="btn btn-clay btn-sm" data-testimonial-remove="${t.id}">Delete</button></div></td>
+    </tr>`;
+  }).join('');
+
+  body.querySelectorAll('[data-testimonial-approve]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      btn.disabled = true;
+      const { error } = await supabase.from('testimonials')
+        .update({ approved: btn.dataset.value === 'true' }).eq('id', btn.dataset.testimonialApprove);
+      if(error){ alert('Something went wrong: ' + error.message); btn.disabled = false; return; }
+      await loadAll();
+    });
+  });
+  body.querySelectorAll('[data-testimonial-remove]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      if(!confirm('Delete this testimonial? This cannot be undone.')) return;
+      btn.disabled = true;
+      const { error } = await supabase.from('testimonials').delete().eq('id', btn.dataset.testimonialRemove);
+      if(error){ alert('Something went wrong: ' + error.message); btn.disabled = false; return; }
+      await loadAll();
+    });
+  });
+}
+document.getElementById('testimonialStatusFilter').addEventListener('change', renderTestimonials);
 
 // ---------- site health ----------
 function renderSiteHealth(){
@@ -1722,6 +1794,7 @@ supabase.channel('admin-changes')
   .on('postgres_changes', { event:'*', schema:'public', table:'partner_applications' }, ()=>{ if(isAdmin) loadAll(); })
   .on('postgres_changes', { event:'*', schema:'public', table:'reports' }, ()=>{ if(isAdmin) loadAll(); })
   .on('postgres_changes', { event:'*', schema:'public', table:'leads' }, ()=>{ if(isAdmin) loadAll(); })
+  .on('postgres_changes', { event:'*', schema:'public', table:'testimonials' }, ()=>{ if(isAdmin) loadAll(); })
   .on('postgres_changes', { event:'*', schema:'public', table:'subscribers' }, ()=>{ if(isAdmin) loadAll(); })
   .on('postgres_changes', { event:'*', schema:'public', table:'posts' }, ()=>{ if(isAdmin) loadAll(); })
   .on('postgres_changes', { event:'*', schema:'public', table:'comments' }, ()=>{ if(isAdmin) loadAll(); })

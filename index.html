@@ -245,6 +245,11 @@
   .update-tile .update-read-more{font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--clay-dark); display:inline-flex; align-items:center; gap:5px;}
   .update-tile:hover .update-read-more{text-decoration:underline;}
 
+  .testimonial-tile{background:#fff; border:1px solid var(--line); border-radius:12px; padding:18px 16px; box-shadow:0 6px 16px rgba(31,71,50,0.06);}
+  .testimonial-tile .testimonial-stars{color:var(--marigold); font-size:15px; letter-spacing:1px; margin:0 0 8px;}
+  .testimonial-tile p.testimonial-quote{font-family:'Fraunces',serif; font-size:15.5px; font-style:italic; line-height:1.5; color:var(--forest-dark); margin:0 0 10px;}
+  .testimonial-tile .testimonial-attribution{font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.03em; text-transform:uppercase; color:var(--clay-dark);}
+
   .faq-widget{position:fixed; right:18px; bottom:18px; z-index:200; display:flex; flex-direction:column; align-items:flex-end; gap:12px;}
   .faq-toggle{height:52px; padding:0 20px 0 16px; border-radius:999px; background:var(--forest); color:#fff; border:none; display:inline-flex; align-items:center; gap:8px; cursor:pointer; box-shadow:0 10px 24px rgba(0,0,0,0.3); transition:.15s ease; flex:none; font-family:'IBM Plex Mono',monospace; font-size:12.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase;}
   .faq-toggle:hover{background:var(--forest-dark); transform:translateY(-2px);}
@@ -737,6 +742,14 @@
   </div>
 </section>
 
+<section class="landing-card" id="testimonials" style="display:none">
+  <div class="inner">
+    <h3 class="section-eyebrow">Real Stories</h3>
+    <h2>What pet owners are saying</h2>
+    <div class="updates-grid" id="testimonialsGrid"></div>
+  </div>
+</section>
+
 <section class="landing-card" id="faq">
   <div class="inner">
     <h3 class="section-eyebrow">FAQ</h3>
@@ -813,7 +826,7 @@
 <p style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#B9CBBD; max-width:640px; line-height:1.7; margin:0 auto;"><span style="color:var(--marigold)">🌐</span> Prefer another language? Your browser can translate this page: check the translate icon in your address bar. · Kana son wani harshe? Mai binciken ka zai iya fassara wannan shafin: duba alamar fassara a cikin akwatin adireshi. · You wan use another language? Your browser fit translate dis page: check di translate icon for your address bar. · Vous préférez une autre langue ? Votre navigateur peut traduire cette page : cherchez l'icône de traduction dans la barre d'adresse.</p>
 </div>
 
-<footer>PETMATCH · A simple directory, not a broker. Meet safely, and check health and vaccination records before any pairing.<br>Contact: <a href="mailto:hello@petmatch.fit" style="color:inherit">hello@petmatch.fit</a> · <a href="/about" style="color:inherit">About</a> · <a href="/faq" style="color:inherit">FAQ</a> · <a href="/compare" style="color:inherit">Compare</a> · <a href="/updates" style="color:inherit">Updates</a> · <a href="/safety" style="color:inherit">Trust &amp; Safety</a> · <a href="/partners" style="color:inherit">For Pet Businesses</a> · <a href="/spotted" style="color:inherit">Spotted a Listing?</a></footer>
+<footer>PETMATCH · A simple directory, not a broker. Meet safely, and check health and vaccination records before any pairing.<br>Contact: <a href="mailto:hello@petmatch.fit" style="color:inherit">hello@petmatch.fit</a> · <a href="/about" style="color:inherit">About</a> · <a href="/faq" style="color:inherit">FAQ</a> · <a href="/compare" style="color:inherit">Compare</a> · <a href="/updates" style="color:inherit">Updates</a> · <a href="/safety" style="color:inherit">Trust &amp; Safety</a> · <a href="/partners" style="color:inherit">For Pet Businesses</a> · <a href="/spotted" style="color:inherit">Spotted a Listing?</a> · <a href="/story" style="color:inherit">Share Your Story</a></footer>
 
 </div>
 
@@ -1008,6 +1021,32 @@ observeReveals();
         <span class="update-read-more">Read more &rarr;</span>
       </div>
     </a>`;
+  }).join('');
+  section.style.display = '';
+  observeReveals(grid);
+})();
+
+// ---------- homepage testimonials: real approved stories only, hidden entirely if there are none ----------
+(async function loadTestimonials(){
+  const section = document.getElementById('testimonials');
+  const grid = document.getElementById('testimonialsGrid');
+  if(!section || !grid) return;
+  const { data, error } = await supabase
+    .from('testimonials')
+    .select('id,name,quote,rating,pet_name,city,created_at')
+    .eq('approved', true)
+    .order('created_at', { ascending:false })
+    .limit(6);
+  if(error || !data || data.length === 0) return;
+  grid.innerHTML = data.map(t=>{
+    const stars = t.rating ? '★'.repeat(t.rating) + '☆'.repeat(5 - t.rating) : '';
+    const who = [t.name, t.pet_name ? `& ${t.pet_name}` : null].filter(Boolean).join(' ') || 'PetMatch owner';
+    const attribution = [who, t.city].filter(Boolean).join(' · ');
+    return `<div class="testimonial-tile reveal">
+      ${stars ? `<p class="testimonial-stars">${stars}</p>` : ''}
+      <p class="testimonial-quote">&ldquo;${escapeHtml(t.quote)}&rdquo;</p>
+      <p class="testimonial-attribution">${escapeHtml(attribution)}</p>
+    </div>`;
   }).join('');
   section.style.display = '';
   observeReveals(grid);
