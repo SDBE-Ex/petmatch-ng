@@ -65,7 +65,7 @@
     {
       "@type": "Question",
       "name": "Is it free to use?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Yes, free for everyone, always. No listing fees, no referral fees, no commissions." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes, free for pet owners, always, and free for approved Partners too. No listing fees, no referral fees, no commissions." }
     },
     {
       "@type": "Question",
@@ -81,6 +81,11 @@
       "@type": "Question",
       "name": "Do you verify listings?",
       "acceptedAnswer": { "@type": "Answer", "text": "Listings are self-reported by the person who creates them. Partner applications from pet businesses are reviewed by a real person before approval, but we don't independently verify health records, vaccinations, or business registration. Always meet safely and check health and vaccination records yourself before any pairing." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why doesn't PetMatch take a cut?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Because charging fees would put our incentives in the wrong place. A directory that earns money from every listing or every match starts wanting more transactions, not better ones. We'd rather stay a simple, trusted way to find a match than something you have to pay to trust, and keeping money out of PetMatch entirely also keeps it out of reach of puppy-scam patterns." }
     }
   ]
 }
@@ -132,7 +137,7 @@
   .nav-brand:hover{opacity:.85;}
   .nav-logo{width:36px; height:36px; border-radius:9px; display:block; flex:none;}
   .nav-links{display:flex; align-items:center; gap:26px; flex-wrap:wrap; margin:0 auto;}
-  .nav-links a{font-family:'IBM Plex Mono',monospace; font-size:13.5px; letter-spacing:.03em; text-transform:uppercase; color:#DCE7DD; text-decoration:none; white-space:nowrap;}
+  .nav-links a{font-family:'IBM Plex Mono',monospace; font-size:13.5px; font-weight:700; letter-spacing:.03em; text-transform:uppercase; color:#fff; text-decoration:none; white-space:nowrap;}
   .nav-links a:hover{color:var(--marigold);}
   .nav-toggle{display:none; font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.04em; text-transform:uppercase; color:var(--marigold); background:transparent; border:1.5px solid rgba(232,163,61,0.5); border-radius:999px; padding:7px 16px; cursor:pointer; order:1;}
   .nav-toggle:focus-visible{outline:3px solid var(--marigold); outline-offset:2px;}
@@ -456,7 +461,7 @@
   <div class="hero-content">
     <div class="eyebrow">Dogs &amp; Cats · Near You</div>
     <h1>Find your pet's match, nearby.</h1>
-    <p class="hero-sub">A playmate, a mate, or a fellow owner to learn from. Always free, direct on WhatsApp, not a marketplace.</p>
+    <p class="hero-sub">A playmate, a mate, or a fellow owner to learn from. Free for pet owners, always, direct on WhatsApp, not a marketplace.</p>
 
     <div class="hero-ctas">
       <button type="button" class="btn btn-clay" data-tab="add" data-hero-cta="panel-add">List Your Pet</button>
@@ -485,7 +490,7 @@
   <button class="tab-btn" data-tab="browse">Find a Match</button>
 </div>
 
-<p class="count-line" style="text-align:center; margin:14px auto 0;">Free for everyone, always. No fees, no commissions, ever.</p>
+<p class="count-line" style="text-align:center; margin:14px auto 0;">Free for pet owners, always. No fees, no commissions, ever.</p>
 
 <main id="main-content">
   <!-- BROWSE -->
@@ -613,7 +618,7 @@
     <div class="finder">
       <h2>Partner with PetMatch</h2>
       <p class="sub">Help your customers connect with nearby owners, for mating, playdates, or advice. List eligible pets for free, and let nearby owners discover your business while they're looking for a match.</p>
-      <p class="sub">Free for everyone, always. No referral fees, no commissions, no earning from who you invite.</p>
+      <p class="sub">Free for Partners too, always. No referral fees, no commissions, no earning from who you invite.</p>
       <p class="sub">PetMatch connects you with nearby matches. It doesn't handle sales, fees, or payments. Anything you arrange with the other owner is between you two.</p>
     </div>
 
@@ -787,13 +792,15 @@
       <button class="faq-chip" type="button" data-faq="2">Cats too, or just dogs?</button>
       <button class="faq-chip" type="button" data-faq="3">How do I contact a match?</button>
       <button class="faq-chip" type="button" data-faq="4">Do you verify listings?</button>
+      <button class="faq-chip" type="button" data-faq="5">Why doesn't PetMatch take a cut?</button>
     </div>
     <div id="landingFaqAnswers" hidden>
       <p data-answer="0">No. PetMatch is a directory, not a marketplace. We don't handle buying, selling, or payments of any kind. We simply help owners find each other. Anything you arrange with another owner is between the two of you.</p>
-      <p data-answer="1">Yes, free for everyone, always. No listing fees, no referral fees, no commissions.</p>
+      <p data-answer="1">Yes, free for pet owners, always, and free for approved Partners too. No listing fees, no referral fees, no commissions.</p>
       <p data-answer="2">Both. PetMatch is built for dog and cat owners equally. List either species and search nearby, any sex or the opposite sex, depending on what you're looking for.</p>
       <p data-answer="3">Every listing includes a way to reach the owner directly, usually WhatsApp. PetMatch doesn't have its own messaging. You connect and arrange everything between yourselves.</p>
       <p data-answer="4">Listings are self-reported by the person who creates them. Partner applications from pet businesses are reviewed by a real person before approval, but we don't independently verify health records, vaccinations, or business registration. Always meet safely and check health and vaccination records yourself before any pairing.</p>
+      <p data-answer="5">Because charging fees would put our incentives in the wrong place. A directory that earns money from every listing or every match starts wanting more transactions, not better ones. We'd rather stay a simple, trusted way to find a match than something you have to pay to trust, and keeping money out of PetMatch entirely also keeps it out of reach of puppy-scam patterns.</p>
     </div>
   </div>
   <button type="button" class="faq-toggle" id="faqToggle" aria-expanded="false" aria-controls="faqChat" aria-label="Open frequently asked questions chat">

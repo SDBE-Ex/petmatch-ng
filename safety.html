@@ -61,6 +61,11 @@
     },
     {
       "@type": "Question",
+      "name": "Why doesn't PetMatch take a cut?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Because charging fees would put our incentives in the wrong place. A directory that earns money from every listing or every match starts wanting more transactions, not better ones. We'd rather stay a simple, trusted way to find a match than something you have to pay to trust, and keeping money out of PetMatch entirely also keeps it out of reach of puppy-scam patterns." }
+    },
+    {
+      "@type": "Question",
       "name": "What do I do if something feels wrong?",
       "acceptedAnswer": { "@type": "Answer", "text": "Email hello@petmatch.fit if a listing looks suspicious, someone asks you for money, or you have any other concern. Reports are reviewed manually." }
     }
@@ -94,9 +99,9 @@
   header.top .nav-toggle{display:none; margin:14px auto 0; font-family:'IBM Plex Mono',monospace; font-size:11.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--marigold); background:transparent; border:1.5px solid rgba(232,163,61,0.5); border-radius:999px; padding:7px 16px; cursor:pointer;}
   header.top .nav-toggle:focus-visible{outline:3px solid var(--marigold); outline-offset:2px;}
   .site-nav{display:flex; flex-wrap:wrap; justify-content:center; gap:16px; margin:16px auto 0; max-width:600px;}
-  .site-nav a{font-family:'IBM Plex Mono',monospace; font-size:11.5px; letter-spacing:.03em; text-transform:uppercase; color:#DCE7DD; text-decoration:none;}
+  .site-nav a{font-family:'IBM Plex Mono',monospace; font-size:11.5px; font-weight:700; letter-spacing:.03em; text-transform:uppercase; color:#fff; text-decoration:none;}
   .site-nav a:hover{color:var(--marigold);}
-  .site-nav a[aria-current="page"]{color:var(--marigold); font-weight:600;}
+  .site-nav a[aria-current="page"]{color:var(--marigold); font-weight:700;}
   @media (max-width:640px){
     header.top .nav-toggle{display:inline-block;}
     .site-nav{display:none; flex-direction:column; gap:2px; background:rgba(0,0,0,0.15); border-radius:10px; padding:10px; max-width:280px;}
@@ -150,6 +155,10 @@
 
     <h2>PetMatch is not a marketplace</h2>
     <p>We don't sell pets, buy pets, or handle payments of any kind. We don't take a cut, charge a fee, or earn anything from who you contact or meet. PetMatch's only job is to show you nearby pets so you and the other owner can connect on WhatsApp, decide if it's a fit (a mate, a playdate, or just some advice), and arrange the rest yourselves.</p>
+
+    <h2 id="why-free">Why doesn't PetMatch take a cut?</h2>
+    <p>It would be easy to charge a small fee per listing, per match, or per Partner referral. We don't, on purpose. The moment PetMatch earns something from a transaction, its interest shifts from making good matches to making more of them, and that's the wrong incentive for something people are trusting with a decision as personal as who visits their home with their pet.</p>
+    <p>Money changing hands between strangers is also exactly the pattern behind most puppy scams. Keeping PetMatch itself out of that loop entirely, no fees, no commissions, no cut of anything you arrange, is both a values choice and a safety one.</p>
 
     <h2>How is PetMatch different from a puppy scam?</h2>
     <p>If you've come across warnings about <a href="https://www.bbb.org/" target="_blank" rel="noopener">"puppy scams" or pet listing fraud</a> online, here's exactly how PetMatch is built to avoid that pattern:</p>
