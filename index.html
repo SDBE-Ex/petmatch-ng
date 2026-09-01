@@ -280,6 +280,15 @@
   .faq-chip:focus-visible{outline:3px solid var(--marigold); outline-offset:2px;}
   @media (max-width:480px){ .faq-widget{right:14px; bottom:14px;} .faq-toggle{height:46px; padding:0 16px 0 13px; font-size:11.5px;} .faq-toggle svg{width:19px; height:19px;} }
 
+  /* Static FAQ list: same pill shape/color as .faq-chip in the floating
+     chat widget, so the "just read it" and "tap to chat" versions of
+     the same FAQ read as one system instead of two unrelated blocks. */
+  .faq-static-item{padding:16px 0; border-bottom:1px solid var(--line);}
+  .faq-static-item:first-child{padding-top:0;}
+  .faq-static-item:last-child{border-bottom:none; padding-bottom:0;}
+  .faq-static-q{display:inline-block; font-family:'Work Sans',sans-serif; font-weight:600; font-size:12.5px; letter-spacing:.02em; color:var(--forest); border:1.5px solid var(--forest); border-radius:999px; padding:6px 13px; margin:0 0 10px;}
+  .faq-static-item p{margin:0; font-size:15px; line-height:1.65; color:#3c3628;}
+
   .back-to-top{position:fixed; left:18px; bottom:18px; z-index:200; width:52px; height:52px; border-radius:50%; background:var(--forest); color:#fff; border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 10px 24px rgba(0,0,0,0.3); transition:background .15s ease, transform .15s ease, opacity .2s ease, visibility .2s ease; opacity:0; visibility:hidden; transform:translateY(8px);}
   .back-to-top.visible{opacity:1; visibility:visible; transform:none;}
   .back-to-top:hover{background:var(--forest-dark); transform:translateY(-2px);}
@@ -759,18 +768,32 @@
   <div class="inner">
     <h3 class="section-eyebrow">FAQ</h3>
     <h2>Quick answers, right here</h2>
-    <h3 style="font-family:'Work Sans',sans-serif; font-weight:600; font-size:15.5px; color:var(--forest-dark); margin:0 0 6px">Is PetMatch a marketplace?</h3>
-    <p style="font-size:15px; line-height:1.65; color:#3c3628; margin:0 0 18px">No. PetMatch is a directory, not a marketplace. We don't handle buying, selling, or payments of any kind. We simply help owners find each other. Anything you arrange with another owner is between the two of you.</p>
-    <h3 style="font-family:'Work Sans',sans-serif; font-weight:600; font-size:15.5px; color:var(--forest-dark); margin:0 0 6px">Is it free to use?</h3>
-    <p style="font-size:15px; line-height:1.65; color:#3c3628; margin:0 0 18px">Yes, free for pet owners, always, and free for approved Partners too. No listing fees, no referral fees, no commissions.</p>
-    <h3 style="font-family:'Work Sans',sans-serif; font-weight:600; font-size:15.5px; color:var(--forest-dark); margin:0 0 6px">Why doesn't PetMatch take a cut?</h3>
-    <p style="font-size:15px; line-height:1.65; color:#3c3628; margin:0 0 18px">Because charging fees would put our incentives in the wrong place. A directory that earns money from every listing or every match starts wanting more transactions, not better ones. We'd rather stay a simple, trusted way to find a match than something you have to pay to trust, and keeping money out of PetMatch entirely also keeps it out of reach of puppy-scam patterns.</p>
-    <h3 style="font-family:'Work Sans',sans-serif; font-weight:600; font-size:15.5px; color:var(--forest-dark); margin:0 0 6px">Cats too, or just dogs?</h3>
-    <p style="font-size:15px; line-height:1.65; color:#3c3628; margin:0 0 18px">Both. PetMatch is built for dog and cat owners equally. List either species and search nearby, any sex or the opposite sex, depending on what you're looking for.</p>
-    <h3 style="font-family:'Work Sans',sans-serif; font-weight:600; font-size:15.5px; color:var(--forest-dark); margin:0 0 6px">How do I contact a match?</h3>
-    <p style="font-size:15px; line-height:1.65; color:#3c3628; margin:0 0 18px">Every listing includes a way to reach the owner directly, usually WhatsApp. PetMatch doesn't have its own messaging. You connect and arrange everything between yourselves.</p>
-    <h3 style="font-family:'Work Sans',sans-serif; font-weight:600; font-size:15.5px; color:var(--forest-dark); margin:0 0 6px">Do you verify listings?</h3>
-    <p style="font-size:15px; line-height:1.65; color:#3c3628; margin:0 0 18px">Listings are self-reported by the person who creates them. Partner applications from pet businesses are reviewed by a real person before approval, but we don't independently verify health records, vaccinations, or business registration. Always meet safely and check health and vaccination records yourself before any pairing.</p>
+    <div class="faq-static">
+      <div class="faq-static-item">
+        <h3 class="faq-static-q">Is PetMatch a marketplace?</h3>
+        <p>No. PetMatch is a directory, not a marketplace. We don't handle buying, selling, or payments of any kind. We simply help owners find each other. Anything you arrange with another owner is between the two of you.</p>
+      </div>
+      <div class="faq-static-item">
+        <h3 class="faq-static-q">Is it free to use?</h3>
+        <p>Yes, free for pet owners, always, and free for approved Partners too. No listing fees, no referral fees, no commissions.</p>
+      </div>
+      <div class="faq-static-item">
+        <h3 class="faq-static-q">Why doesn't PetMatch take a cut?</h3>
+        <p>Because charging fees would put our incentives in the wrong place. A directory that earns money from every listing or every match starts wanting more transactions, not better ones. We'd rather stay a simple, trusted way to find a match than something you have to pay to trust, and keeping money out of PetMatch entirely also keeps it out of reach of puppy-scam patterns.</p>
+      </div>
+      <div class="faq-static-item">
+        <h3 class="faq-static-q">Cats too, or just dogs?</h3>
+        <p>Both. PetMatch is built for dog and cat owners equally. List either species and search nearby, any sex or the opposite sex, depending on what you're looking for.</p>
+      </div>
+      <div class="faq-static-item">
+        <h3 class="faq-static-q">How do I contact a match?</h3>
+        <p>Every listing includes a way to reach the owner directly, usually WhatsApp. PetMatch doesn't have its own messaging. You connect and arrange everything between yourselves.</p>
+      </div>
+      <div class="faq-static-item">
+        <h3 class="faq-static-q">Do you verify listings?</h3>
+        <p>Listings are self-reported by the person who creates them. Partner applications from pet businesses are reviewed by a real person before approval, but we don't independently verify health records, vaccinations, or business registration. Always meet safely and check health and vaccination records yourself before any pairing.</p>
+      </div>
+    </div>
     <p style="font-size:13px; color:var(--muted); margin:16px 0 0; text-align:center">Or tap the FAQ button in the corner for the same answers, <a href="/faq" style="color:var(--clay-dark); font-weight:600">read the full FAQ</a>, or <a href="/compare" style="color:var(--clay-dark); font-weight:600">see how PetMatch compares</a> to other ways to find a match.</p>
     <p style="font-size:13px; color:var(--muted); margin:8px 0 0; text-align:center">Prefer to hear from real owners instead? <a href="https://chat.whatsapp.com/LiqbPTGnnk4FokloFHZ8fh?s=cl&amp;p=a&amp;ilr=1" target="_blank" rel="noopener" style="color:var(--muted); text-decoration:underline">Join our WhatsApp community</a>.</p>
   </div>
