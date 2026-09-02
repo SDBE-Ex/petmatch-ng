@@ -316,11 +316,11 @@ ${fontLinks()}
 
   <article class="formcard" style="margin-top:20px">
     <h2 style="font-family:'Fraunces',serif; font-size:19px; margin:0 0 14px; color:var(--forest-dark)">Questions about ${name}'s listing</h2>
-    <h3 style="font-family:'Work Sans',sans-serif; font-weight:600; font-size:14.5px; color:var(--forest-dark); margin:0 0 4px">How do I contact ${name}'s owner?</h3>
+    <h3 style="font-family:'Work Sans',sans-serif; font-weight:600; font-size:14.5px; color:var(--forest-dark); margin:0 0 4px">How do I contact ${name}'s owner on PetMatch?</h3>
     <p style="font-size:14px; color:#3c3628; line-height:1.6; margin:0 0 14px">Use the buttons above to reach ${ownerFirstName} directly on WhatsApp, call, or text, whichever they've made available. PetMatch doesn't have its own messaging, so you connect and arrange everything between yourselves.</p>
-    <h3 style="font-family:'Work Sans',sans-serif; font-weight:600; font-size:14.5px; color:var(--forest-dark); margin:0 0 4px">Does PetMatch charge a fee to connect?</h3>
+    <h3 style="font-family:'Work Sans',sans-serif; font-weight:600; font-size:14.5px; color:var(--forest-dark); margin:0 0 4px">Does PetMatch charge a fee to connect with a pet owner?</h3>
     <p style="font-size:14px; color:#3c3628; line-height:1.6; margin:0 0 14px">No. PetMatch is a free directory, not a marketplace. No listing fees, no referral fees, no commissions on anything you arrange with another owner.</p>
-    <h3 style="font-family:'Work Sans',sans-serif; font-weight:600; font-size:14.5px; color:var(--forest-dark); margin:0 0 4px">Should I check ${name}'s vaccination and health records first?</h3>
+    <h3 style="font-family:'Work Sans',sans-serif; font-weight:600; font-size:14.5px; color:var(--forest-dark); margin:0 0 4px">Should I check ${name}'s vaccination and health records before meeting?</h3>
     <p style="font-size:14px; color:#3c3628; line-height:1.6; margin:0 0 14px">Yes. Listings are self-reported, so PetMatch doesn't independently verify health or vaccination records. Ask to see proof before any pairing &mdash; <a href="https://www.wsava.org/" target="_blank" rel="noopener">WSAVA's vaccination guidelines</a> are a useful reference for what's normal.</p>
     <p style="font-size:13px; color:#7a7261; margin:0"><a href="/faq" style="color:var(--clay-dark); font-weight:600">Read the full FAQ</a> or <a href="/compare" style="color:var(--clay-dark); font-weight:600">see how PetMatch compares</a> to other ways to find a match.</p>
   </article>
