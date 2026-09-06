@@ -38,7 +38,7 @@ import urllib.error
 import urllib.request
 
 SUPABASE_URL = "https://pnawdtpavemfjzdsevey.supabase.co"
-FROM_ADDRESS = "PetMatch <matches@petmatch.fit>"  # update once a sending domain is verified in Resend, if different
+FROM_ADDRESS = "PetMatch <matches@send.petmatch.fit>"  # send.petmatch.fit is the Resend-verified sending domain (verified 2026-08-08, region eu-west-1)
 NEARBY_KM = 100  # haversine threshold when both pets have lat/lng
 MAX_MATCHES_PER_PET = 5  # per pet section in one email, keeps a digest readable
 MAX_EMAILS_PER_RUN = 30  # pre-scale safety valve — this site has ~13 users total as of writing
