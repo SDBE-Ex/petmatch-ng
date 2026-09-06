@@ -25,6 +25,7 @@
     { "source": "/spotted", "destination": "/spotted.html" },
     { "source": "/story", "destination": "/story.html" },
     { "source": "/pets/:id", "destination": "/api/pets/:id" },
+    { "source": "/digest/unsubscribe", "destination": "/api/digest/unsubscribe" },
     { "source": "/sitemap.xml", "destination": "/api/sitemap" }
   ],
   "headers": [

@@ -597,6 +597,11 @@
           <div class="checkline"><input type="checkbox" id="acceptsCalls"><label for="acceptsCalls">Phone calls</label></div>
         </div>
 
+        <div class="field">
+          <label>Stay in the loop</label>
+          <div class="checkline"><input type="checkbox" id="digestOptin"><label for="digestOptin">Email me when a new nearby match is listed</label></div>
+        </div>
+
         <div class="field" id="listedByField" style="display:none">
           <label>Listed by</label>
           <div class="checkline"><input type="radio" name="listedBy" id="listedByOwner" value="owner" checked><label for="listedByOwner">Pet Owner</label></div>
@@ -1911,6 +1916,7 @@ function startEditPet(id){
   document.getElementById('acceptsWhatsapp').checked = !!p.accepts_whatsapp;
   document.getElementById('acceptsText').checked = !!p.accepts_text;
   document.getElementById('acceptsCalls').checked = !!p.accepts_calls;
+  document.getElementById('digestOptin').checked = !!p.digest_optin;
   if(p.is_partner) document.getElementById('listedByBusiness').checked = true;
   else document.getElementById('listedByOwner').checked = true;
 
@@ -2094,6 +2100,7 @@ document.getElementById('petForm').addEventListener('submit', async (e)=>{
     accepts_whatsapp: acceptsWhatsapp,
     accepts_text: acceptsText,
     accepts_calls: acceptsCalls,
+    digest_optin: document.getElementById('digestOptin').checked,
     is_partner,
     partner_business_name,
     lat: formCoords?.lat ?? editingCoords?.lat ?? null,

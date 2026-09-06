@@ -1,0 +1,38 @@
+name: Weekly new-match digest
+
+# Emails opted-in pet owners (public.pets.digest_optin) about new
+# nearby matches for their listing. See scripts/digest_send.py for the
+# full design rationale — matching logic, no-repeat tracking via
+# public.digest_sends, and the consent/unsubscribe model.
+#
+# No `contents: write` permission and no commit step: unlike this
+# repo's other periodic jobs, all state (what's been sent) lives in
+# Supabase, not a git-tracked file.
+#
+# dry_run defaults to true on manual dispatch so a test run can never
+# accidentally send real email; the scheduled run is real by design
+# (DRY_RUN unset there), but only after this has been manually
+# dry-run-verified at least once per the plan's verification steps.
+
+on:
+  schedule:
+    - cron: "0 8 * * 3" # Wednesday 08:00 UTC — same weekly cadence as the rest of the content pipeline
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (log composed emails, send nothing, write nothing)"
+        type: boolean
+        default: true
+
+jobs:
+  send-digest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Send digest
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || '0' }}
+        run: python3 scripts/digest_send.py

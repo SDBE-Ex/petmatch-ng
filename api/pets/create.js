@@ -69,6 +69,7 @@ module.exports = async (req, res) => {
     accepts_whatsapp: !!pet.accepts_whatsapp,
     accepts_text: !!pet.accepts_text,
     accepts_calls: !!pet.accepts_calls,
+    digest_optin: !!pet.digest_optin,
     is_partner: false,
     partner_business_name: null,
     lat: pet.lat ?? null,
