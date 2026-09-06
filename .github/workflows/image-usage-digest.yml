@@ -1,0 +1,37 @@
+name: Image usage digest
+
+# Writes content/images/recently-used.json so the external "PetMatch
+# Content Writer" cloud routine can avoid repeating a post image — same
+# "commit a grounding file the routine reads" pattern as pet-trends.yml,
+# kept as its own workflow (not a step in that one) so a bug here can
+# never block the trends digest the writer critically depends on.
+
+on:
+  schedule:
+    - cron: "0 7 * * 3" # Wednesday 07:00 UTC — same window as pet-trends.yml, before the writer runs
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  image-usage-digest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build recently-used image tracking
+        run: python3 scripts/build_recently_used_images.py
+
+      - name: Commit if changed
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add content/images/recently-used.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update image usage tracking"
+            git push
+          fi

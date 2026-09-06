@@ -1,0 +1,56 @@
+name: Content pipeline watchdog
+
+# publish-post.yml's own "no drafts this week" case is a silent no-op —
+# the workflow still finishes green (see scripts/check_content_pipeline.py
+# for exactly why). This runs a day later and opens a visible GitHub
+# issue if no new draft actually showed up, the same explicit-notification
+# pattern publish-post.yml already uses for "a draft is waiting for
+# approval" (gh issue create), not site-health.yml's silent exit-1-only
+# pattern — a silently-red Actions run is exactly the failure mode this
+# exists to close.
+
+on:
+  schedule:
+    - cron: "0 7 * * 4" # Thursday 07:00 UTC — a day of slack past publish-post.yml's Wednesday 09:00 UTC run
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  watchdog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for a recent draft
+        id: check
+        run: |
+          set +e
+          python3 scripts/check_content_pipeline.py
+          echo "result=$?" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Open notification issue if the pipeline missed this week
+        if: steps.check.outputs.result != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh label create "content-pipeline-alert" --color "d73a4a" \
+            --description "Weekly content pipeline appears to have missed a run" \
+            --repo "${{ github.repository }}" 2>/dev/null || true
+
+          OPEN_COUNT=$(gh issue list --repo "${{ github.repository }}" \
+            --label "content-pipeline-alert" --state open --json number --jq 'length')
+
+          if [ "$OPEN_COUNT" -gt 0 ]; then
+            echo "An alert is already open, not creating a duplicate."
+          else
+            gh issue create \
+              --title "⚠️ Weekly PetMatch content pipeline may have missed a run" \
+              --body "No new draft appeared in content/ready/, content/submitted/, or content/published/ in the expected window. Check whether the 'PetMatch Content Writer' cloud routine ran this week, and whether publish-post.yml completed successfully." \
+              --label "content-pipeline-alert" \
+              --repo "${{ github.repository }}"
+          fi
