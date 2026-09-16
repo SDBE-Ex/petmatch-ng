@@ -1,0 +1,44 @@
+name: Weekly newsletter
+
+# Emails public.subscribers ("Keep me posted about PetMatch news and
+# new features") a summary of new published posts. See
+# scripts/weekly_newsletter_send.py for the full design rationale —
+# why subscribers (not a new opt-in), no-repeat tracking via
+# public.newsletter_sends, and the unsubscribe model.
+#
+# Friday 10:00 UTC: two days of slack after publish-post.yml's
+# Wednesday 09:00 UTC submission for the admin to actually click
+# Publish in admin.html on that week's draft (posts stay
+# published=false, invisible to this script, until that happens), and
+# clear of the Wednesday/Thursday content-pipeline cadence so this
+# doesn't collide with it. Easy to change to a different day/time if
+# you'd rather it land elsewhere — it's just the cron line below.
+#
+# No `contents: write` permission and no commit step: all state (what
+# post's been sent to whom) lives in Supabase, not a git-tracked file.
+#
+# dry_run defaults to true on manual dispatch so a test run can never
+# accidentally send real email; the scheduled run is real by design.
+
+on:
+  schedule:
+    - cron: "0 10 * * 5" # Friday 10:00 UTC
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (log composed emails, send nothing, write nothing)"
+        type: boolean
+        default: true
+
+jobs:
+  send-newsletter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Send newsletter
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || '0' }}
+        run: python3 scripts/weekly_newsletter_send.py
