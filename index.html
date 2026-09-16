@@ -469,8 +469,8 @@
 <section class="hero">
   <div class="hero-content">
     <div class="eyebrow">Dogs &amp; Cats · Near You</div>
-    <h1>Find your pet's match, nearby.</h1>
-    <p class="hero-sub">A playmate, a mate, or a fellow owner to learn from. Free for pet owners, always. Direct on WhatsApp, not a marketplace.</p>
+    <h1 data-copy="hero-h1">Find your pet's match, nearby.</h1>
+    <p class="hero-sub" data-copy="hero-sub">A playmate, a mate, or a fellow owner to learn from. Free for pet owners, always. Direct on WhatsApp, not a marketplace.</p>
 
     <div class="hero-ctas">
       <button type="button" class="btn btn-clay" data-tab="add" data-hero-cta="panel-add">List Your Pet</button>
@@ -700,23 +700,23 @@
   <div class="value-grid">
     <div class="value-tile reveal">
       <span class="value-icon" aria-hidden="true">🐾</span>
-      <h3>Always free</h3>
-      <p>No fees, no commissions, ever. PetMatch only makes introductions, nothing else.</p>
+      <h3 data-copy="tile-1-h">Always free</h3>
+      <p data-copy="tile-1-p">No fees, no commissions, ever. PetMatch only makes introductions, nothing else.</p>
     </div>
     <div class="value-tile reveal">
       <span class="value-icon" aria-hidden="true">💬</span>
-      <h3>Straight to WhatsApp</h3>
-      <p>No in-app messaging to manage. Connect directly and arrange everything yourselves.</p>
+      <h3 data-copy="tile-2-h">Straight to WhatsApp</h3>
+      <p data-copy="tile-2-p">No in-app messaging to manage. Connect directly and arrange everything yourselves.</p>
     </div>
     <div class="value-tile reveal">
       <span class="value-icon" aria-hidden="true">✅</span>
-      <h3>Real people review partners</h3>
-      <p>Partner vets, kennels, and pet stores are reviewed by a real person before approval.</p>
+      <h3 data-copy="tile-3-h">Real people review partners</h3>
+      <p data-copy="tile-3-p">Partner vets, kennels, and pet stores are reviewed by a real person before approval.</p>
     </div>
     <div class="value-tile reveal">
       <span class="value-icon" aria-hidden="true">⚡</span>
-      <h3>Live in under a minute</h3>
-      <p>No approval wait for listings. Add your pet and it's discoverable right away.</p>
+      <h3 data-copy="tile-4-h">Live in under a minute</h3>
+      <p data-copy="tile-4-p">No approval wait for listings. Add your pet and it's discoverable right away.</p>
     </div>
   </div>
 </section>
@@ -750,10 +750,10 @@
     <h3 class="section-eyebrow">How it works</h3>
     <h2>From listing to meeting, in four steps</h2>
     <div class="landing-steps">
-      <div class="landing-step reveal"><span class="n">01</span><p>Sign in with your email or Google. Takes under a minute, no password needed.</p></div>
-      <div class="landing-step reveal"><span class="n">02</span><p>Add your pet's details and a photo. Species, breed, sex, age, and how to reach you.</p></div>
-      <div class="landing-step reveal"><span class="n">03</span><p>Get discovered by nearby owners, or browse listings yourself.</p></div>
-      <div class="landing-step reveal"><span class="n">04</span><p>Talk on WhatsApp, and meet safely. Suggested partner locations are available.</p></div>
+      <div class="landing-step reveal"><span class="n">01</span><p data-copy="step-1">Sign in with your email or Google. Takes under a minute, no password needed.</p></div>
+      <div class="landing-step reveal"><span class="n">02</span><p data-copy="step-2">Add your pet's details and a photo. Species, breed, sex, age, and how to reach you.</p></div>
+      <div class="landing-step reveal"><span class="n">03</span><p data-copy="step-3">Get discovered by nearby owners, or browse listings yourself.</p></div>
+      <div class="landing-step reveal"><span class="n">04</span><p data-copy="step-4">Talk on WhatsApp, and meet safely. Suggested partner locations are available.</p></div>
     </div>
     <div class="video-embed">
       <iframe src="https://www.youtube.com/embed/N0QNjaZjtNs" title="How PetMatch works" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
@@ -1014,6 +1014,97 @@ function haversineKm(a, b){
   const s = Math.sin(dLat/2)**2 + Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLng/2)**2;
   return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1-s));
 }
+
+// ---------- homepage copy variants: vary hero/value-tile/how-it-works copy
+// each page load for freshness, and log which variant was shown via gtag so
+// copy performance can be reviewed later. Index 0 in every pool is always
+// today's original hardcoded text (also what no-JS visitors and crawlers
+// see) -- JS only ever swaps textContent on top of that real fallback, it
+// never hides content first. FAQ is deliberately untouched: its question
+// text is checked against FAQPage JSON-LD by scripts/check_faq_crawlable.py,
+// which never executes JS, so randomizing it there would break that check. ----------
+(function applyHomepageCopyVariants(){
+  const HERO_VARIANTS = [
+    { h1: "Find your pet's match, nearby.", sub: "A playmate, a mate, or a fellow owner to learn from. Free for pet owners, always. Direct on WhatsApp, not a marketplace." },
+    { h1: "Your pet's next best friend could be down the road.", sub: "A playmate, a mate, or another owner who's been there before, all nearby. Always free, straight to WhatsApp." },
+    { h1: "Nearby pets. Real owners. No middleman.", sub: "Search dogs and cats near you for mating, play, or advice from someone who gets it. Free, always, and never a marketplace." }
+  ];
+
+  const TILE_VARIANTS = [
+    [ // tile 1 — Always free
+      { h3: "Always free", p: "No fees, no commissions, ever. PetMatch only makes introductions, nothing else." },
+      { h3: "Free, no catch", p: "We don't charge owners a naira. PetMatch just makes the introduction, the rest is between you." },
+      { h3: "Zero fees, always", p: "No listing fees, no commission, no premium tier. Just a free way to find your pet's match." }
+    ],
+    [ // tile 2 — Straight to WhatsApp
+      { h3: "Straight to WhatsApp", p: "No in-app messaging to manage. Connect directly and arrange everything yourselves." },
+      { h3: "Talk on WhatsApp, not in an app", p: "No inbox to check, no new app to learn. Chat where you already do, on WhatsApp." },
+      { h3: "One tap to WhatsApp", p: "Skip the in-app messages. Get their WhatsApp number and talk directly, owner to owner." }
+    ],
+    [ // tile 3 — Real people review partners
+      { h3: "Real people review partners", p: "Partner vets, kennels, and pet stores are reviewed by a real person before approval." },
+      { h3: "Partners are checked by humans", p: "Every vet, kennel, and pet store on PetMatch is reviewed by a real person, not a bot, before they're approved." },
+      { h3: "No partner goes unchecked", p: "Vets, kennels, and pet stores are personally reviewed before they ever appear on PetMatch." }
+    ],
+    [ // tile 4 — Live in under a minute
+      { h3: "Live in under a minute", p: "No approval wait for listings. Add your pet and it's discoverable right away." },
+      { h3: "Up in under a minute", p: "List your pet and go live instantly, no approval queue to wait on." },
+      { h3: "No waiting on approval", p: "Add your pet's details and they're discoverable immediately. No review queue, no delay." }
+    ]
+  ];
+
+  const STEP_VARIANTS = [
+    [ // step 1 — sign in
+      "Sign in with your email or Google. Takes under a minute, no password needed.",
+      "Sign in with your email or Google account. Under a minute, no password to remember.",
+      "Sign in with email or Google, no password required. It takes less than a minute."
+    ],
+    [ // step 2 — add pet details
+      "Add your pet's details and a photo. Species, breed, sex, age, and how to reach you.",
+      "Add a photo and your pet's details: species, breed, sex, age, and how owners can reach you.",
+      "Tell us about your pet: species, breed, sex, age, plus a photo and how to reach you."
+    ],
+    [ // step 3 — get discovered
+      "Get discovered by nearby owners, or browse listings yourself.",
+      "Get discovered by owners nearby, or go browse listings yourself.",
+      "Nearby owners can discover your pet, or you can browse listings yourself."
+    ],
+    [ // step 4 — WhatsApp + meet
+      "Talk on WhatsApp, and meet safely. Suggested partner locations are available.",
+      "Chat on WhatsApp and meet safely, with suggested partner locations if you need one.",
+      "Move the conversation to WhatsApp and meet safely. We'll suggest partner locations if you want one."
+    ]
+  ];
+
+  const pick = arr => Math.floor(Math.random() * arr.length);
+
+  const heroIdx = pick(HERO_VARIANTS);
+  const heroEl = document.querySelector('[data-copy="hero-h1"]');
+  const subEl = document.querySelector('[data-copy="hero-sub"]');
+  if(heroEl) heroEl.textContent = HERO_VARIANTS[heroIdx].h1;
+  if(subEl) subEl.textContent = HERO_VARIANTS[heroIdx].sub;
+
+  const tileIdxs = TILE_VARIANTS.map(pool => pick(pool));
+  tileIdxs.forEach((idx, i)=>{
+    const v = TILE_VARIANTS[i][idx];
+    const h3 = document.querySelector(`[data-copy="tile-${i+1}-h"]`);
+    const p = document.querySelector(`[data-copy="tile-${i+1}-p"]`);
+    if(h3) h3.textContent = v.h3;
+    if(p) p.textContent = v.p;
+  });
+
+  const stepIdxs = STEP_VARIANTS.map(pool => pick(pool));
+  stepIdxs.forEach((idx, i)=>{
+    const p = document.querySelector(`[data-copy="step-${i+1}"]`);
+    if(p) p.textContent = STEP_VARIANTS[i][idx];
+  });
+
+  gtag('event', 'homepage_copy_variant', {
+    hero_variant: heroIdx,
+    tile_variant: tileIdxs.join(','),
+    steps_variant: stepIdxs.join(',')
+  });
+})();
 
 // ---------- static dropdowns ----------
 function fillStatics(){
